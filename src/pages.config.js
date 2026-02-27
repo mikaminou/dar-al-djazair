@@ -51,6 +51,7 @@ import Home from './pages/Home';
 import Listings from './pages/Listings';
 import ListingDetail from './pages/ListingDetail';
 import PostListing from './pages/PostListing';
+import MyListings from './pages/MyListings';
 
 
 export const PAGES = {
@@ -58,6 +59,7 @@ export const PAGES = {
     "Listings": Listings,
     "ListingDetail": ListingDetail,
     "PostListing": PostListing,
+    "MyListings": MyListings,
 }
 
 export const pagesConfig = {
