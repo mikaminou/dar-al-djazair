@@ -66,12 +66,22 @@ export default function ListingDetailPage() {
     }
   }
 
+  function threadId() {
+    const emails = [user?.email || "guest", listing.contact_email || listing.created_by || "owner"].sort();
+    return [id, ...emails].join("__");
+  }
+
   async function sendMessage() {
+    if (!msgText.trim()) return;
+    const sender = user?.email || "guest";
+    const recipient = listing.contact_email || listing.created_by || "";
     await base44.entities.Message.create({
       listing_id: id,
-      sender_email: msgForm.email,
-      recipient_email: listing.contact_email || listing.created_by,
-      content: `${msgForm.name} (${msgForm.phone}): ${msgForm.content}`,
+      sender_email: sender,
+      recipient_email: recipient,
+      content: msgText.trim(),
+      thread_id: threadId(),
+      is_read: false,
     });
     setMsgSent(true);
   }
