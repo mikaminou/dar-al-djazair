@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   MapPin, Maximize2, BedDouble, Bath, Heart, Share2, Phone, Mail,
-  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft
+  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
