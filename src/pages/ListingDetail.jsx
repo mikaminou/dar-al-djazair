@@ -25,8 +25,11 @@ export default function ListingDetailPage() {
   const [isFav, setIsFav] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [msgForm, setMsgForm] = useState({ name: "", phone: "", email: "", content: "" });
+  const [msgText, setMsgText] = useState("");
   const [msgSent, setMsgSent] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
 
   useEffect(() => {
     if (id) loadData();
