@@ -9,7 +9,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 
-function NavContent({ currentPageName }) {
+function NavContent({ currentPageName, children }) {
   const { t, lang, changeLang } = useLang();
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
