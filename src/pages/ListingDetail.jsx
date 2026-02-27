@@ -247,26 +247,48 @@ export default function ListingDetailPage() {
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 sticky top-4">
             <h2 className="font-bold text-gray-800 mb-4">{t.contactSeller}</h2>
 
+            {/* Phone CTA */}
             {listing.contact_phone && (
-              <a href={`tel:${listing.contact_phone}`} className="flex items-center gap-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-3 mb-3 font-medium transition-colors">
-                <Phone className="w-5 h-5" /> {listing.contact_phone}
+              <a href={`tel:${listing.contact_phone}`} className="flex items-center justify-center gap-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-3 mb-3 font-semibold transition-colors text-sm">
+                <Phone className="w-5 h-5" />
+                {listing.contact_phone}
               </a>
             )}
 
+            {/* Divider */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 h-px bg-gray-100" />
+              <span className="text-xs text-gray-400">{lang === "ar" ? "أو" : lang === "fr" ? "ou" : "or"}</span>
+              <div className="flex-1 h-px bg-gray-100" />
+            </div>
+
+            {/* In-app message */}
             {msgSent ? (
-              <div className="text-center py-4 text-emerald-600 font-medium">
-                <CheckCircle className="w-8 h-8 mx-auto mb-2" />
-                {lang === "ar" ? "تم إرسال رسالتك!" : lang === "fr" ? "Message envoyé !" : "Message sent!"}
+              <div className="text-center py-5 text-emerald-600 font-medium">
+                <CheckCircle className="w-9 h-9 mx-auto mb-2" />
+                <p className="text-sm">{lang === "ar" ? "تم إرسال رسالتك!" : lang === "fr" ? "Message envoyé !" : "Message sent!"}</p>
+                <button onClick={() => setMsgSent(false)} className="text-xs text-gray-400 underline mt-1">
+                  {lang === "ar" ? "إرسال رسالة أخرى" : lang === "fr" ? "Envoyer un autre" : "Send another"}
+                </button>
               </div>
             ) : (
-              <div className="space-y-3">
-                <Input placeholder={t.nameLabel} value={msgForm.name} onChange={e => setMsgForm(f => ({ ...f, name: e.target.value }))} className="text-sm" />
-                <Input placeholder={t.phoneLabel} value={msgForm.phone} onChange={e => setMsgForm(f => ({ ...f, phone: e.target.value }))} className="text-sm" />
-                <Input placeholder={t.emailLabel} value={msgForm.email} onChange={e => setMsgForm(f => ({ ...f, email: e.target.value }))} className="text-sm" />
-                <Textarea placeholder={t.messageLabel} value={msgForm.content} onChange={e => setMsgForm(f => ({ ...f, content: e.target.value }))} rows={3} className="text-sm" />
-                <Button onClick={sendMessage} className="w-full bg-emerald-600 hover:bg-emerald-700">
-                  <Mail className="w-4 h-4 mr-2" /> {t.sendMessage}
+              <div className="space-y-2">
+                <Textarea
+                  placeholder={lang === "ar" ? "اكتب رسالتك هنا..." : lang === "fr" ? "Écrivez votre message..." : "Write your message..."}
+                  value={msgText}
+                  onChange={e => setMsgText(e.target.value)}
+                  rows={3}
+                  className="text-sm resize-none"
+                />
+                <Button onClick={sendMessage} disabled={!msgText.trim()} className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+                  <MessageCircle className="w-4 h-4" />
+                  {lang === "ar" ? "إرسال رسالة" : lang === "fr" ? "Envoyer un message" : "Send Message"}
                 </Button>
+                {!user && (
+                  <p className="text-xs text-gray-400 text-center">
+                    {lang === "ar" ? "سجل دخول لمتابعة الردود" : lang === "fr" ? "Connectez-vous pour suivre les réponses" : "Sign in to track replies"}
+                  </p>
+                )}
               </div>
             )}
 
