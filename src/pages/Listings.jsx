@@ -16,6 +16,16 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("grid");
   const [sortBy, setSortBy] = useState("-created_date");
+  const [compareList, setCompareList] = useState([]);
+
+  function toggleCompare(listing) {
+    setCompareList(prev => {
+      if (prev.find(l => l.id === listing.id)) return prev.filter(l => l.id !== listing.id);
+      if (prev.length >= 2) return prev; // max 2
+      return [...prev, listing];
+    });
+  }
+
   const [filters, setFilters] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return {
