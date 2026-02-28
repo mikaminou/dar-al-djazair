@@ -54,6 +54,7 @@ import Listings from './pages/Listings';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
+import Compare from './pages/Compare';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "PostListing": PostListing,
+    "Compare": Compare,
 }
 
 export const pagesConfig = {
