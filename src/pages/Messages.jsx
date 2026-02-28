@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { MessageSquare, Send, Phone, ArrowLeft, User } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, User, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "../components/LanguageContext";
