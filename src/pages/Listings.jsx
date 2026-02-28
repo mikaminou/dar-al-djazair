@@ -163,5 +163,12 @@ export default function ListingsPage() {
         )}
       </div>
     </div>
+
+      <CompareBar
+        compareList={compareList}
+        onRemove={(id) => setCompareList(prev => prev.filter(l => l.id !== id))}
+        onClear={() => setCompareList([])}
+      />
+    </div>
   );
 }
