@@ -219,6 +219,9 @@ export default function ListingDetailPage() {
             </div>
           )}
 
+          {/* Map */}
+          <ListingMap latitude={listing.latitude} longitude={listing.longitude} title={listing.title} />
+
           {/* Similar Listings */}
           {similar.length > 0 && (
             <div>
