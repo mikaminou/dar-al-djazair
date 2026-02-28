@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import ListingCard from "../components/listing/ListingCard";
 import SearchFilters from "../components/listing/SearchFilters";
+import CompareBar from "../components/listing/CompareBar";
 import { useLang } from "../components/LanguageContext";
 
 export default function ListingsPage() {
