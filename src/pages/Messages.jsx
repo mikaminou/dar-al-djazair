@@ -181,13 +181,20 @@ export default function MessagesPage() {
             <>
               {/* Chat header */}
               <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
                   <User className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-gray-800">{activeThread.other?.split("@")[0]}</p>
-                  <p className="text-xs text-gray-400">{activeThread.other} · #{activeThread.listing_id?.slice(-6)}</p>
+                  <p className="text-xs text-gray-400 truncate">{activeThread.other}</p>
                 </div>
+                <Link
+                  to={createPageUrl("ListingDetail") + `?id=${activeThread.listing_id}`}
+                  className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 flex-shrink-0 transition-colors font-medium"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  {lang === "ar" ? "الإعلان" : lang === "fr" ? "Voir l'annonce" : "View listing"}
+                </Link>
               </div>
 
               {/* Messages */}
