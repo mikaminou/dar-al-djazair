@@ -162,7 +162,6 @@ export default function ListingsPage() {
           </div>
         )}
       </div>
-    </div>
 
       <CompareBar
         compareList={compareList}
