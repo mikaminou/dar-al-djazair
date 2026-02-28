@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES } from "../components/constants";
 import ListingCard from "../components/listing/ListingCard";
+import ListingMap from "../components/listing/ListingMap";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
