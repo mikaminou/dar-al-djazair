@@ -38,9 +38,12 @@ export default function ListingDetailPage() {
 
   async function loadData() {
     setLoading(true);
+    const me = await base44.auth.me().catch(() => null);
     const [data, favs] = await Promise.all([
       base44.entities.Listing.filter({ id }),
-      base44.entities.Favorite.list().catch(() => [])
+      me
+        ? base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+        : Promise.resolve([])
     ]);
     if (data.length > 0) {
       setListing(data[0]);
