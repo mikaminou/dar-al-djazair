@@ -6,6 +6,7 @@ import { Search, TrendingUp, Shield, Star, ArrowRight, Building, Home as HomeIco
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingCard from "../components/listing/ListingCard";
+import CompareBar from "../components/listing/CompareBar";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, formatPrice } from "../components/constants";
 
