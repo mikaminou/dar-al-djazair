@@ -17,7 +17,10 @@ export default function FavoritesPage() {
 
   async function load() {
     setLoading(true);
-    const favs = await base44.entities.Favorite.list().catch(() => []);
+    const me = await base44.auth.me().catch(() => null);
+    const favs = me
+      ? await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+      : await base44.entities.Favorite.list().catch(() => []);
     const favIds = favs.map(f => f.listing_id);
     setFavorites(favIds);
     if (favIds.length > 0) {
