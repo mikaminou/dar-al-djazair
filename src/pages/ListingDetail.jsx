@@ -60,12 +60,13 @@ export default function ListingDetailPage() {
   }
 
   async function toggleFav() {
+    const me = await base44.auth.me().catch(() => null);
     if (isFav) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: id });
+      const favs = await base44.entities.Favorite.filter({ listing_id: id, user_email: me?.email });
       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
       setIsFav(false);
     } else {
-      await base44.entities.Favorite.create({ listing_id: id });
+      await base44.entities.Favorite.create({ listing_id: id, user_email: me?.email });
       setIsFav(true);
     }
   }
