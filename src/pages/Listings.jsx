@@ -55,7 +55,10 @@ export default function ListingsPage() {
 
     setListings(data);
 
-    const favs = await base44.entities.Favorite.list().catch(() => []);
+    const me = await base44.auth.me().catch(() => null);
+    const favs = me
+      ? await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+      : [];
     setFavorites(favs.map(f => f.listing_id));
     setLoading(false);
   }
