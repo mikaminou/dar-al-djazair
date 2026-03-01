@@ -39,7 +39,8 @@ export default function FavoritesPage() {
       setFavorites(prev => prev.filter(id => id !== listing.id));
       setListings(prev => prev.filter(l => l.id !== listing.id));
     } else {
-      await base44.entities.Favorite.create({ listing_id: listing.id });
+      const me2 = await base44.auth.me().catch(() => null);
+      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me2?.email });
       setFavorites(prev => [...prev, listing.id]);
     }
   }
