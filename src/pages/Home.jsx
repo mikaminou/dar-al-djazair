@@ -15,6 +15,15 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState([]);
   const [filters, setFilters] = useState({ listing_type: "", property_type: "", wilaya: "" });
   const [loading, setLoading] = useState(true);
+  const [compareList, setCompareList] = useState([]);
+
+  function toggleCompare(listing) {
+    setCompareList(prev => {
+      if (prev.find(l => l.id === listing.id)) return prev.filter(l => l.id !== listing.id);
+      if (prev.length >= 2) return prev;
+      return [...prev, listing];
+    });
+  }
 
   useEffect(() => {
     loadData();
