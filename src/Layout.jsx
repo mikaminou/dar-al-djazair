@@ -101,6 +101,9 @@ function NavContent({ currentPageName, children }) {
                     <div className="px-3 py-2 text-xs text-gray-500 truncate">{user.email}</div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("Profile")}>{lang === "ar" ? "ملفي الشخصي" : lang === "fr" ? "Mon profil" : "My Profile"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
