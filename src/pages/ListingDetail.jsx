@@ -253,6 +253,23 @@ export default function ListingDetailPage() {
         <div className="space-y-4">
           {/* Contact Card */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 sticky top-4">
+            {/* Seller Profile */}
+            {listing.created_by && (
+              <Link
+                to={createPageUrl(`Profile?email=${listing.created_by}`)}
+                className="flex items-center gap-3 mb-4 pb-4 border-b border-gray-100 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-sm flex-shrink-0">
+                  {(listing.contact_name || listing.created_by)?.[0]?.toUpperCase() || "?"}
+                </div>
+                <div>
+                  <div className="font-semibold text-sm text-gray-900">{listing.contact_name || listing.created_by}</div>
+                  <div className="text-xs text-emerald-600 hover:underline">
+                    {lang === "ar" ? "عرض الملف الشخصي" : lang === "fr" ? "Voir le profil" : "View profile"}
+                  </div>
+                </div>
+              </Link>
+            )}
             <h2 className="font-bold text-gray-800 mb-4">{t.contactSeller}</h2>
 
             {/* Phone CTA */}
