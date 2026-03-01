@@ -55,6 +55,7 @@ import Listings from './pages/Listings';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +68,7 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "PostListing": PostListing,
+    "Profile": Profile,
 }
 
 export const pagesConfig = {
