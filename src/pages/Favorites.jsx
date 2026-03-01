@@ -31,9 +31,10 @@ export default function FavoritesPage() {
   }
 
   async function toggleFavorite(listing) {
+    const me = await base44.auth.me().catch(() => null);
     const isFav = favorites.includes(listing.id);
     if (isFav) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id });
+      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
       setFavorites(prev => prev.filter(id => id !== listing.id));
       setListings(prev => prev.filter(l => l.id !== listing.id));
