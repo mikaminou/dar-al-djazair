@@ -62,7 +62,11 @@ export default function ComparePage() {
   const imgA = a.images?.[0] || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80";
   const imgB = b.images?.[0] || "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80";
 
-  const typeLabel = (v) => PROPERTY_TYPES.find(p => p.value === v)?.label || v;
+  const typeLabel = (v) => {
+    const found = PROPERTY_TYPES.find(p => p.value === v);
+    if (!found) return v;
+    return found.label[lang] || found.label.fr || v;
+  };
 
   const furnishedLabel = (v) => {
     if (!v) return null;

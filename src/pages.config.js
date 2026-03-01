@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import Compare from './pages/Compare';
 import Favorites from './pages/Favorites';
 import Home from './pages/Home';
 import ListingDetail from './pages/ListingDetail';
@@ -54,11 +55,11 @@ import Listings from './pages/Listings';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
-import Compare from './pages/Compare';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Compare": Compare,
     "Favorites": Favorites,
     "Home": Home,
     "ListingDetail": ListingDetail,
@@ -66,7 +67,6 @@ export const PAGES = {
     "Messages": Messages,
     "MyListings": MyListings,
     "PostListing": PostListing,
-    "Compare": Compare,
 }
 
 export const pagesConfig = {
