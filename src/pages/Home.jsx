@@ -32,9 +32,12 @@ export default function HomePage() {
 
   async function loadData() {
     setLoading(true);
+    const me = await base44.auth.me().catch(() => null);
     const [listingsData, favsData] = await Promise.all([
       base44.entities.Listing.filter({ status: "active" }, "-created_date", 8),
-      base44.entities.Favorite.list().catch(() => [])
+      me
+        ? base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+        : Promise.resolve([])
     ]);
     setListings(listingsData);
     setFavorites(favsData.map(f => f.listing_id));
@@ -42,13 +45,14 @@ export default function HomePage() {
   }
 
   async function toggleFavorite(listing) {
+    const me = await base44.auth.me().catch(() => null);
     const existing = favorites.includes(listing.id);
     if (existing) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id });
+      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
       setFavorites(prev => prev.filter(id => id !== listing.id));
     } else {
-      await base44.entities.Favorite.create({ listing_id: listing.id });
+      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me?.email });
       setFavorites(prev => [...prev, listing.id]);
     }
   }
