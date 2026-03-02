@@ -332,7 +332,7 @@ export default function MessagesPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                 {threadMessages.map((msg, idx) => {
                   const isMe = msg.sender_email === user.email;
                   const isLastMine = isMe && idx === threadMessages.map(m => m.sender_email === user.email).lastIndexOf(true);
