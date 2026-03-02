@@ -126,9 +126,12 @@ export default function MessagesPage() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // ---- scroll to bottom ----
+  const messagesContainerRef = useRef(null);
+
+  // ---- scroll to bottom of messages container only ----
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = messagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [activeThread, messages, otherIsTyping]);
 
   // ---- mark messages read when opening a thread ----
