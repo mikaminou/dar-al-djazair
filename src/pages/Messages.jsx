@@ -373,7 +373,7 @@ export default function MessagesPage() {
                     </div>
                   </div>
                 )}
-                <div ref={bottomRef} />
+                <div />
               </div>
 
               {/* Input */}
