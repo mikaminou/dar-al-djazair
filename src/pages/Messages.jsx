@@ -114,10 +114,15 @@ export default function MessagesPage() {
             if (prev.find(p => p.id === m.id)) return prev;
             return [...prev, m];
           });
-          // If this message is in the active thread and I'm the recipient → mark read
-          const tid = m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email);
-          if (m.recipient_email === user.email && activeThreadRef.current?.thread_id === tid) {
-            markThreadRead([m]);
+          // If this message is addressed to me
+          if (m.recipient_email === user.email) {
+            const tid = m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email);
+            if (activeThreadRef.current?.thread_id === tid) {
+              markThreadRead([m]);
+            } else {
+              // App not focused or different thread → push notification
+              showBrowserNotification(m.sender_email, m.content);
+            }
           }
         }
       }
