@@ -55,6 +55,28 @@ function broadcastTyping(threadId, email, isTyping) {
   } catch {}
 }
 
+// --------------- browser notification helper ---------------
+async function requestNotificationPermission() {
+  if (!("Notification" in window)) return false;
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") return false;
+  const result = await Notification.requestPermission();
+  return result === "granted";
+}
+
+function showBrowserNotification(senderEmail, content) {
+  if (!("Notification" in window) || Notification.permission !== "granted") return;
+  if (document.visibilityState === "visible") return; // app is in focus, no need
+  const senderName = senderEmail?.split("@")[0] || senderEmail;
+  new Notification(`💬 ${senderName}`, {
+    body: content.length > 80 ? content.slice(0, 80) + "…" : content,
+    icon: "/favicon.ico",
+    badge: "/favicon.ico",
+    tag: "dari-message",
+    renotify: true,
+  });
+}
+
 // --------------- component ---------------
 export default function MessagesPage() {
   const { t, lang } = useLang();
