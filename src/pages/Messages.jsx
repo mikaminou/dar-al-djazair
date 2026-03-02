@@ -97,6 +97,9 @@ export default function MessagesPage() {
   useEffect(() => { activeThreadRef.current = activeThread; }, [activeThread]);
   useEffect(() => { userRef.current = user; }, [user]);
 
+  // ---- request notification permission on mount ----
+  useEffect(() => { requestNotificationPermission(); }, []);
+
   // ---- load data ----
   useEffect(() => { load(); }, []);
 
