@@ -11,6 +11,7 @@ import { formatPrice } from "../components/constants";
 export default function MyListingsPage() {
   const { t, lang } = useLang();
   const [listings, setListings] = useState([]);
+  const [leadCounts, setLeadCounts] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => { load(); }, []);
@@ -19,8 +20,14 @@ export default function MyListingsPage() {
     setLoading(true);
     const user = await base44.auth.me().catch(() => null);
     if (!user) { setLoading(false); return; }
-    const data = await base44.entities.Listing.filter({ created_by: user.email }, "-created_date", 50);
+    const [data, leads] = await Promise.all([
+      base44.entities.Listing.filter({ created_by: user.email }, "-created_date", 50),
+      base44.entities.Lead.filter({ agent_email: user.email, status: "new" }, "-created_date", 200).catch(() => []),
+    ]);
     setListings(data);
+    const counts = {};
+    leads.forEach(l => { counts[l.listing_id] = (counts[l.listing_id] || 0) + 1; });
+    setLeadCounts(counts);
     setLoading(false);
   }
 
