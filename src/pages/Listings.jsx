@@ -167,9 +167,16 @@ export default function ListingsPage() {
           </p>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} className="gap-2 text-xs">
-              <BookmarkPlus className="w-3 h-3" /> {t.saveSearch}
-            </Button>
+            {matchedSearch ? (
+              <Button variant="outline" size="sm" className="gap-2 text-xs border-emerald-400 text-emerald-700 bg-emerald-50 cursor-default max-w-[180px]" disabled>
+                <BookmarkCheck className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{matchedSearch.name || (lang === "ar" ? "بحث محفوظ" : lang === "fr" ? "Recherche sauvegardée" : "Saved search")}</span>
+              </Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} className="gap-2 text-xs">
+                <BookmarkPlus className="w-3 h-3" /> {t.saveSearch}
+              </Button>
+            )}
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-44 h-9 text-xs border-gray-200">
