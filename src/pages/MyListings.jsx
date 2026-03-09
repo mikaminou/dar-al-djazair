@@ -84,9 +84,16 @@ export default function MyListingsPage() {
                     <Badge className={statusColor[listing.status] || "bg-gray-100"}>{listing.status}</Badge>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">{listing.wilaya} • {formatPrice(listing.price, lang)}</p>
-                  <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
-                    <Eye className="w-3 h-3" /> {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
-                  </p>
+                  <div className="flex items-center gap-3 mt-0.5">
+                    <p className="text-xs text-gray-400 flex items-center gap-1">
+                      <Eye className="w-3 h-3" /> {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
+                    </p>
+                    {leadCounts[listing.id] > 0 && (
+                      <Link to={createPageUrl("Leads")} className="flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full hover:bg-emerald-100">
+                        <Users className="w-3 h-3" /> {leadCounts[listing.id]} {lang === "ar" ? "عميل محتمل" : lang === "fr" ? "lead(s)" : "lead(s)"}
+                      </Link>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <Button
