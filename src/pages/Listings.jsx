@@ -135,7 +135,8 @@ export default function ListingsPage() {
 
   async function confirmSaveSearch() {
     const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
-    await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
+    const newSearch = await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
+    setSavedSearches(prev => [newSearch, ...prev]);
     setSaved(true);
     setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); }, 1200);
   }
