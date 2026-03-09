@@ -134,11 +134,39 @@ export default function ListingsPage() {
   }
 
   async function confirmSaveSearch() {
+    const me = await base44.auth.me().catch(() => null);
     const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
     const newSearch = await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
     setSavedSearches(prev => [newSearch, ...prev]);
     setSaved(true);
     setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); }, 1200);
+
+    // Generate leads: notify agents whose listings match this saved search
+    if (me) {
+      const query = { status: "active" };
+      if (filters.listing_type)  query.listing_type  = filters.listing_type;
+      if (filters.property_type) query.property_type = filters.property_type;
+      if (filters.wilaya)        query.wilaya        = filters.wilaya;
+      const candidates = await base44.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
+      const matched = applyClientFilters(candidates, filters);
+      // Create one lead per distinct agent (avoid spamming same agent for multiple listings)
+      const seenAgents = new Set();
+      for (const listing of matched) {
+        if (!listing.created_by || listing.created_by === me.email) continue;
+        if (seenAgents.has(`${listing.created_by}:${listing.id}`)) continue;
+        seenAgents.add(`${listing.created_by}:${listing.id}`);
+        base44.entities.Lead.create({
+          listing_id:     listing.id,
+          listing_title:  listing.title,
+          listing_wilaya: listing.wilaya,
+          agent_email:    listing.created_by,
+          seeker_email:   me.email,
+          search_name:    name,
+          search_filters: filters,
+          status:         "new",
+        }).catch(() => {});
+      }
+    }
   }
 
   const sortLabel = (key) => {
