@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus, Check } from "lucide-react";
+import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus, Check, BookmarkCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
