@@ -157,6 +157,8 @@ function NavContent({ currentPageName, children }) {
         )}
       </header>
 
+      <SavedSearchAlerts />
+
       {/* PAGE CONTENT */}
       <main className="flex-1">
         {children}
