@@ -77,7 +77,29 @@ export default function ListingsPage() {
     });
   }
 
-  useEffect(() => { loadListings(); }, [sortBy]);
+  useEffect(() => { loadListings(); loadSavedSearches(); }, [sortBy]);
+
+  async function loadSavedSearches() {
+    const me = await base44.auth.me().catch(() => null);
+    if (!me) return;
+    const data = await base44.entities.SavedSearch.filter({ created_by: me.email }, "-created_date", 50).catch(() => []);
+    setSavedSearches(data);
+  }
+
+  function filtersMatch(savedFilters, currentFilters) {
+    const keys = ["listing_type", "property_type", "wilaya", "min_price", "max_price", "min_area", "min_bedrooms", "min_bathrooms", "furnished"];
+    for (const k of keys) {
+      const a = savedFilters?.[k] || "";
+      const b = currentFilters?.[k] || "";
+      if (String(a) !== String(b)) return false;
+    }
+    const aFeats = (savedFilters?.features || []).slice().sort().join(",");
+    const bFeats = (currentFilters?.features || []).slice().sort().join(",");
+    if (aFeats !== bFeats) return false;
+    return true;
+  }
+
+  const matchedSearch = savedSearches.find(s => filtersMatch(s.filters, filters));
 
   async function loadListings() {
     setLoading(true);
