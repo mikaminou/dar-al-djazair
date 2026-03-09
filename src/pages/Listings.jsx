@@ -51,6 +51,7 @@ export default function ListingsPage() {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
   const [saved, setSaved] = useState(false);
+  const [savedSearches, setSavedSearches] = useState([]);
 
   const [filters, setFilters] = useState(() => {
     const params = new URLSearchParams(window.location.search);
