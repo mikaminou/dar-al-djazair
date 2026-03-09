@@ -1,58 +1,92 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus } from "lucide-react";
+import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import ListingCard from "../components/listing/ListingCard";
 import SearchFilters from "../components/listing/SearchFilters";
 import CompareBar from "../components/listing/CompareBar";
 import { useLang } from "../components/LanguageContext";
 
+const SORT_OPTIONS = [
+  { value: "-created_date", labelKey: "newest" },
+  { value: "price",         labelKey: "priceAsc" },
+  { value: "-price",        labelKey: "priceDesc" },
+  { value: "-area",         labelKey: "areaDesc" },
+  { value: "-views_count",  labelKey: "mostViewed" },
+];
+
+function applyClientFilters(data, filters) {
+  return data.filter(l => {
+    if (filters.min_price && l.price < Number(filters.min_price)) return false;
+    if (filters.max_price && l.price > Number(filters.max_price)) return false;
+    if (filters.min_area  && l.area < Number(filters.min_area))   return false;
+    if (filters.furnished && l.furnished !== filters.furnished)    return false;
+    if (filters.min_bedrooms) {
+      const min = filters.min_bedrooms === "5+" ? 5 : Number(filters.min_bedrooms);
+      if ((l.bedrooms || 0) < min) return false;
+    }
+    if (filters.min_bathrooms) {
+      const min = filters.min_bathrooms === "4+" ? 4 : Number(filters.min_bathrooms);
+      if ((l.bathrooms || 0) < min) return false;
+    }
+    if (filters.features?.length) {
+      if (!filters.features.every(f => (l.features || []).includes(f))) return false;
+    }
+    return true;
+  });
+}
+
 export default function ListingsPage() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [listings, setListings] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState("grid");
   const [sortBy, setSortBy] = useState("-created_date");
   const [compareList, setCompareList] = useState([]);
-
-  function toggleCompare(listing) {
-    setCompareList(prev => {
-      if (prev.find(l => l.id === listing.id)) return prev.filter(l => l.id !== listing.id);
-      if (prev.length >= 2) return prev; // max 2
-      return [...prev, listing];
-    });
-  }
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [searchName, setSearchName] = useState("");
+  const [saved, setSaved] = useState(false);
 
   const [filters, setFilters] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return {
-      listing_type: params.get("listing_type") || "",
-      property_type: params.get("property_type") || "",
-      wilaya: params.get("wilaya") || "",
-      min_price: params.get("min_price") || "",
-      max_price: params.get("max_price") || "",
+      listing_type:   params.get("listing_type") || "",
+      property_type:  params.get("property_type") || "",
+      wilaya:         params.get("wilaya") || "",
+      min_price:      params.get("min_price") || "",
+      max_price:      params.get("max_price") || "",
+      min_area:       "",
+      min_bedrooms:   "",
+      min_bathrooms:  "",
+      furnished:      "",
+      features:       [],
     };
   });
 
-  useEffect(() => {
-    loadListings();
-  }, [sortBy]);
+  function toggleCompare(listing) {
+    setCompareList(prev => {
+      if (prev.find(l => l.id === listing.id)) return prev.filter(l => l.id !== listing.id);
+      if (prev.length >= 2) return prev;
+      return [...prev, listing];
+    });
+  }
+
+  useEffect(() => { loadListings(); }, [sortBy]);
 
   async function loadListings() {
     setLoading(true);
     const query = { status: "active" };
-    if (filters.listing_type) query.listing_type = filters.listing_type;
+    if (filters.listing_type)  query.listing_type  = filters.listing_type;
     if (filters.property_type) query.property_type = filters.property_type;
-    if (filters.wilaya) query.wilaya = filters.wilaya;
+    if (filters.wilaya)        query.wilaya        = filters.wilaya;
 
-    let data = await base44.entities.Listing.filter(query, sortBy, 50);
-
-    if (filters.min_price) data = data.filter(l => l.price >= Number(filters.min_price));
-    if (filters.max_price) data = data.filter(l => l.price <= Number(filters.max_price));
-
+    let data = await base44.entities.Listing.filter(query, sortBy, 100);
+    data = applyClientFilters(data, filters);
     setListings(data);
 
     const me = await base44.auth.me().catch(() => null);
@@ -76,14 +110,23 @@ export default function ListingsPage() {
     }
   }
 
-  async function saveSearch() {
-    await base44.entities.SavedSearch.create({
-      name: `Search ${new Date().toLocaleDateString()}`,
-      filters,
-      alert_enabled: true
-    });
-    alert(t.saveSearch + " ✓");
+  async function confirmSaveSearch() {
+    const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
+    await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
+    setSaved(true);
+    setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); }, 1200);
   }
+
+  const sortLabel = (key) => {
+    const labels = {
+      newest:     { en: "Newest", fr: "Plus récent", ar: "الأحدث" },
+      priceAsc:   { en: "Price ↑", fr: "Prix ↑", ar: "السعر ↑" },
+      priceDesc:  { en: "Price ↓", fr: "Prix ↓", ar: "السعر ↓" },
+      areaDesc:   { en: "Largest", fr: "Plus grand", ar: "الأكبر" },
+      mostViewed: { en: "Most Viewed", fr: "Plus vus", ar: "الأكثر مشاهدة" },
+    };
+    return labels[key]?.[lang] || labels[key]?.fr || key;
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,8 +143,8 @@ export default function ListingsPage() {
             <span className="font-bold text-gray-900">{listings.length}</span> {t.results}
           </p>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={saveSearch} className="gap-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} className="gap-2 text-xs">
               <BookmarkPlus className="w-3 h-3" /> {t.saveSearch}
             </Button>
 
@@ -111,9 +154,9 @@ export default function ListingsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="-created_date">{t.newest}</SelectItem>
-                <SelectItem value="price">{t.priceAsc}</SelectItem>
-                <SelectItem value="-price">{t.priceDesc}</SelectItem>
+                {SORT_OPTIONS.map(s => (
+                  <SelectItem key={s.value} value={s.value}>{sortLabel(s.labelKey)}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -130,10 +173,11 @@ export default function ListingsPage() {
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="md:hidden gap-2">
-                  <SlidersHorizontal className="w-4 h-4" /> Filters
+                  <SlidersHorizontal className="w-4 h-4" />
+                  {lang === "ar" ? "الفلاتر" : lang === "fr" ? "Filtres" : "Filters"}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 p-4">
+              <SheetContent side="left" className="w-80 overflow-y-auto p-4">
                 <SearchFilters filters={filters} onChange={setFilters} onSearch={() => { loadListings(); }} />
               </SheetContent>
             </Sheet>
@@ -172,6 +216,41 @@ export default function ListingsPage() {
         onRemove={(id) => setCompareList(prev => prev.filter(l => l.id !== id))}
         onClear={() => setCompareList([])}
       />
+
+      {/* Save Search Dialog */}
+      <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {lang === "ar" ? "حفظ البحث" : lang === "fr" ? "Sauvegarder la recherche" : "Save Search"}
+            </DialogTitle>
+          </DialogHeader>
+          {saved ? (
+            <div className="flex flex-col items-center gap-2 py-6 text-emerald-600">
+              <Check className="w-10 h-10" />
+              <p className="font-medium">{lang === "ar" ? "تم الحفظ!" : lang === "fr" ? "Sauvegardé !" : "Saved!"}</p>
+            </div>
+          ) : (
+            <>
+              <Input
+                placeholder={lang === "ar" ? "اسم البحث..." : lang === "fr" ? "Nom de la recherche..." : "Search name..."}
+                value={searchName}
+                onChange={e => setSearchName(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && confirmSaveSearch()}
+                autoFocus
+              />
+              <DialogFooter className="mt-2">
+                <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
+                  {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
+                </Button>
+                <Button onClick={confirmSaveSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  {t.saveSearch}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
