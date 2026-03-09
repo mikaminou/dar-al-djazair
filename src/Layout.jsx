@@ -108,6 +108,9 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
