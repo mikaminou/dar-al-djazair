@@ -113,7 +113,7 @@ export default function MessagesPage() {
     const leadId = params.get("lead");
     if (listingId && contact) {
       const threadId = getThreadId(listingId, "me_placeholder", contact); // will be recomputed after load
-      setPhantomThread({ listingId, contact, leadId, threadId });
+      setPhantomThread({ listingId, contact, leadId, threadId, messages: [], isPhantom: true });
     }
   }, []);
 
