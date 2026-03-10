@@ -250,6 +250,46 @@ export default function LeadsPage() {
           </div>
         )}
       </div>
+
+      {/* Send Message Dialog */}
+      <Dialog open={!!msgDialog} onOpenChange={open => !open && setMsgDialog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("contactLead")}</DialogTitle>
+          </DialogHeader>
+          {msgSent ? (
+            <div className="flex flex-col items-center gap-2 py-8 text-emerald-600">
+              <CheckCircle2 className="w-10 h-10" />
+              <p className="font-semibold">{t("sent")}</p>
+            </div>
+          ) : (
+            <>
+              {msgDialog && (
+                <p className="text-sm text-gray-500 mb-1">
+                  To: <span className="font-medium text-gray-800">{msgDialog.seeker_email}</span>
+                </p>
+              )}
+              <Textarea
+                placeholder={t("msgPlaceholder")}
+                value={msgText}
+                onChange={e => setMsgText(e.target.value)}
+                rows={4}
+                autoFocus
+              />
+              <DialogFooter className="mt-2 gap-2">
+                <Button variant="outline" onClick={() => setMsgDialog(null)}>{t("cancel")}</Button>
+                <Button
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                  onClick={() => sendMessage(msgDialog)}
+                  disabled={sending || !msgText.trim()}
+                >
+                  <Send className="w-3 h-3" /> {t("send")}
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
