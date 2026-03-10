@@ -181,9 +181,9 @@ export default function LeadsPage() {
                     <Button
                       size="sm"
                       className="text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
-                      onClick={() => { setMsgDialog(lead); setMsgText(""); setMsgSent(false); }}
+                      onClick={() => openConversation(lead)}
                     >
-                      <Mail className="w-3 h-3" /> {t("sendMsg")}
+                      <MessageSquare className="w-3 h-3" /> {t("sendMsg")}
                     </Button>
                     <Link to={createPageUrl(`Profile?email=${encodeURIComponent(lead.seeker_email)}`)}>
                       <Button variant="outline" size="sm" className="text-xs gap-1 w-full">
