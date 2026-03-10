@@ -190,10 +190,12 @@ export default function LeadsPage() {
                       )}
                     </div>
 
-                    <p className="text-xs text-gray-500 mb-2">
-                      ✉️ <a href={`mailto:${lead.seeker_email}`} className="text-emerald-700 hover:underline font-medium">{lead.seeker_email}</a>
-                      {lead.search_name && <span className="ml-2 text-gray-400">— "{lead.search_name}"</span>}
-                    </p>
+                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                      <a href={`mailto:${lead.seeker_email}`} className="flex items-center gap-1 text-xs text-emerald-700 hover:underline font-medium">
+                        <Mail className="w-3 h-3" /> {lead.seeker_email}
+                      </a>
+                      {lead.search_name && <span className="text-xs text-gray-400">— "{lead.search_name}"</span>}
+                    </div>
 
                     <div className="text-xs text-gray-500 mb-1.5 font-medium">{t("wants")}:</div>
                     <FilterPills filters={lead.search_filters} lang={lang} />
