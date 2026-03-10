@@ -88,14 +88,9 @@ export default function LeadsPage() {
     noLeadsSub: { en: "When buyers save searches matching your listings, they'll appear here.", fr: "Quand des acheteurs sauvegardent une recherche correspondant à vos annonces, ils apparaîtront ici.", ar: "عندما يحفظ المشترون بحثاً يطابق إعلاناتك، سيظهرون هنا." },
     all:        { en: "All", fr: "Tous", ar: "الكل" },
     markContacted:{ en: "Contacted", fr: "Contacté", ar: "تم التواصل" },
-    markClosed:    { en: "Close",        fr: "Clôturer",     ar: "إغلاق" },
-    viewProfile:   { en: "View Profile", fr: "Voir profil",  ar: "الملف الشخصي" },
-    sendMsg:       { en: "Send Message", fr: "Envoyer un message", ar: "إرسال رسالة" },
-    msgPlaceholder:{ en: "Write your message to this lead...", fr: "Écrivez votre message à ce lead...", ar: "اكتب رسالتك لهذا العميل..." },
-    send:          { en: "Send",         fr: "Envoyer",      ar: "إرسال" },
-    cancel:        { en: "Cancel",       fr: "Annuler",      ar: "إلغاء" },
-    sent:          { en: "Sent!",        fr: "Envoyé !",     ar: "تم الإرسال!" },
-    contactLead:   { en: "Contact Lead", fr: "Contacter le lead", ar: "تواصل مع العميل" },
+    markClosed:  { en: "Close",        fr: "Clôturer",            ar: "إغلاق" },
+    viewProfile: { en: "View Profile", fr: "Voir profil",         ar: "الملف الشخصي" },
+    sendMsg:     { en: "Message",      fr: "Envoyer un message",  ar: "مراسلة" },
   };
   const t = k => T[k]?.[lang] || T[k]?.en;
 
