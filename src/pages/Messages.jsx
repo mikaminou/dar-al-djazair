@@ -105,6 +105,18 @@ export default function MessagesPage() {
   // ---- request notification permission on mount ----
   useEffect(() => { requestNotificationPermission(); }, []);
 
+  // ---- parse URL params for pre-opening a thread from Leads ----
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const listingId = params.get("thread");
+    const contact = params.get("contact");
+    const leadId = params.get("lead");
+    if (listingId && contact) {
+      const threadId = getThreadId(listingId, "me_placeholder", contact); // will be recomputed after load
+      setPhantomThread({ listingId, contact, leadId, threadId });
+    }
+  }, []);
+
   // ---- load data ----
   useEffect(() => { load(); }, []);
 
