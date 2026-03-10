@@ -323,7 +323,7 @@ export default function MessagesPage() {
       <div className="bg-emerald-800 text-white py-4 px-4">
         <div className="max-w-5xl mx-auto flex items-center gap-3">
           {activeThread && (
-            <button onClick={() => setActiveThread(null)} className="md:hidden p-1">
+            <button onClick={() => { if (activeThread.isPhantom) closePhantomThread(); else setActiveThread(null); }} className="md:hidden p-1">
               <ArrowLeft className="w-5 h-5" />
             </button>
           )}
