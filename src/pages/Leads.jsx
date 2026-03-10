@@ -51,6 +51,10 @@ export default function LeadsPage() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("new");
+  const [msgDialog, setMsgDialog] = useState(null); // lead object
+  const [msgText, setMsgText] = useState("");
+  const [msgSent, setMsgSent] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => { load(); }, []);
 
