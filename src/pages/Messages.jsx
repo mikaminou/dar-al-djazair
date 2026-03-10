@@ -379,12 +379,14 @@ export default function MessagesPage() {
                         <span className={`text-sm truncate ${hasUnread ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}>
                           {conv.other?.split("@")[0]}
                         </span>
-                        <span className="text-xs text-gray-400 flex-shrink-0 ml-1">
-                          {new Date(last.created_date).toLocaleDateString()}
-                        </span>
+                        {last && (
+                          <span className="text-xs text-gray-400 flex-shrink-0 ml-1">
+                            {new Date(last.created_date).toLocaleDateString()}
+                          </span>
+                        )}
                       </div>
                       <p className={`text-xs truncate mt-0.5 ${hasUnread ? "text-gray-800 font-medium" : "text-gray-500"}`}>
-                        {last.sender_email === user.email ? "✓ " : ""}{last.content}
+                        {last ? (last.sender_email === user.email ? "✓ " : "") + last.content : (lang === "ar" ? "محادثة جديدة" : lang === "fr" ? "Nouvelle conversation" : "New conversation")}
                       </p>
                     </div>
                     {u > 0 && (
