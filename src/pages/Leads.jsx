@@ -3,12 +3,13 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import {
-  Users, MapPin, Home, DollarSign, BedDouble, Bath,
-  Maximize2, Sofa, Star, ChevronRight, CheckCircle2,
-  PhoneCall, XCircle, Inbox
+  Users, ChevronRight, PhoneCall, XCircle, Inbox,
+  Mail, UserCircle, Send, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "../components/LanguageContext";
 import { PROPERTY_TYPES } from "../components/constants";
 
