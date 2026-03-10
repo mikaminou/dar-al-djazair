@@ -261,9 +261,24 @@ export default function MessagesPage() {
       thread_id: activeThread.thread_id,
       is_read: false,
     });
+    // If this was a phantom thread, mark lead as contacted now that first message is sent
+    if (activeThread.isPhantom && activeThread.leadId) {
+      base44.entities.Lead.update(activeThread.leadId, { status: "contacted" }).catch(() => {});
+    }
+    // Materialise phantom → real thread
+    if (activeThread.isPhantom) {
+      setActiveThread(prev => ({ ...prev, isPhantom: false, messages: [...prev.messages, msg] }));
+      setPhantomThread(null);
+    }
     setMessages(prev => prev.find(p => p.id === msg.id) ? prev : [...prev, msg]);
     setInput("");
     setSending(false);
+  }
+
+  function closePhantomThread() {
+    // Called when user navigates away from phantom thread without sending — just dismiss it
+    setActiveThread(null);
+    setPhantomThread(null);
   }
 
   // ---- derived state ----
