@@ -87,11 +87,16 @@ export default function MessagesPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [otherIsTyping, setOtherIsTyping] = useState(false);
+  // phantom thread = a pre-opened thread that has no messages yet (from Leads)
+  const [phantomThread, setPhantomThread] = useState(null);
   const bottomRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const typingBroadcastRef = useRef(null);
   const activeThreadRef = useRef(null);
   const userRef = useRef(null);
+  const phantomRef = useRef(null);
+
+  useEffect(() => { phantomRef.current = phantomThread; }, [phantomThread]);
 
   // keep refs in sync
   useEffect(() => { activeThreadRef.current = activeThread; }, [activeThread]);
