@@ -201,11 +201,25 @@ export default function LeadsPage() {
                     <FilterPills filters={lead.search_filters} lang={lang} />
                   </div>
 
-                  <Link to={createPageUrl(`ListingDetail?id=${lead.listing_id}`)} className="flex-shrink-0">
-                    <Button variant="outline" size="sm" className="text-xs gap-1">
-                      {t("viewListing")} <ChevronRight className="w-3 h-3" />
+                  <div className="flex flex-col gap-2 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      className="text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+                      onClick={() => { setMsgDialog(lead); setMsgText(""); setMsgSent(false); }}
+                    >
+                      <Mail className="w-3 h-3" /> {t("sendMsg")}
                     </Button>
-                  </Link>
+                    <Link to={createPageUrl(`Profile?email=${encodeURIComponent(lead.seeker_email)}`)}>
+                      <Button variant="outline" size="sm" className="text-xs gap-1 w-full">
+                        <UserCircle className="w-3 h-3" /> {t("viewProfile")}
+                      </Button>
+                    </Link>
+                    <Link to={createPageUrl(`ListingDetail?id=${lead.listing_id}`)}>
+                      <Button variant="ghost" size="sm" className="text-xs gap-1 w-full text-gray-500">
+                        {t("viewListing")} <ChevronRight className="w-3 h-3" />
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
 
                 {/* Actions */}
