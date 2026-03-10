@@ -67,6 +67,25 @@ export default function LeadsPage() {
     setLoading(false);
   }
 
+  async function sendMessage(lead) {
+    if (!msgText.trim()) return;
+    setSending(true);
+    const me = await base44.auth.me().catch(() => null);
+    await base44.entities.Message.create({
+      listing_id:      lead.listing_id,
+      sender_email:    me?.email,
+      recipient_email: lead.seeker_email,
+      content:         msgText.trim(),
+      thread_id:       `${lead.listing_id}_${lead.seeker_email}`,
+    });
+    // Also mark lead as contacted
+    await base44.entities.Lead.update(lead.id, { status: "contacted" });
+    setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: "contacted" } : l));
+    setSending(false);
+    setMsgSent(true);
+    setTimeout(() => { setMsgDialog(null); setMsgSent(false); setMsgText(""); }, 1500);
+  }
+
   async function updateStatus(lead, status) {
     await base44.entities.Lead.update(lead.id, { status });
     setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status } : l));
