@@ -282,7 +282,11 @@ export default function MessagesPage() {
   }
 
   // ---- derived state ----
-  const conversations = groupConversations(messages, user?.email || "");
+  const realConversations = groupConversations(messages, user?.email || "");
+  // Inject phantom thread at top if it exists and isn't already in real convs
+  const conversations = phantomThread && !realConversations.find(c => c.thread_id === phantomThread.thread_id)
+    ? [phantomThread, ...realConversations]
+    : realConversations;
 
   const threadMessages = activeThread
     ? messages
