@@ -190,10 +190,13 @@ export default function MessagesPage() {
   }
 
   function openThread(conv) {
+    // If switching away from a phantom thread that's still empty, discard it
+    if (activeThread?.isPhantom && activeThread.thread_id !== conv.thread_id) {
+      setPhantomThread(null);
+    }
     setActiveThread(conv);
     setOtherIsTyping(false);
-    // Mark all unread messages in this thread as read
-    markThreadRead(conv.messages);
+    if (!conv.isPhantom) markThreadRead(conv.messages);
   }
 
   async function load() {
