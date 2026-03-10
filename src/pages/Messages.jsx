@@ -204,6 +204,34 @@ export default function MessagesPage() {
       const data = await base44.entities.Message.list("-created_date", 300);
       const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
       setMessages(mine);
+
+      // If phantom thread was set from URL params, pre-open it
+      const params = new URLSearchParams(window.location.search);
+      const listingId = params.get("thread");
+      const contact = params.get("contact");
+      const leadId = params.get("lead");
+      if (listingId && contact) {
+        const tid = getThreadId(listingId, me.email, contact);
+        // Check if real thread already exists
+        const existing = mine.filter(m => (m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email)) === tid);
+        if (existing.length > 0) {
+          // Open the existing thread
+          const conv = {
+            thread_id: tid,
+            messages: existing.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)),
+            listing_id: listingId,
+            other: contact,
+          };
+          setActiveThread(conv);
+          setPhantomThread(null);
+          markThreadRead(existing);
+        } else {
+          // Create phantom thread
+          const phantom = { thread_id: tid, messages: [], listing_id: listingId, other: contact, leadId, isPhantom: true };
+          setPhantomThread(phantom);
+          setActiveThread(phantom);
+        }
+      }
     }
     setLoading(false);
   }
