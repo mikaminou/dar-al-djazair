@@ -210,8 +210,10 @@ export default function MessagesPage() {
       setMessages(mine);
 
       // Fetch listing titles for all unique listing IDs
-      const listingIds = [...new Set(mine.map(m => m.listing_id).filter(Boolean))];
-      const listings = await Promise.all(listingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
+      const params2 = new URLSearchParams(window.location.search);
+      const phantomListingId = params2.get("thread");
+      const allListingIds = [...new Set([...mine.map(m => m.listing_id), phantomListingId].filter(Boolean))];
+      const listings = await Promise.all(allListingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
       const map = {};
       listings.forEach(l => { if (l) map[l.id] = l.title; });
       setListingsMap(map);
