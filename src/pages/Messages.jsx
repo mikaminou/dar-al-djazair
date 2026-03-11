@@ -209,6 +209,13 @@ export default function MessagesPage() {
       const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
       setMessages(mine);
 
+      // Fetch listing titles for all unique listing IDs
+      const listingIds = [...new Set(mine.map(m => m.listing_id).filter(Boolean))];
+      const listings = await Promise.all(listingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
+      const map = {};
+      listings.forEach(l => { if (l) map[l.id] = l.title; });
+      setListingsMap(map);
+
       // If phantom thread was set from URL params, pre-open it
       const params = new URLSearchParams(window.location.search);
       const listingId = params.get("thread");
