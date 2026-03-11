@@ -50,7 +50,6 @@
 import Compare from './pages/Compare';
 import Favorites from './pages/Favorites';
 import Home from './pages/Home';
-import Leads from './pages/Leads';
 import ListingDetail from './pages/ListingDetail';
 import Listings from './pages/Listings';
 import Messages from './pages/Messages';
@@ -66,7 +65,6 @@ export const PAGES = {
     "Compare": Compare,
     "Favorites": Favorites,
     "Home": Home,
-    "Leads": Leads,
     "ListingDetail": ListingDetail,
     "Listings": Listings,
     "Messages": Messages,
