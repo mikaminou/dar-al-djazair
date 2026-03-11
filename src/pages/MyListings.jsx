@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Users, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";

@@ -221,13 +221,23 @@ export default function MessagesPage() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [activeThread, messages, otherIsTyping]);
 
-  // ---- mark messages read when opening a thread ----
+  // ---- mark messages read ----
   async function markThreadRead(msgs) {
     const unreadMsgs = msgs.filter(m => !m.is_read && m.recipient_email === userRef.current?.email);
     if (unreadMsgs.length === 0) return;
     await Promise.all(unreadMsgs.map(m => base44.entities.Message.update(m.id, { is_read: true })));
     setMessages(prev => prev.map(p => unreadMsgs.find(u => u.id === p.id) ? { ...p, is_read: true } : p));
   }
+
+  // ---- auto-mark read when new messages arrive in active thread ----
+  useEffect(() => {
+    if (!activeThread || !user) return;
+    const unread = messages.filter(
+      m => !m.is_read && m.recipient_email === user.email &&
+        (m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email)) === activeThread.thread_id
+    );
+    if (unread.length > 0) markThreadRead(unread);
+  }, [messages, activeThread?.thread_id]);
 
   function openThread(conv) {
     // If switching away from a phantom thread that's still empty, discard it
