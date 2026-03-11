@@ -393,6 +393,11 @@ export default function MessagesPage() {
                           </span>
                         )}
                       </div>
+                      {listingsMap[conv.listing_id] && (
+                        <p className="text-xs text-emerald-600 truncate font-medium">
+                          {listingsMap[conv.listing_id]}
+                        </p>
+                      )}
                       <p className={`text-xs truncate mt-0.5 ${hasUnread ? "text-gray-800 font-medium" : "text-gray-500"}`}>
                         {last ? (last.sender_email === user.email ? "✓ " : "") + last.content : (lang === "ar" ? "محادثة جديدة" : lang === "fr" ? "Nouvelle conversation" : "New conversation")}
                       </p>
