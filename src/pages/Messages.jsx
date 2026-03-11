@@ -121,6 +121,35 @@ export default function MessagesPage() {
   // ---- load data ----
   useEffect(() => { load(); }, []);
 
+  // ---- polling fallback every 5s to catch missed subscription events ----
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const me = userRef.current;
+      if (!me) return;
+      const data = await base44.entities.Message.list("-created_date", 300).catch(() => null);
+      if (!data) return;
+      const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
+      setMessages(prev => {
+        // Only update if there are actual changes
+        if (prev.length === mine.length && mine.every(m => prev.find(p => p.id === m.id && p.is_read === m.is_read))) return prev;
+        return mine;
+      });
+      // Fetch titles for any new listing IDs
+      setListingsMap(prev => {
+        const newIds = [...new Set(mine.map(m => m.listing_id).filter(id => id && !prev[id]))];
+        if (newIds.length === 0) return prev;
+        Promise.all(newIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)))
+          .then(listings => {
+            const additions = {};
+            listings.forEach(l => { if (l) additions[l.id] = l.title; });
+            if (Object.keys(additions).length > 0) setListingsMap(p => ({ ...p, ...additions }));
+          });
+        return prev;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // ---- real-time message subscription ----
   useEffect(() => {
     if (!user) return;
