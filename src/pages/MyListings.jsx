@@ -110,6 +110,11 @@ export default function MyListingsPage() {
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Link>
+                  <Link to={createPageUrl(`ListingAnalytics?id=${listing.id}`)}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-emerald-600" title="Analytics">
+                      <BarChart3 className="w-4 h-4" />
+                    </Button>
+                  </Link>
                   <Button variant="ghost" size="icon" onClick={() => deleteListing(listing.id)} className="text-gray-400 hover:text-red-600">
                     <Trash2 className="w-4 h-4" />
                   </Button>
