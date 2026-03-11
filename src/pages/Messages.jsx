@@ -87,6 +87,7 @@ export default function MessagesPage() {
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const [otherIsTyping, setOtherIsTyping] = useState(false);
+  const [listingsMap, setListingsMap] = useState({});
   // phantom thread = a pre-opened thread that has no messages yet (from Leads)
   const [phantomThread, setPhantomThread] = useState(null);
   const bottomRef = useRef(null);
