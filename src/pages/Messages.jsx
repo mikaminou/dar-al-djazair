@@ -381,9 +381,7 @@ export default function MessagesPage() {
           )}
           <MessageSquare className="w-5 h-5" />
           <h1 className="text-lg font-bold">{t.messages}</h1>
-          {totalUnread > 0 && (
-            <span className="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{totalUnread}</span>
-          )}
+
         </div>
       </div>
 
