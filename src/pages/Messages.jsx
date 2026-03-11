@@ -430,10 +430,10 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm text-gray-800">{activeThread.other?.split("@")[0]}</p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400 truncate">
                     {otherIsTyping
                       ? <span className="text-emerald-500 font-medium animate-pulse">{l.typing}</span>
-                      : activeThread.other}
+                      : listingsMap[activeThread.listing_id] || activeThread.other}
                   </p>
                 </div>
                 <Link
