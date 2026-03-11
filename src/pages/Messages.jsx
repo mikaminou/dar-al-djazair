@@ -161,6 +161,16 @@ export default function MessagesPage() {
             if (prev.find(p => p.id === m.id)) return prev;
             return [...prev, m];
           });
+          // Fetch listing title if not already known
+          if (m.listing_id) {
+            setListingsMap(prev => {
+              if (prev[m.listing_id]) return prev;
+              base44.entities.Listing.filter({ id: m.listing_id }).then(r => {
+                if (r[0]) setListingsMap(p => ({ ...p, [r[0].id]: r[0].title }));
+              }).catch(() => {});
+              return prev;
+            });
+          }
           // If this message is addressed to me
           if (m.recipient_email === user.email) {
             const tid = m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email);
