@@ -58,6 +58,7 @@ import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
+import ListingAnalytics from './pages/ListingAnalytics';
 import __Layout from './Layout.jsx';
 
 
@@ -73,6 +74,7 @@ export const PAGES = {
     "PostListing": PostListing,
     "Profile": Profile,
     "SavedSearches": SavedSearches,
+    "ListingAnalytics": ListingAnalytics,
 }
 
 export const pagesConfig = {
