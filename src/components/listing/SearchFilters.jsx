@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../constants";
 import { useLang } from "../LanguageContext";
+import SelectDrawer from "../SelectDrawer";
 
 const BEDROOMS_OPTIONS = ["1", "2", "3", "4", "5+"];
 const FURNISHED_OPTIONS = [
@@ -17,6 +18,8 @@ const FURNISHED_OPTIONS = [
 export default function SearchFilters({ filters, onChange, onSearch, compact = false }) {
   const { t, lang } = useLang();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [drawerOpen, setDrawerOpen] = useState(null);
 
   const update = (key, val) => onChange({ ...filters, [key]: val });
 
@@ -33,44 +36,103 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     filters.furnished, ...(filters.features || [])
   ].filter(Boolean).length;
 
+  const listingTypeOptions = [
+    { value: "all", label: t.listingType },
+    { value: "sale", label: t.sale },
+    { value: "rent", label: t.forRent },
+  ];
+  const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
+  const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w, label: w }))];
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-4">
+    <div className="bg-white rounded-2xl shadow-lg p-4 select-none">
       {/* Basic row */}
       <div className={`grid gap-3 ${compact ? "grid-cols-2 md:grid-cols-6" : "grid-cols-1 md:grid-cols-3 lg:grid-cols-6"}`}>
-        <Select value={filters.listing_type || "all"} onValueChange={v => update("listing_type", v === "all" ? "" : v)}>
-          <SelectTrigger className="border-gray-200">
-            <SelectValue placeholder={t.listingType} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t.listingType}</SelectItem>
-            <SelectItem value="sale">{t.sale}</SelectItem>
-            <SelectItem value="rent">{t.forRent}</SelectItem>
-          </SelectContent>
-        </Select>
+        {isMobile ? (
+          <>
+            <button
+              onClick={() => setDrawerOpen("listing_type")}
+              className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600 text-left"
+            >
+              {listingTypeOptions.find(o => o.value === (filters.listing_type || "all"))?.label}
+            </button>
+            <SelectDrawer
+              open={drawerOpen === "listing_type"}
+              onOpenChange={(open) => setDrawerOpen(open ? "listing_type" : null)}
+              options={listingTypeOptions}
+              value={filters.listing_type || "all"}
+              onValueChange={v => update("listing_type", v === "all" ? "" : v)}
+              label={t.listingType}
+            />
 
-        <Select value={filters.property_type || "all"} onValueChange={v => update("property_type", v === "all" ? "" : v)}>
-          <SelectTrigger className="border-gray-200">
-            <SelectValue placeholder={t.allTypes} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t.allTypes}</SelectItem>
-            {PROPERTY_TYPES.map(pt => (
-              <SelectItem key={pt.value} value={pt.value}>{pt.label[lang] || pt.label.fr}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <button
+              onClick={() => setDrawerOpen("property_type")}
+              className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600 text-left"
+            >
+              {propertyTypeOptions.find(o => o.value === (filters.property_type || "all"))?.label}
+            </button>
+            <SelectDrawer
+              open={drawerOpen === "property_type"}
+              onOpenChange={(open) => setDrawerOpen(open ? "property_type" : null)}
+              options={propertyTypeOptions}
+              value={filters.property_type || "all"}
+              onValueChange={v => update("property_type", v === "all" ? "" : v)}
+              label={t.allTypes}
+            />
 
-        <Select value={filters.wilaya || "all"} onValueChange={v => update("wilaya", v === "all" ? "" : v)}>
-          <SelectTrigger className="border-gray-200">
-            <SelectValue placeholder={t.allWilayas} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t.allWilayas}</SelectItem>
-            {WILAYAS.map(w => (
-              <SelectItem key={w} value={w}>{w}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+            <button
+              onClick={() => setDrawerOpen("wilaya")}
+              className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600 text-left"
+            >
+              {wilayaOptions.find(o => o.value === (filters.wilaya || "all"))?.label}
+            </button>
+            <SelectDrawer
+              open={drawerOpen === "wilaya"}
+              onOpenChange={(open) => setDrawerOpen(open ? "wilaya" : null)}
+              options={wilayaOptions}
+              value={filters.wilaya || "all"}
+              onValueChange={v => update("wilaya", v === "all" ? "" : v)}
+              label={t.allWilayas}
+            />
+          </>
+        ) : (
+          <>
+            <Select value={filters.listing_type || "all"} onValueChange={v => update("listing_type", v === "all" ? "" : v)}>
+              <SelectTrigger className="border-gray-200 select-none">
+                <SelectValue placeholder={t.listingType} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.listingType}</SelectItem>
+                <SelectItem value="sale">{t.sale}</SelectItem>
+                <SelectItem value="rent">{t.forRent}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.property_type || "all"} onValueChange={v => update("property_type", v === "all" ? "" : v)}>
+              <SelectTrigger className="border-gray-200 select-none">
+                <SelectValue placeholder={t.allTypes} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.allTypes}</SelectItem>
+                {PROPERTY_TYPES.map(pt => (
+                  <SelectItem key={pt.value} value={pt.value}>{pt.label[lang] || pt.label.fr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.wilaya || "all"} onValueChange={v => update("wilaya", v === "all" ? "" : v)}>
+              <SelectTrigger className="border-gray-200 select-none">
+                <SelectValue placeholder={t.allWilayas} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t.allWilayas}</SelectItem>
+                {WILAYAS.map(w => (
+                  <SelectItem key={w} value={w}>{w}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
 
         <Input
           type="number"
@@ -88,7 +150,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           className="border-gray-200"
         />
 
-        <Button onClick={onSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2">
+        <Button onClick={onSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 select-none">
           <Search className="w-4 h-4" />
           {t.search}
         </Button>
@@ -97,7 +159,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* Advanced toggle */}
       <button
         onClick={() => setShowAdvanced(v => !v)}
-        className="mt-3 flex items-center gap-2 text-sm text-emerald-700 font-medium hover:text-emerald-900 transition-colors"
+        className="mt-3 flex items-center gap-2 text-sm text-emerald-700 font-medium hover:text-emerald-900 transition-colors select-none"
       >
         <SlidersHorizontal className="w-4 h-4" />
         {lang === "ar" ? "فلاتر متقدمة" : lang === "fr" ? "Filtres avancés" : "Advanced Filters"}

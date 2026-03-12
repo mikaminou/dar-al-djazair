@@ -98,8 +98,9 @@ export default function LeadsPage() {
   }
 
   async function updateStatus(lead, status) {
-    await base44.entities.Lead.update(lead.id, { status });
+    // Optimistic update
     setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status } : l));
+    await base44.entities.Lead.update(lead.id, { status });
     // Prompt for review when deal is closed/won
     if (status === "won" || status === "closed") {
       const existing = await base44.entities.Review.filter({ reviewer_email: currentUser?.email, lead_id: lead.id }, null, 1).catch(() => []);
@@ -134,7 +135,7 @@ export default function LeadsPage() {
   const t = k => T[k]?.[lang] || T[k]?.en;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 select-none">
       {reviewLead && (
         <ReviewForm
           reviewedEmail={reviewLead.seeker_email}
@@ -169,14 +170,14 @@ export default function LeadsPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <div className="flex items-center justify-between mb-6 gap-4 flex-wrap select-none">
           {view === "list" && (
             <div className="flex gap-2 flex-wrap">
               {["new", "contacted", "viewing", "won", "lost", "all"].map(s => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors select-none ${
                     filter === s ? "bg-emerald-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
                   }`}
                 >
@@ -188,16 +189,16 @@ export default function LeadsPage() {
           )}
           {view === "kanban" && <div />}
 
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1 select-none">
             <button
               onClick={() => setView("list")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "list" ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors select-none ${view === "list" ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}
             >
               <List className="w-4 h-4" /> {t("listView")}
             </button>
             <button
               onClick={() => setView("kanban")}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${view === "kanban" ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors select-none ${view === "kanban" ? "bg-emerald-600 text-white" : "text-gray-500 hover:bg-gray-50"}`}
             >
               <LayoutGrid className="w-4 h-4" /> {t("kanbanView")}
             </button>

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus, Check, BookmarkCheck } from "lucide-react";
+import { SlidersHorizontal, LayoutGrid, List, ArrowUpDown, BookmarkPlus, Check, BookmarkCheck, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -54,6 +54,9 @@ export default function ListingsPage() {
   const [financialState, setFinancialState] = useState("");
   const [saved, setSaved] = useState(false);
   const [savedSearches, setSavedSearches] = useState([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const containerRef = useRef(null);
+  const [touchStart, setTouchStart] = useState(null);
 
   const [filters, setFilters] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -129,14 +132,38 @@ export default function ListingsPage() {
       return;
     }
     const isFav = favorites.includes(listing.id);
+    // Optimistic update
     if (isFav) {
+      setFavorites(prev => prev.filter(id => id !== listing.id));
       const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
-      setFavorites(prev => prev.filter(id => id !== listing.id));
     } else {
-      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me?.email });
       setFavorites(prev => [...prev, listing.id]);
+      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me?.email });
     }
+  }
+
+  function handlePullToRefresh(e) {
+    if (containerRef.current?.scrollTop === 0) {
+      setTouchStart(e.touches[0].clientY);
+    }
+  }
+
+  function handlePullToRefreshMove(e) {
+    if (!touchStart || containerRef.current?.scrollTop !== 0) return;
+    const touch = e.touches[0].clientY;
+    const diff = touch - touchStart;
+    if (diff > 80 && !isRefreshing) {
+      setIsRefreshing(true);
+      loadListings().then(() => {
+        setIsRefreshing(false);
+        setTouchStart(null);
+      });
+    }
+  }
+
+  function handlePullToRefreshEnd() {
+    setTouchStart(null);
   }
 
   async function confirmSaveSearch() {
@@ -194,8 +221,19 @@ export default function ListingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-emerald-800 py-6 px-4">
+    <div 
+      ref={containerRef}
+      className="min-h-screen bg-gray-50 select-none"
+      onTouchStart={handlePullToRefresh}
+      onTouchMove={handlePullToRefreshMove}
+      onTouchEnd={handlePullToRefreshEnd}
+    >
+      <div className="bg-emerald-800 py-6 px-4 relative">
+        {isRefreshing && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2">
+            <RefreshCw className="w-5 h-5 text-emerald-300 animate-spin" />
+          </div>
+        )}
         <div className="max-w-6xl mx-auto">
           <SearchFilters filters={filters} onChange={setFilters} onSearch={loadListings} compact />
         </div>
@@ -203,25 +241,25 @@ export default function ListingsPage() {
 
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Toolbar */}
-        <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-          <p className="text-gray-600 text-sm">
+        <div className="flex items-center justify-between mb-5 flex-wrap gap-3 select-none">
+          <p className="text-gray-600 text-sm pointer-events-none">
             <span className="font-bold text-gray-900">{listings.length}</span> {t.results}
           </p>
 
           <div className="flex items-center gap-2 flex-wrap">
             {matchedSearch ? (
-              <Button variant="outline" size="sm" className="gap-2 text-xs border-emerald-400 text-emerald-700 bg-emerald-50 cursor-default max-w-[180px]" disabled>
+              <Button variant="outline" size="sm" className="gap-2 text-xs border-emerald-400 text-emerald-700 bg-emerald-50 cursor-default max-w-[180px] select-none" disabled>
                 <BookmarkCheck className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{matchedSearch.name || (lang === "ar" ? "بحث محفوظ" : lang === "fr" ? "Recherche sauvegardée" : "Saved search")}</span>
               </Button>
             ) : (
-              <Button variant="outline" size="sm" onClick={async () => { const me = await base44.auth.me().catch(() => null); if (!me) { base44.auth.redirectToLogin(window.location.href); return; } setSaveDialogOpen(true); }} className="gap-2 text-xs">
+              <Button variant="outline" size="sm" onClick={async () => { const me = await base44.auth.me().catch(() => null); if (!me) { base44.auth.redirectToLogin(window.location.href); return; } setSaveDialogOpen(true); }} className="gap-2 text-xs select-none">
                 <BookmarkPlus className="w-3 h-3" /> {t.saveSearch}
               </Button>
             )}
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-44 h-9 text-xs border-gray-200">
+              <SelectTrigger className="w-44 h-9 text-xs border-gray-200 select-none">
                 <ArrowUpDown className="w-3 h-3 mr-1" />
                 <SelectValue />
               </SelectTrigger>
@@ -232,11 +270,11 @@ export default function ListingsPage() {
               </SelectContent>
             </Select>
 
-            <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-              <button onClick={() => setView("grid")} className={`p-2 ${view === "grid" ? "bg-emerald-600 text-white" : "bg-white text-gray-500"}`}>
+            <div className="flex border border-gray-200 rounded-lg overflow-hidden select-none">
+              <button onClick={() => setView("grid")} className={`p-2 select-none ${view === "grid" ? "bg-emerald-600 text-white" : "bg-white text-gray-500"}`}>
                 <LayoutGrid className="w-4 h-4" />
               </button>
-              <button onClick={() => setView("list")} className={`p-2 ${view === "list" ? "bg-emerald-600 text-white" : "bg-white text-gray-500"}`}>
+              <button onClick={() => setView("list")} className={`p-2 select-none ${view === "list" ? "bg-emerald-600 text-white" : "bg-white text-gray-500"}`}>
                 <List className="w-4 h-4" />
               </button>
             </div>

@@ -207,20 +207,20 @@ function NavContent({ currentPageName, children }) {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 z-40 flex justify-around items-center h-20 px-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <Link to={createPageUrl("Home")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 z-40 flex justify-around items-center h-20 px-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] select-none">
+        <Link to={createPageUrl("Home")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500 select-none">
           <Home className="w-5 h-5" />
           <span className="text-xs font-medium">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
         </Link>
-        <Link to={createPageUrl("Listings")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+        <Link to={createPageUrl("Listings")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500 select-none">
           <Search className="w-5 h-5" />
           <span className="text-xs font-medium">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
         </Link>
-        <Link to={createPageUrl("Messages")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+        <Link to={createPageUrl("Messages")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500 select-none">
           <MessageSquare className="w-5 h-5" />
           <span className="text-xs font-medium">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Messages"}</span>
         </Link>
-        <Link to={createPageUrl("Profile")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+        <Link to={createPageUrl("Profile")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500 select-none">
           <User className="w-5 h-5" />
           <span className="text-xs font-medium">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
         </Link>
