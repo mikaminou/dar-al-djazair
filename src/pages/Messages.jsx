@@ -297,6 +297,17 @@ export default function MessagesPage() {
       setListingsMap(map);
       setListingsStatusMap(statusMap);
 
+      // Fetch real display names for all unique other-party emails
+      const allEmails = [...new Set(mine.map(m => m.sender_email === me.email ? m.recipient_email : m.sender_email).filter(Boolean))];
+      if (allEmails.length > 0) {
+        Promise.all(allEmails.map(email => base44.entities.User.filter({ email }).then(r => r[0]).catch(() => null)))
+          .then(users => {
+            const uMap = {};
+            users.forEach(u => { if (u?.full_name) uMap[u.email] = u.full_name; });
+            setUsersMap(uMap);
+          });
+      }
+
       // If phantom thread was set from URL params, pre-open it
       const params = new URLSearchParams(window.location.search);
       const listingId = params.get("thread");
