@@ -30,14 +30,15 @@ function NavContent({ currentPageName, children }) {
   const isRtl = lang === "ar";
 
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0">
+    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0 select-none">
       <style>{`
         :root { --primary: #059669; }
         body { font-family: ${isRtl ? "'Cairo', 'Amiri', sans-serif" : "'Inter', sans-serif"}; overscroll-behavior: none; }
+        .content-text { user-select: text; }
       `}</style>
 
       {/* NAVBAR — hidden on mobile */}
-      <header className="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+      <header className="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm select-none">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3 md:gap-4">
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit">
