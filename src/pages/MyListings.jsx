@@ -15,7 +15,8 @@ export default function MyListingsPage() {
   const [listings, setListings] = useState([]);
   const [leadCounts, setLeadCounts] = useState({});
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ status: "all", property_type: "all", minPrice: "", maxPrice: "" });
+  const [filters, setFilters] = useState({ status: "all", property_type: "all", wilaya: "all", minPrice: "", maxPrice: "" });
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => { load(); }, []);
 
