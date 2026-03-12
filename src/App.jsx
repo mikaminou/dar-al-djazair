@@ -10,6 +10,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabNavigationProvider } from '@/components/TabNavigationContext';
 import PushNotificationManager from '@/components/PushNotificationManager';
+import PushAlertManager from '@/components/PushAlertManager';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -75,6 +76,7 @@ const AuthenticatedApp = () => {
   return (
     <>
       <PushNotificationManager />
+      <PushAlertManager />
       <Routes>
         <Route path="/" element={
           <PageTransition>
