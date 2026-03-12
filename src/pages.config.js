@@ -47,6 +47,7 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
+import AdminVerification from './pages/AdminVerification';
 import AgentAvailability from './pages/AgentAvailability';
 import Appointments from './pages/Appointments';
 import Availability from './pages/Availability';
@@ -62,14 +63,14 @@ import MyListings from './pages/MyListings';
 import OwnerDashboard from './pages/OwnerDashboard';
 import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
-import SavedSearches from './pages/SavedSearches';
-import AdminVerification from './pages/AdminVerification';
-import TenantManagement from './pages/TenantManagement';
 import RentalIncomeDashboard from './pages/RentalIncomeDashboard';
+import SavedSearches from './pages/SavedSearches';
+import TenantManagement from './pages/TenantManagement';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminVerification": AdminVerification,
     "AgentAvailability": AgentAvailability,
     "Appointments": Appointments,
     "Availability": Availability,
@@ -85,10 +86,9 @@ export const PAGES = {
     "OwnerDashboard": OwnerDashboard,
     "PostListing": PostListing,
     "Profile": Profile,
-    "SavedSearches": SavedSearches,
-    "AdminVerification": AdminVerification,
-    "TenantManagement": TenantManagement,
     "RentalIncomeDashboard": RentalIncomeDashboard,
+    "SavedSearches": SavedSearches,
+    "TenantManagement": TenantManagement,
 }
 
 export const pagesConfig = {

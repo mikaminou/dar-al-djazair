@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Home, Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Building2, Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
@@ -42,9 +42,9 @@ function NavContent({ currentPageName, children }) {
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <Home className="w-4 h-4 text-white" />
+              <Building2 className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-xl text-emerald-700">{lang === "ar" ? "داري" : "Dari"}</span>
+            <span className="font-bold text-xl text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
             <span className="text-xs text-gray-400 hidden sm:block">.dz</span>
           </Link>
 
@@ -204,9 +204,9 @@ function NavContent({ currentPageName, children }) {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <Home className="w-4 h-4 text-white" />
+                  <Building2 className="w-4 h-4 text-white" />
                 </div>
-                <span className="font-bold text-white">{lang === "ar" ? "داري" : "Dari"}.dz</span>
+                <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}.dz</span>
               </div>
               <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>
             </div>
