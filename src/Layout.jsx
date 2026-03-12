@@ -132,6 +132,9 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("TenantManagement")}>{lang === "ar" ? "إدارة المستأجرين" : lang === "fr" ? "Gestion des locataires" : "Tenant Management"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("RentalIncomeDashboard")}>{lang === "ar" ? "لوحة دخل الإيجار" : lang === "fr" ? "Revenu Locatif" : "Rental Income"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
