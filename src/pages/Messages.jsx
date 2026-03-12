@@ -136,7 +136,10 @@ export default function MessagesPage() {
       if (!me) return;
       const data = await base44.entities.Message.list("-created_date", 300).catch(() => null);
       if (!data) return;
-      const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
+      const mine = data.filter(m =>
+        (m.recipient_email === me.email || m.sender_email === me.email) &&
+        !(m.hidden_for || []).includes(me.email)
+      );
       setMessages(prev => {
         // Only update if there are actual changes
         if (prev.length === mine.length && mine.every(m => prev.find(p => p.id === m.id && p.is_read === m.is_read))) return prev;
