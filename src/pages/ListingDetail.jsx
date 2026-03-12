@@ -142,6 +142,19 @@ export default function ListingDetailPage() {
         </div>
       </div>
 
+      {isUnavailable && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
+          <div className="max-w-6xl mx-auto flex items-center gap-2 text-amber-800 text-sm font-medium">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            {listing.status === "sold"
+              ? (lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.")
+              : listing.status === "rented"
+              ? (lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.")
+              : (lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.")}
+          </div>
+        </div>
+      )}
+
       <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* MAIN CONTENT */}
         <div className="lg:col-span-2 space-y-5">
