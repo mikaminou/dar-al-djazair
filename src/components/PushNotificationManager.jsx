@@ -31,17 +31,30 @@ export function PushNotificationManager() {
 
         if (pushEnabled && !subscription) {
           // Subscribe if enabled but not yet subscribed
-          const vapidPublic = await fetch('/vapid-public').then(r => r.text());
-          subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: vapidPublic,
-          });
+          try {
+            const vapidResponse = await fetch('/api/functions/getVapidPublic');
+            const vapidText = await vapidResponse.text();
+            
+            // Convert base64 to Uint8Array for applicationServerKey
+            const binaryString = atob(vapidText);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+              bytes[i] = binaryString.charCodeAt(i);
+            }
 
-          // Store subscription server-side
-          await base44.functions.invoke('storePushSubscription', {
-            user_email: user.email,
-            subscription: subscription.toJSON(),
-          });
+            subscription = await registration.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: bytes,
+            });
+
+            // Store subscription server-side
+            await base44.functions.invoke('storePushSubscription', {
+              user_email: user.email,
+              subscription: subscription.toJSON(),
+            });
+          } catch (subError) {
+            console.error('Failed to subscribe to push:', subError);
+          }
         } else if (!pushEnabled && subscription) {
           // Unsubscribe if disabled
           await subscription.unsubscribe();
