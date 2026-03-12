@@ -23,6 +23,7 @@ export default function AppointmentsPage() {
   const [ownerSlots, setOwnerSlots] = useState([]);
   const [showCounter, setShowCounter] = useState(false);
   const [tab, setTab] = useState("pending");
+  const [userNames, setUserNames] = useState({});
 
   useEffect(() => { loadAll(); }, []);
 
@@ -38,6 +39,19 @@ export default function AppointmentsPage() {
     const all = [...asProposer];
     asOther.forEach(p => { if (!all.find(a => a.id === p.id)) all.push(p); });
     all.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+    
+    // Fetch user names for all unique emails
+    const allEmails = new Set();
+    all.forEach(p => { allEmails.add(p.proposer_email); allEmails.add(p.other_email); });
+    const names = {};
+    for (const email of allEmails) {
+      const users = await base44.entities.User.filter({ email }).catch(() => []);
+      if (users.length > 0 && users[0].full_name) {
+        names[email] = users[0].full_name;
+      }
+    }
+    setUserNames(names);
+    
     setProposals(all);
     setLoading(false);
   }
@@ -159,7 +173,7 @@ export default function AppointmentsPage() {
             <p className="text-gray-700 font-medium">{selected.listing_title || selected.listing_id}</p>
             <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
               <User className="w-4 h-4" />
-              <span>{t("with")}: {otherEmail?.split("@")[0]}</span>
+              <span>{t("with")}: {userNames[otherEmail] || otherEmail?.split("@")[0]}</span>
             </div>
           </div>
 
@@ -293,13 +307,13 @@ export default function AppointmentsPage() {
                     <CalendarDays className="w-5 h-5 text-emerald-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 text-sm truncate">{proposal.listing_title || proposal.listing_id}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 flex-wrap">
-                      <span className="flex items-center gap-1"><User className="w-3 h-3" />{otherEmail?.split("@")[0]}</span>
-                      <span className="text-gray-300">•</span>
-                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{fmtDate(proposal.proposed_date)}</span>
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{proposal.proposed_start_time}</span>
-                    </div>
+                   <p className="font-semibold text-gray-800 text-sm truncate">{proposal.listing_title || proposal.listing_id}</p>
+                   <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 flex-wrap">
+                     <span className="flex items-center gap-1"><User className="w-3 h-3" />{userNames[otherEmail] || otherEmail?.split("@")[0]}</span>
+                     <span className="text-gray-300">•</span>
+                     <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{fmtDate(proposal.proposed_date)}</span>
+                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{proposal.proposed_start_time}</span>
+                   </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge className={STATUS_STYLES[proposal.status]?.badge || "bg-gray-100 text-gray-500"}>

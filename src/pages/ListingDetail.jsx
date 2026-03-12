@@ -121,9 +121,10 @@ export default function ListingDetailPage() {
 
   function share() {
     if (navigator.share) {
-      navigator.share({ title: listing.title, url: window.location.href });
+      navigator.share({ title: listing.title, url: window.location.href }).catch(() => {});
     } else {
       navigator.clipboard.writeText(window.location.href);
+      alert(lang === "ar" ? "تم نسخ الرابط!" : lang === "fr" ? "Lien copié !" : "Link copied!");
     }
   }
 
