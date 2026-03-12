@@ -277,27 +277,27 @@ function NavContent({ currentPageName, children }) {
           {/* Home */}
           <Link 
             to={createPageUrl("Home")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
               location.pathname === createPageUrl("Home") 
-                ? "text-emerald-600" 
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-emerald-500" 
+                : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <Home className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
+            <Home className="w-5 h-5" />
+            <span className="text-[9px] font-semibold">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
           </Link>
 
           {/* Search */}
           <Link 
             to={createPageUrl("Listings")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
               location.pathname === createPageUrl("Listings")
-                ? "text-emerald-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-emerald-500"
+                : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <Search className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
+            <Search className="w-5 h-5" />
+            <span className="text-[9px] font-semibold">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
           </Link>
 
           {/* Centered Plus Button */}
@@ -313,27 +313,27 @@ function NavContent({ currentPageName, children }) {
           {/* Messages */}
           <Link 
             to={createPageUrl("Messages")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
               location.pathname === createPageUrl("Messages")
-                ? "text-emerald-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-emerald-500"
+                : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <MessageSquare className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
+            <MessageSquare className="w-5 h-5" />
+            <span className="text-[9px] font-semibold">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
           </Link>
 
           {/* Profile */}
           <Link 
             to={createPageUrl("Profile")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
               location.pathname === createPageUrl("Profile")
-                ? "text-emerald-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "text-emerald-500"
+                : "text-gray-400 hover:text-gray-600"
             }`}
           >
-            <User className="w-6 h-6" />
-            <span className="text-[10px] font-semibold">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
+            <User className="w-5 h-5" />
+            <span className="text-[9px] font-semibold">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
           </Link>
         </div>
       </nav>
