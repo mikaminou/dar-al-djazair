@@ -103,82 +103,147 @@ export default function MyListingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="bg-emerald-800 text-white py-8 px-4">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <h1 className="text-2xl font-bold">{t.myListings}</h1>
-          <Link to={createPageUrl("PostListing")}>
-            <Button className="bg-amber-500 hover:bg-amber-600 gap-2">
-              <Plus className="w-4 h-4" /> {t.postListing}
-            </Button>
-          </Link>
+      {/* Header */}
+      <div className="bg-gradient-to-br from-emerald-800 to-emerald-700 text-white py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-2xl font-bold">{t.myListings}</h1>
+            <Link to={createPageUrl("PostListing")}>
+              <Button className="bg-amber-500 hover:bg-amber-600 gap-2 shadow-md">
+                <Plus className="w-4 h-4" /> {t.postListing}
+              </Button>
+            </Link>
+          </div>
+          {!loading && listings.length > 0 && (
+            <p className="text-emerald-200 text-sm">
+              {listings.length} {lang === "ar" ? "إعلان" : lang === "fr" ? "annonce(s) au total" : "total listing(s)"}
+            </p>
+          )}
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 py-6">
         {/* Filters */}
         {!loading && listings.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-5">
-            <div className="flex flex-wrap items-end gap-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-600">
-                <Filter className="w-4 h-4" />
-                {lang === "ar" ? "تصفية" : lang === "fr" ? "Filtrer" : "Filter"}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm mb-5 overflow-hidden">
+            {/* Filter toggle bar */}
+            <button
+              onClick={() => setFiltersOpen(o => !o)}
+              className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-2.5">
+                <SlidersHorizontal className="w-4 h-4 text-emerald-600" />
+                <span className="text-sm font-medium text-gray-700">
+                  {lang === "ar" ? "تصفية الإعلانات" : lang === "fr" ? "Filtrer les annonces" : "Filter listings"}
+                </span>
+                {activeFilterCount > 0 && (
+                  <span className="bg-emerald-600 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                    {activeFilterCount}
+                  </span>
+                )}
               </div>
-
-              <Select value={filters.status} onValueChange={v => setFilters(f => ({ ...f, status: v }))}>
-                <SelectTrigger className="w-36 h-8 text-xs">
-                  <SelectValue placeholder={lang === "ar" ? "الحالة" : lang === "fr" ? "Statut" : "Status"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{lang === "ar" ? "كل الحالات" : lang === "fr" ? "Tous statuts" : "All statuses"}</SelectItem>
-                  <SelectItem value="active">{lang === "ar" ? "نشط" : lang === "fr" ? "Actif" : "Active"}</SelectItem>
-                  <SelectItem value="archived">{lang === "ar" ? "مؤرشف" : lang === "fr" ? "Archivé" : "Archived"}</SelectItem>
-                  <SelectItem value="sold">{lang === "ar" ? "مباع" : lang === "fr" ? "Vendu" : "Sold"}</SelectItem>
-                  <SelectItem value="rented">{lang === "ar" ? "مؤجر" : lang === "fr" ? "Loué" : "Rented"}</SelectItem>
-                  <SelectItem value="pending">{lang === "ar" ? "معلق" : lang === "fr" ? "En attente" : "Pending"}</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={filters.property_type} onValueChange={v => setFilters(f => ({ ...f, property_type: v }))}>
-                <SelectTrigger className="w-40 h-8 text-xs">
-                  <SelectValue placeholder={lang === "ar" ? "نوع العقار" : lang === "fr" ? "Type" : "Property type"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{lang === "ar" ? "كل الأنواع" : lang === "fr" ? "Tous types" : "All types"}</SelectItem>
-                  {PROPERTY_TYPES.map(pt => (
-                    <SelectItem key={pt.value} value={pt.value}>{pt.label[lang] || pt.label.fr}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <div className="flex items-center gap-1">
-                <Input
-                  type="number"
-                  placeholder={lang === "ar" ? "سعر أدنى" : lang === "fr" ? "Prix min" : "Min price"}
-                  value={filters.minPrice}
-                  onChange={e => setFilters(f => ({ ...f, minPrice: e.target.value }))}
-                  className="w-28 h-8 text-xs"
-                />
-                <span className="text-gray-400 text-xs">—</span>
-                <Input
-                  type="number"
-                  placeholder={lang === "ar" ? "سعر أقصى" : lang === "fr" ? "Prix max" : "Max price"}
-                  value={filters.maxPrice}
-                  onChange={e => setFilters(f => ({ ...f, maxPrice: e.target.value }))}
-                  className="w-28 h-8 text-xs"
-                />
+              <div className="flex items-center gap-2">
+                {hasActiveFilters && (
+                  <span className="text-xs text-gray-400">
+                    {filteredListings.length}/{listings.length} {lang === "ar" ? "نتيجة" : lang === "fr" ? "résultat(s)" : "result(s)"}
+                  </span>
+                )}
+                {filtersOpen ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
               </div>
+            </button>
 
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 text-xs text-gray-500 gap-1">
-                  <X className="w-3 h-3" />
-                  {lang === "ar" ? "إعادة تعيين" : lang === "fr" ? "Réinitialiser" : "Reset"}
-                </Button>
-              )}
+            {filtersOpen && (
+              <div className="border-t border-gray-100 px-5 py-4 space-y-4">
+                {/* Status pills */}
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                    {lang === "ar" ? "الحالة" : lang === "fr" ? "Statut" : "Status"}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {statusOptions.map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => setFilters(f => ({ ...f, status: opt.value }))}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          filters.status === opt.value
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                            : "bg-white text-gray-600 border-gray-200 hover:border-emerald-300 hover:text-emerald-700"
+                        }`}
+                      >
+                        {opt.label[lang] || opt.label.fr}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-              <span className="text-xs text-gray-400 ml-auto">
-                {filteredListings.length}/{listings.length} {lang === "ar" ? "إعلان" : lang === "fr" ? "annonces" : "listings"}
-              </span>
-            </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {/* Wilaya */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                      <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{t.wilaya}</span>
+                    </p>
+                    <Select value={filters.wilaya} onValueChange={v => setFilters(f => ({ ...f, wilaya: v }))}>
+                      <SelectTrigger className="h-9 text-sm border-gray-200">
+                        <SelectValue placeholder={t.allWilayas} />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-56">
+                        <SelectItem value="all">{t.allWilayas}</SelectItem>
+                        {usedWilayas.map(w => (
+                          <SelectItem key={w} value={w}>{w}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Property type */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t.propertyType}</p>
+                    <Select value={filters.property_type} onValueChange={v => setFilters(f => ({ ...f, property_type: v }))}>
+                      <SelectTrigger className="h-9 text-sm border-gray-200">
+                        <SelectValue placeholder={t.allTypes} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t.allTypes}</SelectItem>
+                        {PROPERTY_TYPES.map(pt => (
+                          <SelectItem key={pt.value} value={pt.value}>{pt.label[lang] || pt.label.fr}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Price range */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{t.price}</p>
+                    <div className="flex items-center gap-1.5">
+                      <Input
+                        type="number"
+                        placeholder={t.minPrice}
+                        value={filters.minPrice}
+                        onChange={e => setFilters(f => ({ ...f, minPrice: e.target.value }))}
+                        className="h-9 text-sm border-gray-200"
+                      />
+                      <span className="text-gray-300 font-light">—</span>
+                      <Input
+                        type="number"
+                        placeholder={t.maxPrice}
+                        value={filters.maxPrice}
+                        onChange={e => setFilters(f => ({ ...f, maxPrice: e.target.value }))}
+                        className="h-9 text-sm border-gray-200"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {hasActiveFilters && (
+                  <div className="flex justify-end pt-1">
+                    <button onClick={resetFilters} className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 font-medium">
+                      <X className="w-3.5 h-3.5" />
+                      {lang === "ar" ? "مسح كل الفلاتر" : lang === "fr" ? "Effacer tous les filtres" : "Clear all filters"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
