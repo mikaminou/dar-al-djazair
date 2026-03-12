@@ -158,15 +158,15 @@ function NavContent({ currentPageName, children }) {
                 {link.label}
               </a>
             ))}
-            <button onClick={() => { setMenuOpen(false); handleAuthNav("Favorites"); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            <Link to={createPageUrl("Favorites")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <Heart className="w-4 h-4" /> {t.favorites}
-            </button>
-            <button onClick={() => { setMenuOpen(false); handleAuthNav("Messages"); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            </Link>
+            <Link to={createPageUrl("Messages")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <MessageSquare className="w-4 h-4" /> {t.messages}
-            </button>
-            <button onClick={() => { setMenuOpen(false); handleAuthNav("MyListings"); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            </Link>
+            <Link to={createPageUrl("MyListings")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <User className="w-4 h-4" /> {t.myListings}
-            </button>
+            </Link>
           </div>
         )}
       </header>
