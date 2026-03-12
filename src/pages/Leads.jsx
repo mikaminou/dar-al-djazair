@@ -188,7 +188,7 @@ export default function LeadsPage() {
             {[1,2,3].map(i => <div key={i} className="bg-white h-28 rounded-xl animate-pulse border" />)}
           </div>
         ) : view === "kanban" ? (
-          <LeadsKanban leads={leads} onStatusChange={updateStatus} onMessage={openConversation} lang={lang} />
+          <LeadsKanban leads={leads} activityMap={activityMap} onStatusChange={updateStatus} onMessage={openConversation} lang={lang} />
         ) : displayed.length === 0 ? (
           <div className="text-center py-20 text-gray-400">
             <Inbox className="w-12 h-12 mx-auto mb-3 opacity-30" />
