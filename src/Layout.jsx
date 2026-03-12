@@ -272,8 +272,8 @@ function NavContent({ currentPageName, children }) {
       </main>
 
       {/* MOBILE BOTTOM NAV — Floating Pill with Centered Plus Button */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 border-t border-gray-200 z-40 select-none">
-        <div className="flex justify-around items-end h-20 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <nav className="fixed bottom-4 left-4 right-4 md:hidden z-40 select-none">
+        <div className="bg-white border border-gray-200 rounded-3xl shadow-lg flex justify-around items-center px-2 py-3">
           {/* Home */}
           <Link 
             to={createPageUrl("Home")} 
