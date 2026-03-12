@@ -78,6 +78,21 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
   // Don't show for the listing owner
   if (user?.email === agentEmail) return null;
 
+  // Anonymous users: show login prompt instead of booking widget
+  if (!user) return (
+    <div className="mt-4 pt-4 border-t border-gray-100">
+      <button
+        onClick={() => base44.auth.redirectToLogin(window.location.href)}
+        className="w-full flex items-center justify-between text-sm font-semibold text-emerald-700 hover:text-emerald-800 py-1"
+      >
+        <span className="flex items-center gap-2">
+          <Calendar className="w-4 h-4" />
+          {lang === "ar" ? "سجّل دخول لحجز زيارة" : lang === "fr" ? "Connectez-vous pour réserver une visite" : "Sign in to book a viewing"}
+        </span>
+      </button>
+    </div>
+  );
+
   const availableSlots = slots.filter(s => !bookedSlotIds.has(s.id));
 
   const fmtDate = (dateStr) =>
