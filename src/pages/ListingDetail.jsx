@@ -59,6 +59,12 @@ export default function ListingDetailPage() {
       // load similar
       const sim = await base44.entities.Listing.filter({ property_type: data[0].property_type, status: "active" }, "-created_date", 4);
       setSimilar(sim.filter(l => l.id !== data[0].id).slice(0, 4));
+      // fetch owner's real display name
+      if (data[0].created_by) {
+        base44.entities.User.filter({ email: data[0].created_by }).then(users => {
+          if (users.length > 0 && users[0].full_name) setOwnerName(users[0].full_name);
+        }).catch(() => {});
+      }
     }
     const favIds = favs.map(f => f.listing_id);
     setFavorites(favIds);
