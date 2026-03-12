@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -8,10 +8,25 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+import { TabNavigationProvider } from '@/components/TabNavigationContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+
+// Lazy load all page components for code splitting
+const LazyPages = Object.entries(Pages).reduce((acc, [key, Component]) => {
+  acc[key] = React.lazy(() => Promise.resolve({ default: Component }));
+  return acc;
+}, {});
+
+const LazyMainPage = React.lazy(() => Promise.resolve({ default: MainPage }));
+
+const PageLoadingFallback = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
@@ -61,18 +76,22 @@ const AuthenticatedApp = () => {
       <Route path="/" element={
         <PageTransition>
           <LayoutWrapper currentPageName={mainPageKey}>
-            <MainPage />
+            <Suspense fallback={<PageLoadingFallback />}>
+              <LazyMainPage />
+            </Suspense>
           </LayoutWrapper>
         </PageTransition>
       } />
-      {Object.entries(Pages).map(([path, Page]) => (
+      {Object.entries(LazyPages).map(([path, LazyPage]) => (
         <Route
           key={path}
           path={`/${path}`}
           element={
             <PageTransition>
               <LayoutWrapper currentPageName={path}>
-                <Page />
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <LazyPage />
+                </Suspense>
               </LayoutWrapper>
             </PageTransition>
           }
@@ -107,7 +126,9 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <AuthenticatedApp />
+          <TabNavigationProvider>
+            <AuthenticatedApp />
+          </TabNavigationProvider>
         </Router>
         <Toaster />
       </QueryClientProvider>
