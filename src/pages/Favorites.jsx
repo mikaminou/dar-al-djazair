@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Heart } from "lucide-react";
 import ListingCard from "../components/listing/ListingCard";
+import CompareBar from "../components/listing/CompareBar";
 import { useLang } from "../components/LanguageContext";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
