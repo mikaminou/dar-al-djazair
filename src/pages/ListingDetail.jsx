@@ -318,7 +318,12 @@ export default function ListingDetailPage() {
             </div>
 
             {/* In-app message */}
-            {msgSent ? (
+            {isUnavailable ? (
+              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
+              </div>
+            ) : msgSent ? (
               <div className="text-center py-5 text-emerald-600 font-medium">
                 <CheckCircle className="w-9 h-9 mx-auto mb-2" />
                 <p className="text-sm">{lang === "ar" ? "تم إرسال رسالتك!" : lang === "fr" ? "Message envoyé !" : "Message sent!"}</p>
