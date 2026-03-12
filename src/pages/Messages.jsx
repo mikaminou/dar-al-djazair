@@ -501,9 +501,21 @@ export default function MessagesPage() {
   // ---- derived state ----
   const realConversations = groupConversations(messages, user?.email || "");
   // Inject phantom thread at top if it exists and isn't already in real convs
-  const conversations = phantomThread && !realConversations.find(c => c.thread_id === phantomThread.thread_id)
+  const allConversations = phantomThread && !realConversations.find(c => c.thread_id === phantomThread.thread_id)
     ? [phantomThread, ...realConversations]
     : realConversations;
+
+  // Apply conversation filter
+  const conversations = allConversations.filter(conv => {
+    const isArchived = archivedThreads.includes(conv.thread_id);
+    const listingStatus = listingsStatusMap[conv.listing_id];
+    const isClosed = ["sold", "rented", "archived"].includes(listingStatus);
+    if (convFilter === "archived") return isArchived;
+    if (isArchived) return false; // hide archived from other views
+    if (convFilter === "open")   return !isClosed;
+    if (convFilter === "closed") return isClosed;
+    return true; // "all"
+  });
 
   const threadMessages = activeThread
     ? messages
