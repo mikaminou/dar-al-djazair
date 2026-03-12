@@ -654,6 +654,20 @@ export default function MessagesPage() {
                 </div>
               </div>
 
+              {/* Active proposal card */}
+              {activeProposal && (
+                <div className="px-4 pt-3 flex justify-center">
+                  <AppointmentProposalCard
+                    proposal={activeProposal}
+                    currentUserEmail={user?.email}
+                    lang={lang}
+                    onAccept={handleAcceptProposal}
+                    onDecline={handleDeclineProposal}
+                    onCounter={() => setShowProposeModal(true)}
+                  />
+                </div>
+              )}
+
               {/* Messages */}
               <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
                 {threadMessages.map((msg, idx) => {
