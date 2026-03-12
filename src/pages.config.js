@@ -59,6 +59,7 @@ import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
 import AgentAvailability from './pages/AgentAvailability';
+import Leads from './pages/Leads';
 import __Layout from './Layout.jsx';
 
 
@@ -75,6 +76,7 @@ export const PAGES = {
     "Profile": Profile,
     "SavedSearches": SavedSearches,
     "AgentAvailability": AgentAvailability,
+    "Leads": Leads,
 }
 
 export const pagesConfig = {
