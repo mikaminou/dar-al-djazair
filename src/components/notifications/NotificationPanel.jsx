@@ -23,9 +23,21 @@ function notifHref(url) {
   return createPageUrl(page) + (params ? "?" + params : "");
 }
 
-function timeAgo(dateStr, lang) {
-  const locale = lang === "fr" ? fr : lang === "ar" ? ar : undefined;
-  return formatDistanceToNow(new Date(dateStr), { addSuffix: true, locale });
+function TimeAgoText({ dateStr, lang }) {
+  const [timeAgo, setTimeAgo] = React.useState("");
+
+  React.useEffect(() => {
+    const updateTime = () => {
+      const locale = lang === "fr" ? fr : lang === "ar" ? ar : undefined;
+      setTimeAgo(formatDistanceToNow(new Date(dateStr), { addSuffix: true, locale }));
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 10000); // Update every 10 seconds
+    return () => clearInterval(interval);
+  }, [dateStr, lang]);
+
+  return timeAgo;
 }
 
 export default function NotificationPanel({ notifications, onClose, onChange, lang }) {
@@ -127,7 +139,7 @@ export default function NotificationPanel({ notifications, onClose, onChange, la
                     <p className="text-xs text-gray-500 mt-0.5 leading-snug line-clamp-2">{notif.body}</p>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
-                    {timeAgo(notif.created_date, lang)}
+                    <TimeAgoText dateStr={notif.created_date} lang={lang} />
                   </p>
                 </div>
                 {!notif.is_read && (
