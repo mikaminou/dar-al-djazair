@@ -586,6 +586,7 @@ export default function MessagesPage() {
               {totalUnread > 0 && <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">{totalUnread}</span>}
             </h2>
           </div>
+          <ConversationFilters filter={convFilter} onChange={setConvFilter} lang={lang} />
 
           {conversations.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
