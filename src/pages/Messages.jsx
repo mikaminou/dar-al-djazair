@@ -680,6 +680,13 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
+                    onClick={() => setShowProfilePanel(true)}
+                    className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                    title={lang === "ar" ? "معلومات المستخدم" : lang === "fr" ? "Voir le profil" : "View profile"}
+                  >
+                    <Info className="w-4 h-4" />
+                  </button>
+                  <button
                     onClick={() => setShowProposeModal(true)}
                     className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 transition-colors font-medium"
                     title={lang === "ar" ? "اقتراح موعد" : lang === "fr" ? "Proposer un RDV" : "Propose a visit"}
