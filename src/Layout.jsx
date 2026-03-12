@@ -219,9 +219,40 @@ function NavContent({ currentPageName, children }) {
       <SavedSearchAlerts />
 
       {/* MOBILE HEADER */}
-      <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-30 h-14 flex items-center px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
-        <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <div className="flex items-center">
+          <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
+          <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
+        </div>
+        {/* More menu in top bar */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-lg min-h-[44px] min-w-[44px] text-gray-500 hover:text-emerald-700 hover:bg-emerald-50">
+              <MoreVertical className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 select-none">
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
+              {t.signOut}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
       {/* PAGE CONTENT — with mobile header padding and bottom nav space */}
