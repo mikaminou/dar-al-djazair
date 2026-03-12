@@ -75,33 +75,33 @@ const AuthenticatedApp = () => {
   return (
     <>
       <PushNotificationManager />
-    <Routes>
-      <Route path="/" element={
-        <PageTransition>
-          <LayoutWrapper currentPageName={mainPageKey}>
-            <Suspense fallback={<PageLoadingFallback />}>
-              <LazyMainPage />
-            </Suspense>
-          </LayoutWrapper>
-        </PageTransition>
-      } />
-      {Object.entries(LazyPages).map(([path, LazyPage]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <PageTransition>
-              <LayoutWrapper currentPageName={path}>
-                <Suspense fallback={<PageLoadingFallback />}>
-                  <LazyPage />
-                </Suspense>
-              </LayoutWrapper>
-            </PageTransition>
-          }
-        />
-      ))}
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+      <Routes>
+        <Route path="/" element={
+          <PageTransition>
+            <LayoutWrapper currentPageName={mainPageKey}>
+              <Suspense fallback={<PageLoadingFallback />}>
+                <LazyMainPage />
+              </Suspense>
+            </LayoutWrapper>
+          </PageTransition>
+        } />
+        {Object.entries(LazyPages).map(([path, LazyPage]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <PageTransition>
+                <LayoutWrapper currentPageName={path}>
+                  <Suspense fallback={<PageLoadingFallback />}>
+                    <LazyPage />
+                  </Suspense>
+                </LayoutWrapper>
+              </PageTransition>
+            }
+          />
+        ))}
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
     </>
   );
 };
