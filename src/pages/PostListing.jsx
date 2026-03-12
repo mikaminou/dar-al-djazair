@@ -51,6 +51,12 @@ export default function PostListingPage() {
     contact_email: "",
   });
 
+  if (!authChecked) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+    </div>
+  );
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleFeature = (feat) => {
     set("features", form.features.includes(feat)
