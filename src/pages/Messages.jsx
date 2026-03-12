@@ -373,7 +373,7 @@ export default function MessagesPage() {
   );
 
   if (!loading && !user) {
-    base44.auth.redirectToLogin(window.location.href);
+    base44.auth.redirectToLogin(window.location.pathname + window.location.search);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />

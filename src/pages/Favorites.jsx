@@ -19,7 +19,7 @@ export default function FavoritesPage() {
     setLoading(true);
     const me = await base44.auth.me().catch(() => null);
     if (!me) {
-      base44.auth.redirectToLogin(window.location.href);
+      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     const favs = await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => []);

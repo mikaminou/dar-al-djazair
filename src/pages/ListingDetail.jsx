@@ -63,7 +63,7 @@ export default function ListingDetailPage() {
   async function toggleFav() {
     const me = await base44.auth.me().catch(() => null);
     if (!me) {
-      base44.auth.redirectToLogin(window.location.href);
+      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     if (isFav) {
@@ -84,7 +84,7 @@ export default function ListingDetailPage() {
   async function sendMessage() {
     if (!msgText.trim()) return;
     if (!user) {
-      base44.auth.redirectToLogin(window.location.href);
+      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     const sender = user.email;
@@ -243,7 +243,7 @@ export default function ListingDetailPage() {
                 {similar.map(l => (
                   <ListingCard key={l.id} listing={l} isFavorite={favorites.includes(l.id)} onToggleFavorite={async (lst) => {
                     const me2 = await base44.auth.me().catch(() => null);
-                    if (!me2) { base44.auth.redirectToLogin(window.location.href); return; }
+                    if (!me2) { base44.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
                     const isFav2 = favorites.includes(lst.id);
                     if (isFav2) {
                       const favs = await base44.entities.Favorite.filter({ listing_id: lst.id, user_email: me2.email });

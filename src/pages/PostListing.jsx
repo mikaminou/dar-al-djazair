@@ -23,7 +23,7 @@ export default function PostListingPage() {
 
   useEffect(() => {
     base44.auth.me().then(me => {
-      if (!me) base44.auth.redirectToLogin(window.location.href);
+      if (!me) base44.auth.redirectToLogin(window.location.pathname + window.location.search);
       else setAuthChecked(true);
     }).catch(() => base44.auth.redirectToLogin(window.location.href));
   }, []);
