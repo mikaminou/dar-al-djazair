@@ -363,10 +363,11 @@ export default function ListingDetailPage() {
               user={user}
             />
 
-            <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400 text-center">
+            <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
               {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
             </div>
-          </div>
+            </div>{/* end p-5 */}
+          </div>{/* end contact card */}
         </div>
       </div>
     </div>
