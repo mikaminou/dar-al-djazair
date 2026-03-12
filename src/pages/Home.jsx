@@ -196,8 +196,6 @@ export default function HomePage() {
                 listing={listing}
                 isFavorite={favorites.includes(listing.id)}
                 onToggleFavorite={toggleFavorite}
-                isCompared={!!compareList.find(l => l.id === listing.id)}
-                onToggleCompare={toggleCompare}
               />
             ))}
           </div>
