@@ -118,6 +118,12 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("Availability")}>{lang === "ar" ? "مواعيد الزيارة" : lang === "fr" ? "Mes Disponibilités" : "My Availability"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
