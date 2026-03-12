@@ -31,6 +31,7 @@ export default function ListingDetailPage() {
   const [msgText, setMsgText] = useState("");
   const [msgSent, setMsgSent] = useState(false);
   const [user, setUser] = useState(null);
+  const [ownerName, setOwnerName] = useState(null);
 
   useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
 
