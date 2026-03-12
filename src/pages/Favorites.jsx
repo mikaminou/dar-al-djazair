@@ -83,7 +83,7 @@ export default function FavoritesPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {listings.map(listing => (
-              <ListingCard key={listing.id} listing={listing} isFavorite={favorites.includes(listing.id)} onToggleFavorite={toggleFavorite} />
+              <ListingCard key={listing.id} listing={listing} isFavorite={favorites.includes(listing.id)} onToggleFavorite={toggleFavorite} isCompared={!!compareList.find(l => l.id === listing.id)} onToggleCompare={toggleCompare} />
             ))}
           </div>
         )}
