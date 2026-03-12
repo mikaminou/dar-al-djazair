@@ -106,6 +106,13 @@ export default function MessagesPage() {
   const [usersMap, setUsersMap] = useState({}); // email → full_name
   // phantom thread = a pre-opened thread that has no messages yet (from Leads)
   const [phantomThread, setPhantomThread] = useState(null);
+  // conversation filter: "all" | "open" | "closed" | "archived"
+  const [convFilter, setConvFilter] = useState("all");
+  // locally archived thread IDs (persisted in localStorage)
+  const [archivedThreads, setArchivedThreads] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("dari_archived_threads") || "[]"); } catch { return []; }
+  });
+  const [showProfilePanel, setShowProfilePanel] = useState(false);
   const bottomRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const typingBroadcastRef = useRef(null);
