@@ -74,7 +74,7 @@ export default function LeadsKanban({ leads, activityMap = {}, onStatusChange, o
               {grouped[col.id]?.map((lead, index) => (
                 <Draggable key={lead.id} draggableId={lead.id} index={index}>
                   {(provided, snapshot) => (
-                    <LeadCard provided={provided} snapshot={snapshot} lead={lead} onMessage={onMessage} lang={lang} />
+                    <LeadCard provided={provided} snapshot={snapshot} lead={lead} activity={activityMap[lead.id]} onMessage={onMessage} lang={lang} />
                   )}
                 </Draggable>
               ))}
@@ -82,11 +82,11 @@ export default function LeadsKanban({ leads, activityMap = {}, onStatusChange, o
               {grouped[col.id]?.length === 0 && !snapshot.isDraggingOver && (
                 <EmptyCol lang={lang} />
               )}
-            </div>
-          )}
-        </Droppable>
+              </div>
+              )}
+              </Droppable>
 
-        {/* Prev/Next nav */}
+              {/* Prev/Next nav */}
         <div className="flex justify-between items-center mt-3">
           <button disabled={mobileCol === 0} onClick={() => setMobileCol(i => i - 1)}
             className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 disabled:opacity-30">
