@@ -136,7 +136,8 @@ export default function LeadsKanban({ leads, activityMap = {}, onStatusChange, o
   );
 }
 
-function LeadCard({ provided, snapshot, lead, onMessage, lang }) {
+function LeadCard({ provided, snapshot, lead, activity = {}, onMessage, lang }) {
+  const priority = computePriority(lead, activity);
   return (
     <div
       ref={provided.innerRef}
@@ -144,9 +145,12 @@ function LeadCard({ provided, snapshot, lead, onMessage, lang }) {
       {...provided.dragHandleProps}
       className={`bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-2 select-none transition-shadow ${snapshot.isDragging ? "shadow-xl rotate-1 scale-105" : "hover:shadow-md"}`}
     >
-      <p className="font-semibold text-xs text-gray-800 truncate mb-0.5 leading-snug">
-        {lead.listing_title || lead.listing_id}
-      </p>
+      <div className="flex items-start justify-between gap-1 mb-0.5">
+        <p className="font-semibold text-xs text-gray-800 truncate leading-snug flex-1">
+          {lead.listing_title || lead.listing_id}
+        </p>
+        <PriorityBadge priority={priority} lang={lang} size="xs" />
+      </div>
       <p className="text-xs text-emerald-700 font-medium truncate mb-0.5">
         {lead.seeker_email?.split("@")[0]}
       </p>
