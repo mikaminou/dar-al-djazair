@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home } from "lucide-react";
+import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2 } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import ListingCard from "../components/listing/ListingCard";
 import VerifiedBadge from "../components/trust/VerifiedBadge";
 import VerificationSection from "../components/trust/VerificationSection";
@@ -28,6 +29,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({});
   const [favorites, setFavorites] = useState([]);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   const isOwnProfile = !profileEmail || profileEmail === currentUser?.email;
 
@@ -80,6 +82,17 @@ export default function ProfilePage() {
     setProfileUser(prev => ({ ...prev, ...form }));
     setEditing(false);
     setSaving(false);
+  }
+
+  async function deleteAccount() {
+    setDeletingAccount(true);
+    // Delete all user listings first
+    const userListings = await base44.entities.Listing.filter({ created_by: currentUser.email }, "", 1000);
+    for (const listing of userListings) {
+      await base44.entities.Listing.delete(listing.id);
+    }
+    // Logout and redirect to home
+    base44.auth.logout("/");
   }
 
   async function toggleFavorite(listing) {
@@ -164,10 +177,36 @@ export default function ProfilePage() {
                 </div>
 
                 {isOwnProfile && !editing && (
-                  <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="gap-2">
-                    <Edit2 className="w-4 h-4" />
-                    {lang === "ar" ? "تعديل الملف" : lang === "fr" ? "Modifier le profil" : "Edit Profile"}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="gap-2">
+                      <Edit2 className="w-4 h-4" />
+                      {lang === "ar" ? "تعديل الملف" : lang === "fr" ? "Modifier le profil" : "Edit Profile"}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2 text-red-500 hover:text-red-700 border-red-200 hover:bg-red-50">
+                          <Trash2 className="w-4 h-4" />
+                          {lang === "ar" ? "حذف الحساب" : lang === "fr" ? "Supprimer le compte" : "Delete Account"}
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{lang === "ar" ? "حذف الحساب" : lang === "fr" ? "Supprimer le compte" : "Delete Account"}</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            {lang === "ar" ? "هذا الإجراء لا يمكن التراجع عنه. سيتم حذف حسابك وجميع إعلاناتك بشكل نهائي." : lang === "fr" ? "Cette action est irréversible. Votre compte et toutes vos annonces seront supprimés définitivement." : "This action is irreversible. Your account and all your listings will be permanently deleted."}
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="flex gap-3">
+                          <AlertDialogCancel>
+                            {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
+                          </AlertDialogCancel>
+                          <AlertDialogAction onClick={deleteAccount} disabled={deletingAccount} className="bg-red-600 hover:bg-red-700">
+                            {deletingAccount ? "..." : (lang === "ar" ? "حذف نهائياً" : lang === "fr" ? "Supprimer" : "Delete Permanently")}
+                          </AlertDialogAction>
+                        </div>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 )}
               </div>
             </div>

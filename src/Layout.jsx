@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, Home } from "lucide-react";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
@@ -30,10 +30,10 @@ function NavContent({ currentPageName, children }) {
   const isRtl = lang === "ar";
 
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50">
+    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0">
       <style>{`
         :root { --primary: #059669; }
-        body { font-family: ${isRtl ? "'Cairo', 'Amiri', sans-serif" : "'Inter', sans-serif"}; }
+        body { font-family: ${isRtl ? "'Cairo', 'Amiri', sans-serif" : "'Inter', sans-serif"}; overscroll-behavior: none; }
       `}</style>
 
       {/* NAVBAR */}
@@ -202,9 +202,29 @@ function NavContent({ currentPageName, children }) {
       <SavedSearchAlerts />
 
       {/* PAGE CONTENT */}
-      <main className="flex-1">
+      <main className="flex-1 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
         {children}
       </main>
+
+      {/* MOBILE BOTTOM NAV */}
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 z-40 flex justify-around items-center h-20 px-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <Link to={createPageUrl("Home")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+          <Home className="w-5 h-5" />
+          <span className="text-xs font-medium">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
+        </Link>
+        <Link to={createPageUrl("Listings")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+          <Search className="w-5 h-5" />
+          <span className="text-xs font-medium">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
+        </Link>
+        <Link to={createPageUrl("Messages")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+          <MessageSquare className="w-5 h-5" />
+          <span className="text-xs font-medium">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Messages"}</span>
+        </Link>
+        <Link to={createPageUrl("Profile")} className="flex flex-col items-center gap-1 p-2 text-gray-600 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+          <User className="w-5 h-5" />
+          <span className="text-xs font-medium">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
+        </Link>
+      </nav>
 
       {/* FOOTER */}
       <footer className="bg-gray-900 text-gray-400 pt-10 pb-5">
