@@ -76,16 +76,30 @@ export default function MyListingsPage() {
   const filteredListings = listings.filter(l => {
     if (filters.status !== "all" && l.status !== filters.status) return false;
     if (filters.property_type !== "all" && l.property_type !== filters.property_type) return false;
+    if (filters.wilaya !== "all" && l.wilaya !== filters.wilaya) return false;
     if (filters.minPrice && l.price < Number(filters.minPrice)) return false;
     if (filters.maxPrice && l.price > Number(filters.maxPrice)) return false;
     return true;
   });
 
-  const hasActiveFilters = filters.status !== "all" || filters.property_type !== "all" || filters.minPrice || filters.maxPrice;
+  const hasActiveFilters = filters.status !== "all" || filters.property_type !== "all" || filters.wilaya !== "all" || filters.minPrice || filters.maxPrice;
+  const activeFilterCount = [filters.status !== "all", filters.property_type !== "all", filters.wilaya !== "all", !!filters.minPrice, !!filters.maxPrice].filter(Boolean).length;
 
   function resetFilters() {
-    setFilters({ status: "all", property_type: "all", minPrice: "", maxPrice: "" });
+    setFilters({ status: "all", property_type: "all", wilaya: "all", minPrice: "", maxPrice: "" });
   }
+
+  // Get only wilayas that the user has listings in
+  const usedWilayas = [...new Set(listings.map(l => l.wilaya).filter(Boolean))].sort();
+
+  const statusOptions = [
+    { value: "all", label: { fr: "Tous", ar: "الكل", en: "All" } },
+    { value: "active", label: { fr: "Actifs", ar: "نشط", en: "Active" }, color: "emerald" },
+    { value: "archived", label: { fr: "Archivés", ar: "مؤرشف", en: "Archived" }, color: "gray" },
+    { value: "sold", label: { fr: "Vendus", ar: "مباع", en: "Sold" }, color: "blue" },
+    { value: "rented", label: { fr: "Loués", ar: "مؤجر", en: "Rented" }, color: "purple" },
+    { value: "pending", label: { fr: "En attente", ar: "معلق", en: "Pending" }, color: "yellow" },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
