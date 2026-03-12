@@ -38,10 +38,12 @@ function FilterPills({ filters, lang }) {
 }
 
 const STATUS_CONFIG = {
-  new:       { label: { en: "New",       fr: "Nouveau",   ar: "جديد"        }, color: "bg-blue-100 text-blue-700"    },
-  contacted: { label: { en: "Contacted", fr: "Contacté",  ar: "تم التواصل"   }, color: "bg-amber-100 text-amber-700"  },
+  new:       { label: { en: "New",       fr: "Nouveau",   ar: "جديد"        }, color: "bg-blue-100 text-blue-700"     },
+  contacted: { label: { en: "Contacted", fr: "Contacté",  ar: "تم التواصل"   }, color: "bg-amber-100 text-amber-700"   },
   viewing:   { label: { en: "Viewing",   fr: "Visite",    ar: "معاينة"       }, color: "bg-purple-100 text-purple-700" },
-  closed:    { label: { en: "Closed",    fr: "Clôturé",   ar: "مغلق"        }, color: "bg-gray-100 text-gray-500"    },
+  won:       { label: { en: "Won 🏆",    fr: "Gagné 🏆",  ar: "ناجح 🏆"      }, color: "bg-emerald-100 text-emerald-700"},
+  lost:      { label: { en: "Lost",      fr: "Perdu",     ar: "فاشل"         }, color: "bg-red-100 text-red-600"       },
+  closed:    { label: { en: "Closed",    fr: "Clôturé",   ar: "مغلق"        }, color: "bg-gray-100 text-gray-500"     },
 };
 
 export default function LeadsPage() {
@@ -77,7 +79,8 @@ export default function LeadsPage() {
     new:       leads.filter(l => l.status === "new").length,
     contacted: leads.filter(l => l.status === "contacted").length,
     viewing:   leads.filter(l => l.status === "viewing").length,
-    closed:    leads.filter(l => l.status === "closed").length,
+    won:       leads.filter(l => l.status === "won").length,
+    lost:      leads.filter(l => l.status === "lost" || l.status === "closed").length,
   };
 
   const T = {
@@ -110,7 +113,7 @@ export default function LeadsPage() {
           </div>
           <p className="text-emerald-200 text-sm">{t("subtitle")}</p>
           <div className="flex gap-3 mt-4 flex-wrap">
-            {["new", "contacted", "viewing", "closed"].map(s => (
+            {["new", "contacted", "viewing", "won", "lost"].map(s => (
               <div key={s} className="bg-white/10 rounded-lg px-3 py-1 text-sm">
                 <span className="font-bold">{counts[s]}</span>
                 <span className="text-emerald-200 ml-1">{STATUS_CONFIG[s].label[lang]}</span>
@@ -124,7 +127,7 @@ export default function LeadsPage() {
         <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
           {view === "list" && (
             <div className="flex gap-2 flex-wrap">
-              {["new", "contacted", "viewing", "closed", "all"].map(s => (
+              {["new", "contacted", "viewing", "won", "lost", "all"].map(s => (
                 <button
                   key={s}
                   onClick={() => setFilter(s)}
@@ -212,7 +215,7 @@ export default function LeadsPage() {
                   </div>
                 </div>
 
-                {lead.status !== "closed" && (
+                {!["won", "lost"].includes(lead.status) && (
                   <div className="flex gap-2 mt-4 pt-3 border-t border-gray-50 flex-wrap">
                     {lead.status === "new" && (
                       <Button size="sm" variant="outline" className="text-xs gap-1 border-amber-300 text-amber-700 hover:bg-amber-50" onClick={() => updateStatus(lead, "contacted")}>
@@ -224,8 +227,11 @@ export default function LeadsPage() {
                         <Eye className="w-3 h-3" /> {t("markViewing")}
                       </Button>
                     )}
-                    <Button size="sm" variant="outline" className="text-xs gap-1 text-gray-500 hover:text-gray-700" onClick={() => updateStatus(lead, "closed")}>
-                      <XCircle className="w-3 h-3" /> {t("markClosed")}
+                    <Button size="sm" variant="outline" className="text-xs gap-1 border-emerald-300 text-emerald-700 hover:bg-emerald-50" onClick={() => updateStatus(lead, "won")}>
+                      🏆 {STATUS_CONFIG.won.label[lang]}
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-xs gap-1 text-red-500 border-red-200 hover:bg-red-50" onClick={() => updateStatus(lead, "lost")}>
+                      <XCircle className="w-3 h-3" /> {STATUS_CONFIG.lost.label[lang]}
                     </Button>
                   </div>
                 )}
