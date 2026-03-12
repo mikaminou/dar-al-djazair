@@ -127,6 +127,7 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild>
                       <Link to={createPageUrl("Messages")}>{t.messages}</Link>
                     </DropdownMenuItem>
+                    {/* These are inside the user ? block so they only render when logged in */}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500">
                       {t.signOut}
