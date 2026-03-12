@@ -96,6 +96,7 @@ function NavContent({ currentPageName, children }) {
             <Link to={createPageUrl("PostListing")}>
               <Plus className="w-4 h-4" />
               {t.postListing}
+            </Link>
             </Button>
 
             {/* User menu */}
