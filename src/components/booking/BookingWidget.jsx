@@ -82,7 +82,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
   if (!user) return (
     <div className="mt-4 pt-4 border-t border-gray-100">
       <button
-        onClick={() => base44.auth.redirectToLogin(window.location.href)}
+        onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
         className="w-full flex items-center justify-between text-sm font-semibold text-emerald-700 hover:text-emerald-800 py-1"
       >
         <span className="flex items-center gap-2">
