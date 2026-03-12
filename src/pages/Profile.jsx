@@ -123,8 +123,6 @@ export default function ProfilePage() {
   const displayName = profileUser.agency_name || profileUser.full_name || profileUser.email;
   const isAgency = profileUser.role === "agency";
 
-  const displayName = profileUser.agency_name || profileUser.full_name || profileUser.email;
-
   return (
     <div className="min-h-screen bg-gray-50">
       <MobileHeader title={displayName || (lang === "ar" ? "الملف الشخصي" : lang === "fr" ? "Profil" : "Profile")} />
