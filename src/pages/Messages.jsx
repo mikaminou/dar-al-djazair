@@ -145,15 +145,19 @@ export default function MessagesPage() {
         if (prev.length === mine.length && mine.every(m => prev.find(p => p.id === m.id && p.is_read === m.is_read))) return prev;
         return mine;
       });
-      // Fetch titles for any new listing IDs
+      // Fetch titles and statuses for any new listing IDs
       setListingsMap(prev => {
         const newIds = [...new Set(mine.map(m => m.listing_id).filter(id => id && !prev[id]))];
         if (newIds.length === 0) return prev;
         Promise.all(newIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)))
           .then(listings => {
-            const additions = {};
-            listings.forEach(l => { if (l) additions[l.id] = l.title; });
-            if (Object.keys(additions).length > 0) setListingsMap(p => ({ ...p, ...additions }));
+            const titleAdditions = {};
+            const statusAdditions = {};
+            listings.forEach(l => { if (l) { titleAdditions[l.id] = l.title; statusAdditions[l.id] = l.status; } });
+            if (Object.keys(titleAdditions).length > 0) {
+              setListingsMap(p => ({ ...p, ...titleAdditions }));
+              setListingsStatusMap(p => ({ ...p, ...statusAdditions }));
+            }
           });
         return prev;
       });
