@@ -46,6 +46,10 @@ export default function HomePage() {
 
   async function toggleFavorite(listing) {
     const me = await base44.auth.me().catch(() => null);
+    if (!me) {
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
     const existing = favorites.includes(listing.id);
     if (existing) {
       const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
