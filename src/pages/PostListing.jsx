@@ -19,6 +19,20 @@ export default function PostListingPage() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    base44.auth.me().then(me => {
+      if (!me) base44.auth.redirectToLogin(window.location.href);
+      else setAuthChecked(true);
+    }).catch(() => base44.auth.redirectToLogin(window.location.href));
+  }, []);
+
+  if (!authChecked) return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full" />
+    </div>
+  );
 
   const [form, setForm] = useState({
     listing_type: "sale",

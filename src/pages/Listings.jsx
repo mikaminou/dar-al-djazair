@@ -122,6 +122,10 @@ export default function ListingsPage() {
 
   async function toggleFavorite(listing) {
     const me = await base44.auth.me().catch(() => null);
+    if (!me) {
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
     const isFav = favorites.includes(listing.id);
     if (isFav) {
       const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
@@ -135,6 +139,11 @@ export default function ListingsPage() {
 
   async function confirmSaveSearch() {
     const me = await base44.auth.me().catch(() => null);
+    if (!me) {
+      setSaveDialogOpen(false);
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
     const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
     const newSearch = await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
     setSavedSearches(prev => [newSearch, ...prev]);
