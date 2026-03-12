@@ -129,6 +129,9 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("Availability")}>{lang === "ar" ? "مواعيد الزيارة" : lang === "fr" ? "Mes Disponibilités" : "My Availability"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to={createPageUrl("TenantManagement")}>{lang === "ar" ? "إدارة المستأجرين" : lang === "fr" ? "Gestion des locataires" : "Tenant Management"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
