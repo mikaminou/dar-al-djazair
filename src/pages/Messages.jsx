@@ -587,17 +587,28 @@ export default function MessagesPage() {
                 <div />
               </div>
 
+              {/* Unavailable listing notice for seeker */}
+              {showUnavailableNotice && (
+                <div className="mx-3 mb-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
+                </div>
+              )}
+
               {/* Input */}
               <div className="p-3 border-t border-gray-100 bg-white flex gap-2 items-end">
                 <Textarea
                   value={input}
                   onChange={handleInputChange}
                   onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(); }}}
-                  placeholder={l.placeholder}
+                  placeholder={showUnavailableNotice
+                    ? (lang === "ar" ? "لا يمكن إرسال رسائل جديدة" : lang === "fr" ? "Messagerie désactivée" : "Messaging disabled")
+                    : l.placeholder}
                   rows={1}
+                  disabled={showUnavailableNotice}
                   className="flex-1 resize-none text-sm rounded-xl"
                 />
-                <Button onClick={sendReply} disabled={!input.trim() || sending} className="bg-emerald-600 hover:bg-emerald-700 h-9 px-4 flex-shrink-0">
+                <Button onClick={sendReply} disabled={!input.trim() || sending || showUnavailableNotice} className="bg-emerald-600 hover:bg-emerald-700 h-9 px-4 flex-shrink-0">
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
