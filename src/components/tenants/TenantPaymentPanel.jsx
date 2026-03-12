@@ -152,16 +152,25 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
                   <Button 
                     size="sm" 
                     variant="ghost"
-                    onClick={() => generateReceipt(payment)}
+                    onClick={async () => {
+                      const result = await generateReceipt(payment);
+                      window.open(result.url, '_blank');
+                    }}
                     className="text-blue-600 hover:text-blue-700"
+                    title={lang === "ar" ? "تحميل الوصل" : lang === "fr" ? "Télécharger" : "Download Receipt"}
                   >
                     <FileText className="w-4 h-4" />
                   </Button>
                   <Button 
                     size="sm" 
                     variant="ghost"
-                    onClick={() => generateReceipt(payment).then(pdfUrl => window.open(`https://wa.me/?text=${encodeURIComponent(`Check out this payment receipt: ${pdfUrl}`)}`))}
+                    onClick={async () => {
+                      const result = await generateReceipt(payment);
+                      const text = encodeURIComponent(`I just received payment for rent. Receipt: ${result.url}`);
+                      window.open(`https://wa.me/?text=${text}`, '_blank');
+                    }}
                     className="text-green-600 hover:text-green-700"
+                    title={lang === "ar" ? "مشاركة على واتس آب" : lang === "fr" ? "Partager sur WhatsApp" : "Share on WhatsApp"}
                   >
                     <Share2 className="w-4 h-4" />
                   </Button>
