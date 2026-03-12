@@ -50,6 +50,7 @@ export default function ListingsPage() {
   const [compareList, setCompareList] = useState([]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [searchName, setSearchName] = useState("");
+  const [financialState, setFinancialState] = useState("");
   const [saved, setSaved] = useState(false);
   const [savedSearches, setSavedSearches] = useState([]);
 
@@ -145,10 +146,12 @@ export default function ListingsPage() {
       return;
     }
     const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
-    const newSearch = await base44.entities.SavedSearch.create({ name, filters, alert_enabled: true });
+    const savePayload = { name, filters, alert_enabled: true };
+    if (financialState) savePayload.financial_state = financialState;
+    const newSearch = await base44.entities.SavedSearch.create(savePayload);
     setSavedSearches(prev => [newSearch, ...prev]);
     setSaved(true);
-    setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); }, 1200);
+    setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); setFinancialState(""); }, 1200);
 
     // Generate leads: notify agents whose listings match this saved search
     if (me) {

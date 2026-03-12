@@ -48,6 +48,8 @@
  * The mainPage value must match a key in the PAGES object exactly.
  */
 import AgentAvailability from './pages/AgentAvailability';
+import Appointments from './pages/Appointments';
+import Availability from './pages/Availability';
 import Compare from './pages/Compare';
 import Favorites from './pages/Favorites';
 import Home from './pages/Home';
@@ -60,13 +62,13 @@ import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
-import Availability from './pages/Availability';
-import Appointments from './pages/Appointments';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AgentAvailability": AgentAvailability,
+    "Appointments": Appointments,
+    "Availability": Availability,
     "Compare": Compare,
     "Favorites": Favorites,
     "Home": Home,
@@ -79,8 +81,6 @@ export const PAGES = {
     "PostListing": PostListing,
     "Profile": Profile,
     "SavedSearches": SavedSearches,
-    "Availability": Availability,
-    "Appointments": Appointments,
 }
 
 export const pagesConfig = {
