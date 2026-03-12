@@ -72,15 +72,17 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
               <span className="text-xs text-gray-400 ml-1">{t.perMonth}</span>
             )}
           </div>
-          <button
-            onClick={() => onToggleCompare && onToggleCompare(listing)}
-            className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors ${isCompared ? "bg-emerald-100 text-emerald-700 border-emerald-300" : "bg-gray-50 text-gray-500 border-gray-200 hover:border-emerald-300 hover:text-emerald-600"}`}
-          >
-            <Scale className="w-3 h-3" />
-            {isCompared
-              ? (lang === "ar" ? "إزالة" : lang === "fr" ? "Retirer" : "Remove")
-              : (lang === "ar" ? "قارن" : lang === "fr" ? "Comparer" : "Compare")}
-          </button>
+          {onToggleCompare && (
+            <button
+              onClick={() => onToggleCompare(listing)}
+              className={`flex items-center gap-1 text-xs px-2 py-1.5 rounded-lg border transition-colors ${isCompared ? "bg-emerald-100 text-emerald-700 border-emerald-300" : "bg-gray-50 text-gray-500 border-gray-200 hover:border-emerald-300 hover:text-emerald-600"}`}
+            >
+              <Scale className="w-3 h-3" />
+              {isCompared
+                ? (lang === "ar" ? "إزالة" : lang === "fr" ? "Retirer" : "Remove")
+                : (lang === "ar" ? "قارن" : lang === "fr" ? "Comparer" : "Compare")}
+            </button>
+          )}
         </div>
       </div>
     </div>
