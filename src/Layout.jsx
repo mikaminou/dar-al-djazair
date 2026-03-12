@@ -260,91 +260,70 @@ function NavContent({ currentPageName, children }) {
         {children}
       </main>
 
-      {/* MOBILE BOTTOM NAV — Floating Pill Style */}
-      <nav className="fixed bottom-4 left-4 right-4 md:hidden z-40 select-none">
-        <div className="bg-gray-900 dark:bg-gray-800 border border-gray-800 rounded-3xl shadow-2xl px-2 py-3 flex justify-around items-center">
+      {/* MOBILE BOTTOM NAV — Floating Pill with Centered Plus Button */}
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 border-t border-gray-200 z-40 select-none">
+        <div className="flex justify-around items-end h-20 px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {/* Home */}
           <Link 
             to={createPageUrl("Home")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
               location.pathname === createPageUrl("Home") 
-                ? "text-emerald-500" 
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-emerald-600" 
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <Home className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
+            <Home className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
           </Link>
 
           {/* Search */}
           <Link 
             to={createPageUrl("Listings")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
               location.pathname === createPageUrl("Listings")
-                ? "text-emerald-500"
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-emerald-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <Search className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
+            <Search className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
           </Link>
+
+          {/* Centered Plus Button */}
+          <div className="relative -top-6">
+            <Link 
+              to={createPageUrl("PostListing")} 
+              className="flex items-center justify-center h-14 w-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
+            >
+              <Plus className="w-7 h-7" />
+            </Link>
+          </div>
 
           {/* Messages */}
           <Link 
             to={createPageUrl("Messages")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
               location.pathname === createPageUrl("Messages")
-                ? "text-emerald-500"
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-emerald-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <MessageSquare className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
+            <MessageSquare className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
           </Link>
 
           {/* Profile */}
           <Link 
             to={createPageUrl("Profile")} 
-            className={`flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] rounded-lg transition-all ${
               location.pathname === createPageUrl("Profile")
-                ? "text-emerald-500"
-                : "text-gray-400 hover:text-gray-200"
+                ? "text-emerald-600"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
-            <User className="w-5 h-5" />
-            <span className="text-[9px] font-semibold">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
+            <User className="w-6 h-6" />
+            <span className="text-[10px] font-semibold">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
           </Link>
-
-          {/* More menu */}
-          <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <button className="flex flex-col items-center justify-center gap-1 min-h-[50px] min-w-[50px] rounded-2xl text-gray-400 hover:text-gray-200 transition-all">
-                <MoreVertical className="w-5 h-5" />
-                <span className="text-[9px] font-semibold">{lang === "ar" ? "المزيد" : lang === "fr" ? "Plus" : "More"}</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 mb-20 select-none">
-              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                <Link to={createPageUrl("Favorites")} onClick={() => setCreateMenuOpen(false)}>{t.favorites}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                <Link to={createPageUrl("SavedSearches")} onClick={() => setCreateMenuOpen(false)}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                <Link to={createPageUrl("MyListings")} onClick={() => setCreateMenuOpen(false)}>{t.myListings}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                <Link to={createPageUrl("Leads")} onClick={() => setCreateMenuOpen(false)}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                <Link to={createPageUrl("Appointments")} onClick={() => setCreateMenuOpen(false)}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => { base44.auth.logout(); setCreateMenuOpen(false); }} className="text-red-500 min-h-[44px] flex items-center select-none">
-                {t.signOut}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </nav>
 
