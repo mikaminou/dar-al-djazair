@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Bell, MessageSquare, Users, Calendar, Home, CheckCheck, X, AlertCircle } from "lucide-react";
 import { createPageUrl } from "@/utils";
