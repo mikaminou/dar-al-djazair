@@ -15,7 +15,7 @@ const COLUMNS = [
   { id: "lost",      label: { en: "Lost",        fr: "Perdu",      ar: "فاشل"        }, headerColor: "bg-red-400",    bg: "bg-red-50/60 border-red-200"       },
 ];
 
-export default function LeadsKanban({ leads, onStatusChange, onMessage, lang }) {
+export default function LeadsKanban({ leads, activityMap = {}, onStatusChange, onMessage, lang }) {
   const [mobileCol, setMobileCol] = useState(0);
 
   // treat legacy "closed" as "lost"
