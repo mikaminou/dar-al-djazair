@@ -5,6 +5,7 @@ import { Heart, MapPin, Maximize2, BedDouble, Bath, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../LanguageContext";
 import { formatPrice } from "../constants";
+import VerifiedBadge from "../trust/VerifiedBadge";
 
 export default function ListingCard({ listing, isFavorite, onToggleFavorite, onToggleCompare, isCompared }) {
   const { t, lang } = useLang();
@@ -41,6 +42,11 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
         <Link to={createPageUrl(`ListingDetail?id=${listing.id}`)}>
           <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1 hover:text-emerald-700">{listing.title}</h3>
         </Link>
+        {listing.owner_is_verified && (
+          <div className="mb-2">
+            <VerifiedBadge type={listing.owner_verification_type || "individual"} size="xs" lang={lang} />
+          </div>
+        )}
 
         <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
           <MapPin className="w-3 h-3 flex-shrink-0" />
