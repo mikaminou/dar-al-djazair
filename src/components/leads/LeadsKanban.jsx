@@ -4,6 +4,8 @@ import { MessageSquare, UserCircle, ChevronLeft, ChevronRight } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import PriorityBadge from "./PriorityBadge";
+import { computePriority } from "./leadScoring";
 
 const COLUMNS = [
   { id: "new",       label: { en: "New",        fr: "Nouveau",    ar: "جديد"        }, headerColor: "bg-blue-500",   bg: "bg-blue-50/60 border-blue-200"    },
