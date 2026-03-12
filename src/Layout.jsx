@@ -214,62 +214,67 @@ function NavContent({ currentPageName, children }) {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 z-40 flex justify-around items-center h-24 px-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] select-none">
-        <Link to={createPageUrl("Home")} className="flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] text-gray-600 hover:text-emerald-700 rounded select-none">
-          <Home className="w-5 h-5" />
-          <span className="text-xs font-medium">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 z-40 flex justify-around items-center h-24 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] select-none">
+        <Link to={createPageUrl("Home")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+          <Home className="w-6 h-6" />
+          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
         </Link>
-        <Link to={createPageUrl("Listings")} className="flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] text-gray-600 hover:text-emerald-700 rounded select-none">
-          <Search className="w-5 h-5" />
-          <span className="text-xs font-medium">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
+
+        <Link to={createPageUrl("Listings")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+          <Search className="w-6 h-6" />
+          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
         </Link>
 
         {/* Central prominent button */}
         <Link 
           to={createPageUrl("PostListing")} 
-          className="flex flex-col items-center justify-center absolute bottom-12 left-1/2 -translate-x-1/2 min-h-[56px] min-w-[56px] bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-lg select-none transition-transform hover:scale-110"
+          className="flex items-center justify-center absolute bottom-14 left-1/2 -translate-x-1/2 h-14 w-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-md select-none transition-all hover:scale-110 active:scale-95"
         >
-          <Plus className="w-6 h-6" />
+          <Plus className="w-7 h-7" />
         </Link>
 
-        <Link to={createPageUrl("Messages")} className="flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] text-gray-600 hover:text-emerald-700 rounded select-none">
-          <MessageSquare className="w-5 h-5" />
-          <span className="text-xs font-medium">{lang === "ar" ? "الرسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
+        <Link to={createPageUrl("Messages")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+          <MessageSquare className="w-6 h-6" />
+          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
         </Link>
 
-        {/* More menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex flex-col items-center justify-center gap-1 min-h-[44px] min-w-[44px] text-gray-600 hover:text-emerald-700 rounded select-none">
-              <User className="w-5 h-5" />
-              <span className="text-xs font-medium">{lang === "ar" ? "المزيد" : lang === "fr" ? "Plus" : "More"}</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 mb-24 select-none">
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Profile")}>{lang === "ar" ? "ملفي الشخصي" : lang === "fr" ? "Mon profil" : "My Profile"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
-              {t.signOut}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {/* Profile + More menu */}
+        <div className="flex flex-col items-center gap-1.5">
+          <Link 
+            to={createPageUrl("Profile")} 
+            className="flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors"
+          >
+            <User className="w-6 h-6" />
+          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center justify-center min-h-[10px] min-w-[20px] text-gray-500 hover:text-emerald-700 select-none transition-colors">
+                <span className="text-sm font-bold">⋮</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 mb-28 select-none">
+              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
+                {t.signOut}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </nav>
 
       {/* FOOTER — hidden on mobile for logged-in users unless on home */}
