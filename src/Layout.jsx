@@ -155,15 +155,15 @@ function NavContent({ currentPageName, children }) {
                 {link.label}
               </a>
             ))}
-            <Link to={createPageUrl("Favorites")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg">
+            <button onClick={() => { setMenuOpen(false); user ? window.location.href = createPageUrl("Favorites") : base44.auth.redirectToLogin(createPageUrl("Favorites")); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <Heart className="w-4 h-4" /> {t.favorites}
-            </Link>
-            <Link to={createPageUrl("Messages")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg">
+            </button>
+            <button onClick={() => { setMenuOpen(false); user ? window.location.href = createPageUrl("Messages") : base44.auth.redirectToLogin(createPageUrl("Messages")); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <MessageSquare className="w-4 h-4" /> {t.messages}
-            </Link>
-            <Link to={createPageUrl("MyListings")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg">
+            </button>
+            <button onClick={() => { setMenuOpen(false); user ? window.location.href = createPageUrl("MyListings") : base44.auth.redirectToLogin(createPageUrl("MyListings")); }} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <User className="w-4 h-4" /> {t.myListings}
-            </Link>
+            </button>
           </div>
         )}
       </header>
