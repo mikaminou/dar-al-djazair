@@ -259,7 +259,7 @@ export default function MyListingsPage() {
           </div>
         ) : filteredListings.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
-            <Filter className="w-10 h-10 mx-auto mb-3 opacity-30" />
+            <SlidersHorizontal className="w-10 h-10 mx-auto mb-3 opacity-30" />
             <p>{lang === "ar" ? "لا توجد نتائج لهذه الفلاتر" : lang === "fr" ? "Aucun résultat pour ces filtres" : "No listings match these filters"}</p>
             <button onClick={resetFilters} className="mt-2 text-emerald-600 text-sm underline">
               {lang === "ar" ? "مسح الفلاتر" : lang === "fr" ? "Effacer les filtres" : "Clear filters"}
