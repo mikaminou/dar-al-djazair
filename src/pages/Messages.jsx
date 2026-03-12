@@ -372,12 +372,14 @@ export default function MessagesPage() {
     </div>
   );
 
-  if (!user) return (
-    <div className="min-h-screen flex items-center justify-center text-gray-400 gap-3">
-      <MessageSquare className="w-10 h-10 opacity-20" />
-      <span>{lang === "ar" ? "يرجى تسجيل الدخول" : lang === "fr" ? "Veuillez vous connecter" : "Please sign in"}</span>
-    </div>
-  );
+  if (!loading && !user) {
+    base44.auth.redirectToLogin(window.location.href);
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
