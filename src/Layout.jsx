@@ -43,7 +43,6 @@ function NavContent({ currentPageName, children }) {
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0">
             <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-8 h-8" />
             <span className="font-bold text-xl text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
-            <span className="text-xs text-gray-400 hidden sm:block">.dz</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -202,7 +201,7 @@ function NavContent({ currentPageName, children }) {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
-                <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}.dz</span>
+                <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
               </div>
               <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>
             </div>

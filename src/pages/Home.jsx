@@ -84,7 +84,7 @@ export default function HomePage() {
             {lang === "ar" ? "منصة عقارات الجزائر الأولى" : lang === "fr" ? "La 1ère plateforme immobilière d'Algérie" : "Algeria's #1 Real Estate Platform"}
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
-            {lang === "ar" ? "داري" : "Dari"}
+            {lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}
             <span className="block text-amber-400 text-2xl md:text-3xl font-normal mt-2">{t.tagline}</span>
           </h1>
 
@@ -222,10 +222,10 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* WHY DARI */}
+      {/* WHY DAR AL DJAZAIR */}
       <div className="max-w-6xl mx-auto px-4 py-16">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-10">
-          {lang === "ar" ? "لماذا داري؟" : lang === "fr" ? "Pourquoi Dari ?" : "Why Dari?"}
+          {lang === "ar" ? "لماذا دار الجزائر؟" : lang === "fr" ? "Pourquoi Dar Al Djazair ?" : "Why Dar Al Djazair?"}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
