@@ -41,15 +41,15 @@ function NavContent({ currentPageName, children }) {
       <header className="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm select-none">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3 md:gap-4">
           {/* Logo */}
-          <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit">
+          <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit min-h-[44px] select-none rounded">
             <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-8 h-8" />
             <span className="hidden sm:inline font-bold text-lg text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+          <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center select-none">
             {navLinks.map(link => (
-              <a key={link.label} href={link.href} className="px-3 py-2 text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap">
+              <a key={link.label} href={link.href} className="px-3 py-2 min-h-[44px] flex items-center text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap">
                 {link.label}
               </a>
             ))}
