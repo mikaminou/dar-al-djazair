@@ -98,6 +98,9 @@ export default function MessagesPage() {
   const [otherIsTyping, setOtherIsTyping] = useState(false);
   const [listingsMap, setListingsMap] = useState({});
   const [listingsStatusMap, setListingsStatusMap] = useState({});
+  const [activeProposal, setActiveProposal] = useState(null);
+  const [showProposeModal, setShowProposeModal] = useState(false);
+  const [listingOwnerMap, setListingOwnerMap] = useState({}); // listingId → owner email
   const [usersMap, setUsersMap] = useState({}); // email → full_name
   // phantom thread = a pre-opened thread that has no messages yet (from Leads)
   const [phantomThread, setPhantomThread] = useState(null);
