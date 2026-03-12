@@ -266,14 +266,16 @@ export default function MessagesPage() {
       const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
       setMessages(mine);
 
-      // Fetch listing titles for all unique listing IDs
+      // Fetch listing titles + statuses for all unique listing IDs
       const params2 = new URLSearchParams(window.location.search);
       const phantomListingId = params2.get("thread");
       const allListingIds = [...new Set([...mine.map(m => m.listing_id), phantomListingId].filter(Boolean))];
       const listings = await Promise.all(allListingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
       const map = {};
-      listings.forEach(l => { if (l) map[l.id] = l.title; });
+      const statusMap = {};
+      listings.forEach(l => { if (l) { map[l.id] = l.title; statusMap[l.id] = l.status; } });
       setListingsMap(map);
+      setListingsStatusMap(statusMap);
 
       // If phantom thread was set from URL params, pre-open it
       const params = new URLSearchParams(window.location.search);
