@@ -83,14 +83,14 @@ function NavContent({ currentPageName, children }) {
             </DropdownMenu>
 
             <button
-              onClick={() => user ? window.location.href = createPageUrl("Favorites") : base44.auth.redirectToLogin("/Favorites")}
+              onClick={() => handleAuthNav("Favorites")}
               className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             >
               <Heart className="w-5 h-5" />
             </button>
 
             <button
-              onClick={() => user ? window.location.href = createPageUrl("Messages") : base44.auth.redirectToLogin("/Messages")}
+              onClick={() => handleAuthNav("Messages")}
               className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
             >
               <MessageSquare className="w-5 h-5" />
@@ -98,7 +98,7 @@ function NavContent({ currentPageName, children }) {
 
             <Button
               size="sm"
-              onClick={() => user ? window.location.href = createPageUrl("PostListing") : base44.auth.redirectToLogin("/PostListing")}
+              onClick={() => handleAuthNav("PostListing")}
               className="bg-emerald-600 hover:bg-emerald-700 gap-1 hidden sm:flex"
             >
               <Plus className="w-4 h-4" />
