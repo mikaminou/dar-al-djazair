@@ -74,25 +74,26 @@ function NavContent({ currentPageName, children }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <button
-              onClick={() => handleAuthNav("Favorites")}
+            <Link
+              to={createPageUrl("Favorites")}
               className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
             >
               <Heart className="w-5 h-5" />
-            </button>
+            </Link>
 
-            <button
-              onClick={() => handleAuthNav("Messages")}
+            <Link
+              to={createPageUrl("Messages")}
               className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
             >
               <MessageSquare className="w-5 h-5" />
-            </button>
+            </Link>
 
             <Button
               size="sm"
-              onClick={() => handleAuthNav("PostListing")}
+              asChild
               className="bg-emerald-600 hover:bg-emerald-700 gap-1 hidden sm:flex"
             >
+            <Link to={createPageUrl("PostListing")}>
               <Plus className="w-4 h-4" />
               {t.postListing}
             </Button>
