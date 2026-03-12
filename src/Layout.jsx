@@ -15,6 +15,7 @@ function NavContent({ currentPageName, children }) {
   const { t, lang, changeLang } = useLang();
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
