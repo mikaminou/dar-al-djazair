@@ -118,7 +118,7 @@ export default function LeadsKanban({ leads, activityMap = {}, onStatusChange, o
                   {grouped[col.id]?.map((lead, index) => (
                     <Draggable key={lead.id} draggableId={lead.id} index={index}>
                       {(provided, snapshot) => (
-                        <LeadCard provided={provided} snapshot={snapshot} lead={lead} onMessage={onMessage} lang={lang} />
+                        <LeadCard provided={provided} snapshot={snapshot} lead={lead} activity={activityMap[lead.id]} onMessage={onMessage} lang={lang} />
                       )}
                     </Draggable>
                   ))}
