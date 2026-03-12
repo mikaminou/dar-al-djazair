@@ -205,6 +205,7 @@ export default function LeadsPage() {
                       <Badge className={STATUS_CONFIG[lead.status]?.color}>
                         {STATUS_CONFIG[lead.status]?.label[lang]}
                       </Badge>
+                      <PriorityBadge priority={computePriority(lead, activityMap[lead.id] || {})} lang={lang} />
                       <span className="font-semibold text-gray-900 text-sm truncate">
                         {lead.listing_title || lead.listing_id}
                       </span>
