@@ -18,7 +18,8 @@ import BookingWidget from "../components/booking/BookingWidget";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
-  const params = new URLSearchParams(window.location.search);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
   const id = params.get("id");
 
   const [listing, setListing] = useState(null);
