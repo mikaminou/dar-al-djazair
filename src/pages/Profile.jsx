@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home } from "lucide-react";
 import ListingCard from "../components/listing/ListingCard";
+import VerifiedBadge from "../components/trust/VerifiedBadge";
+import VerificationSection from "../components/trust/VerificationSection";
+import ReviewsSection from "../components/trust/ReviewsSection";
 
 export default function ProfilePage() {
   const { t, lang } = useLang();
@@ -128,7 +131,12 @@ export default function ProfilePage() {
             <div className="flex-1">
               <div className="flex items-start justify-between flex-wrap gap-3">
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="text-xl font-bold text-gray-900">{displayName}</h1>
+                    {profileUser.is_verified && (
+                      <VerifiedBadge type={profileUser.verification_type || "individual"} size="sm" lang={lang} />
+                    )}
+                  </div>
                   {isAgency && (
                     <Badge className="bg-blue-100 text-blue-700 mt-1">
                       <Building2 className="w-3 h-3 mr-1" />
@@ -164,6 +172,11 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+
+          {/* Verification section — own profile only */}
+          {isOwnProfile && !editing && (
+            <VerificationSection user={profileUser} lang={lang} />
+          )}
 
           {/* Edit Form */}
           {editing && (
@@ -234,6 +247,9 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Reviews */}
+        <ReviewsSection userEmail={profileUser.email} lang={lang} />
 
         {/* Listings */}
         <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
