@@ -177,7 +177,7 @@ export default function SavedSearchesPage() {
                   </button>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-gray-50 pt-4">
+                <div className="mt-4 flex items-center justify-between border-t border-gray-50 pt-4 flex-wrap gap-2">
                   {/* Alert toggle */}
                   <div className="flex items-center gap-2">
                     {s.alert_enabled
@@ -193,13 +193,34 @@ export default function SavedSearchesPage() {
                     />
                   </div>
 
-                  {/* View results */}
-                  <a href={buildSearchUrl(s.filters)}>
-                    <Button variant="outline" size="sm" className="gap-1 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-                      {l("viewBtn")} <ChevronRight className="w-3 h-3" />
+                  <div className="flex items-center gap-2">
+                    {/* Recommendations button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setOpenRecs(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
+                      className="gap-1 text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      {lang === "ar" ? "مقترحات" : lang === "fr" ? "Recommandations" : "Check matches"}
+                      <ChevronDown className={`w-3 h-3 transition-transform ${openRecs[s.id] ? "rotate-180" : ""}`} />
                     </Button>
-                  </a>
+
+                    {/* View results */}
+                    <a href={buildSearchUrl(s.filters)}>
+                      <Button variant="outline" size="sm" className="gap-1 text-xs border-gray-200 text-gray-600 hover:bg-gray-50">
+                        {l("viewBtn")} <ChevronRight className="w-3 h-3" />
+                      </Button>
+                    </a>
+                  </div>
                 </div>
+
+                {/* Recommendations panel */}
+                {openRecs[s.id] && (
+                  <div className="border-t border-gray-50 pt-3 mt-2">
+                    <SearchRecommendationsPanel search={s} lang={lang} />
+                  </div>
+                )}
               </div>
             ))}
           </div>
