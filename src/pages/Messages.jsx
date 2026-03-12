@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { MessageSquare, Send, ArrowLeft, User, ExternalLink, Check, CheckCheck } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, User, ExternalLink, Check, CheckCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "../components/LanguageContext";
@@ -41,17 +41,24 @@ function countUnread(conv, userEmail) {
   return conv.messages.filter(m => !m.is_read && m.recipient_email === userEmail).length;
 }
 
-// --------------- typing presence via a simple entity-like key in localStorage broadcast
-// We'll use a localStorage + storage event approach for cross-tab, 
-// but for same-session (realistic case) we store typing state in a ref and broadcast via a custom event.
-const TYPING_KEY = "dari_typing";
-
-function broadcastTyping(threadId, email, isTyping) {
+// --------------- typing presence via TypingStatus entity (real-time, cross-device)
+async function broadcastTyping(threadId, email, isTyping) {
+  if (!isTyping) {
+    // delete typing record
+    try {
+      const existing = await base44.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
+      if (existing.length > 0) await base44.entities.TypingStatus.delete(existing[0].id);
+    } catch {}
+    return;
+  }
   try {
-    const payload = JSON.stringify({ threadId, email, isTyping, ts: Date.now() });
-    localStorage.setItem(TYPING_KEY, payload);
-    // trigger storage event on same tab listeners (won't fire for same tab normally)
-    window.dispatchEvent(new StorageEvent("storage", { key: TYPING_KEY, newValue: payload }));
+    const existing = await base44.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
+    const now = new Date().toISOString();
+    if (existing.length > 0) {
+      await base44.entities.TypingStatus.update(existing[0].id, { typed_at: now });
+    } else {
+      await base44.entities.TypingStatus.create({ thread_id: threadId, typer_email: email, typed_at: now });
+    }
   } catch {}
 }
 
