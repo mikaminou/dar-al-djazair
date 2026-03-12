@@ -59,6 +59,7 @@ function NavContent({ currentPageName, children }) {
 
           {/* Right side */}
           <div className="flex items-center gap-2">
+            <NotificationBell user={user} lang={lang} />
             {/* Language Picker */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
