@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-// base44 already imported above
 import { Calendar, Clock, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
