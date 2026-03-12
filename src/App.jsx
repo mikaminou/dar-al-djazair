@@ -73,6 +73,8 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <>
+      <PushNotificationManager />
     <Routes>
       <Route path="/" element={
         <PageTransition>
