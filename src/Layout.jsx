@@ -272,50 +272,52 @@ function NavContent({ currentPageName, children }) {
         </DropdownMenu>
       </nav>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-900 text-gray-400 pt-10 pb-5">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
-                <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
+      {/* FOOTER — hidden on mobile for logged-in users unless on home */}
+      {(!user || location.pathname === "/" || location.pathname === createPageUrl("Home")) && (
+        <footer className="bg-gray-900 text-gray-400 pt-10 pb-5">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
+                  <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
+                </div>
+                <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>
               </div>
-              <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>
+              <div>
+                <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "تصفح" : lang === "fr" ? "Explorer" : "Browse"}</h4>
+                <ul className="space-y-2 text-xs">
+                  <li><a href={createPageUrl("Listings") + "?listing_type=sale"} className="hover:text-white">{t.buy}</a></li>
+                  <li><a href={createPageUrl("Listings") + "?listing_type=rent"} className="hover:text-white">{t.rent}</a></li>
+                  <li><a href={createPageUrl("PostListing")} className="hover:text-white">{t.sell}</a></li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "الولايات الكبرى" : lang === "fr" ? "Grandes Villes" : "Major Cities"}</h4>
+                <ul className="space-y-2 text-xs">
+                  {["Alger", "Oran", "Constantine", "Annaba"].map(w => (
+                    <li key={w}><a href={createPageUrl(`Listings?wilaya=${w}`)} className="hover:text-white">{w}</a></li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "تواصل" : lang === "fr" ? "Contact" : "Contact"}</h4>
+                <ul className="space-y-2 text-xs">
+                  <li>contact@dari.dz</li>
+                  <li>+213 555 000 000</li>
+                  <li className="flex gap-2 mt-3">
+                    <span className="text-lg">🇩🇿</span>
+                    <span>{lang === "ar" ? "الجزائر" : "Algérie"}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "تصفح" : lang === "fr" ? "Explorer" : "Browse"}</h4>
-              <ul className="space-y-2 text-xs">
-                <li><a href={createPageUrl("Listings") + "?listing_type=sale"} className="hover:text-white">{t.buy}</a></li>
-                <li><a href={createPageUrl("Listings") + "?listing_type=rent"} className="hover:text-white">{t.rent}</a></li>
-                <li><a href={createPageUrl("PostListing")} className="hover:text-white">{t.sell}</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "الولايات الكبرى" : lang === "fr" ? "Grandes Villes" : "Major Cities"}</h4>
-              <ul className="space-y-2 text-xs">
-                {["Alger", "Oran", "Constantine", "Annaba"].map(w => (
-                  <li key={w}><a href={createPageUrl(`Listings?wilaya=${w}`)} className="hover:text-white">{w}</a></li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "تواصل" : lang === "fr" ? "Contact" : "Contact"}</h4>
-              <ul className="space-y-2 text-xs">
-                <li>contact@dari.dz</li>
-                <li>+213 555 000 000</li>
-                <li className="flex gap-2 mt-3">
-                  <span className="text-lg">🇩🇿</span>
-                  <span>{lang === "ar" ? "الجزائر" : "Algérie"}</span>
-                </li>
-              </ul>
+            <div className="border-t border-gray-800 pt-4 text-xs text-center text-gray-600">
+              © 2024 Dari.dz — {lang === "ar" ? "منصة العقار الجزائرية" : lang === "fr" ? "La plateforme immobilière algérienne" : "The Algerian Real Estate Platform"}
             </div>
           </div>
-          <div className="border-t border-gray-800 pt-4 text-xs text-center text-gray-600">
-            © 2024 Dari.dz — {lang === "ar" ? "منصة العقار الجزائرية" : lang === "fr" ? "La plateforme immobilière algérienne" : "The Algerian Real Estate Platform"}
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
