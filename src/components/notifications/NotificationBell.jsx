@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, MessageSquare, Users, AlertCircle, Calendar, CheckCircle2, XCircle, Home } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import NotificationPanel from "./NotificationPanel";
 
