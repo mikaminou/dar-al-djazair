@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { Bell, MessageSquare, Users, Calendar, Home, CheckCheck, X } from "lucide-react";
+import { Bell, MessageSquare, Users, Calendar, Home, CheckCheck, X, AlertCircle } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { formatDistanceToNow } from "date-fns";
 import { fr, ar } from "date-fns/locale";
@@ -14,6 +14,7 @@ const TYPE_CONFIG = {
   appointment_declined: { Icon: Calendar,      color: "text-red-600",    bg: "bg-red-50"    },
   appointment_reminder: { Icon: Calendar,      color: "text-amber-600",  bg: "bg-amber-50"  },
   listing_match:        { Icon: Home,          color: "text-indigo-600", bg: "bg-indigo-50" },
+  tenant_renewal:       { Icon: AlertCircle,   color: "text-amber-600",  bg: "bg-amber-50"  },
 };
 
 function notifHref(url) {
