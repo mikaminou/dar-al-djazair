@@ -242,13 +242,15 @@ export default function ListingDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {similar.map(l => (
                   <ListingCard key={l.id} listing={l} isFavorite={favorites.includes(l.id)} onToggleFavorite={async (lst) => {
+                    const me2 = await base44.auth.me().catch(() => null);
+                    if (!me2) { base44.auth.redirectToLogin(window.location.href); return; }
                     const isFav2 = favorites.includes(lst.id);
                     if (isFav2) {
-                      const favs = await base44.entities.Favorite.filter({ listing_id: lst.id });
+                      const favs = await base44.entities.Favorite.filter({ listing_id: lst.id, user_email: me2.email });
                       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
                       setFavorites(p => p.filter(i => i !== lst.id));
                     } else {
-                      await base44.entities.Favorite.create({ listing_id: lst.id });
+                      await base44.entities.Favorite.create({ listing_id: lst.id, user_email: me2.email });
                       setFavorites(p => [...p, lst.id]);
                     }
                   }} />
