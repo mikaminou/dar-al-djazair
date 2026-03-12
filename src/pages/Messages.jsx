@@ -198,7 +198,13 @@ export default function MessagesPage() {
         }
       }
       if (event.type === "update") {
-        setMessages(prev => prev.map(p => p.id === event.id ? { ...p, ...event.data } : p));
+        const updated = event.data || {};
+        // If this message was hidden for me, remove it from local state
+        if ((updated.hidden_for || []).includes(user.email)) {
+          setMessages(prev => prev.filter(p => p.id !== event.id));
+        } else {
+          setMessages(prev => prev.map(p => p.id === event.id ? { ...p, ...updated } : p));
+        }
       }
     });
     return unsub;
