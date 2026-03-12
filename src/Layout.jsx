@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, Home } from "lucide-react";
+import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, Home, MoreVertical } from "lucide-react";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
