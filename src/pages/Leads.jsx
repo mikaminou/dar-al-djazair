@@ -63,8 +63,29 @@ export default function LeadsPage() {
     setLoading(true);
     const me = await base44.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
-    const data = await base44.entities.Lead.filter({ agent_email: me.email }, "-created_date", 200);
+
+    const [data, messages, appointments, favorites] = await Promise.all([
+      base44.entities.Lead.filter({ agent_email: me.email }, "-created_date", 200),
+      base44.entities.Message.filter({ recipient_email: me.email }, "-created_date", 500),
+      base44.entities.Appointment.filter({ agent_email: me.email }, "-created_date", 200),
+      base44.entities.Favorite.list("-created_date", 500),
+    ]);
+
     setLeads(data);
+
+    // build activity map keyed by lead id (matched by seeker_email + listing_id)
+    const map = {};
+    data.forEach(lead => {
+      const msgs = messages.filter(m => m.sender_email === lead.seeker_email && m.listing_id === lead.listing_id);
+      const appt = appointments.find(a => a.buyer_email === lead.seeker_email && a.listing_id === lead.listing_id);
+      const fav  = favorites.find(f => f.user_email === lead.seeker_email && f.listing_id === lead.listing_id);
+      map[lead.id] = {
+        messageCount:    msgs.length,
+        hasAppointment:  !!appt,
+        hasFavorite:     !!fav,
+      };
+    });
+    setActivityMap(map);
     setLoading(false);
   }
 
