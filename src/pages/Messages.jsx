@@ -737,6 +737,17 @@ export default function MessagesPage() {
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
+
+              {showProposeModal && activeThread && (
+                <ProposeAppointmentModal
+                  thread={activeThread}
+                  currentUser={user}
+                  ownerEmail={activeThread.other}
+                  lang={lang}
+                  onClose={() => setShowProposeModal(false)}
+                  onPropose={handleSendProposal}
+                />
+              )}
             </>
           )}
         </div>
