@@ -108,11 +108,6 @@ export default function MyListingsPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-2xl font-bold">{t.myListings}</h1>
-            <Link to={createPageUrl("PostListing")}>
-              <Button className="bg-amber-500 hover:bg-amber-600 gap-2 shadow-md">
-                <Plus className="w-4 h-4" /> {t.postListing}
-              </Button>
-            </Link>
           </div>
           {!loading && listings.length > 0 && (
             <p className="text-emerald-200 text-sm">
