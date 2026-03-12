@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";
 import { PROPERTY_TYPES } from "../components/constants";
 import LeadsKanban from "../components/leads/LeadsKanban";
+import PriorityBadge from "../components/leads/PriorityBadge";
+import { computePriority } from "../components/leads/leadScoring";
 
 function FilterPills({ filters, lang }) {
   const pills = [];
