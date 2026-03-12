@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { Home, Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
+import NotificationBell from "./components/notifications/NotificationBell";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator

@@ -59,10 +59,10 @@ import ListingDetail from './pages/ListingDetail';
 import Listings from './pages/Listings';
 import Messages from './pages/Messages';
 import MyListings from './pages/MyListings';
+import OwnerDashboard from './pages/OwnerDashboard';
 import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
-import OwnerDashboard from './pages/OwnerDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -79,10 +79,10 @@ export const PAGES = {
     "Listings": Listings,
     "Messages": Messages,
     "MyListings": MyListings,
+    "OwnerDashboard": OwnerDashboard,
     "PostListing": PostListing,
     "Profile": Profile,
     "SavedSearches": SavedSearches,
-    "OwnerDashboard": OwnerDashboard,
 }
 
 export const pagesConfig = {
