@@ -36,7 +36,14 @@ export default function ListingDetailPage() {
   useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
 
   useEffect(() => {
-    if (id) loadData();
+    if (id) {
+      setListing(null);
+      setImgIndex(0);
+      setMsgSent(false);
+      setMsgText("");
+      setOwnerName(null);
+      loadData();
+    }
   }, [id]);
 
   async function loadData() {
