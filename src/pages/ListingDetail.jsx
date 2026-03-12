@@ -14,6 +14,7 @@ import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES } from "../components/constants";
 import ListingCard from "../components/listing/ListingCard";
 import ListingMap from "../components/listing/ListingMap";
+import BookingWidget from "../components/booking/BookingWidget";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -316,6 +317,13 @@ export default function ListingDetailPage() {
                 )}
               </div>
             )}
+
+            <BookingWidget
+              listingId={id}
+              agentEmail={listing.contact_email || listing.created_by}
+              listing={listing}
+              user={user}
+            />
 
             <div className="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400 text-center">
               {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}

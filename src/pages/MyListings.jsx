@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Users, BarChart3 } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, ToggleLeft, ToggleRight, Users, BarChart3, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";
@@ -113,6 +113,11 @@ export default function MyListingsPage() {
                   <Link to={createPageUrl(`ListingAnalytics?id=${listing.id}`)}>
                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-emerald-600" title="Analytics">
                       <BarChart3 className="w-4 h-4" />
+                    </Button>
+                  </Link>
+                  <Link to={createPageUrl(`AgentAvailability?id=${listing.id}`)}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600" title="Availability">
+                      <CalendarDays className="w-4 h-4" />
                     </Button>
                   </Link>
                   <Button variant="ghost" size="icon" onClick={() => deleteListing(listing.id)} className="text-gray-400 hover:text-red-600">
