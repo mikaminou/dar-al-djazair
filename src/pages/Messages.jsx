@@ -264,7 +264,10 @@ export default function MessagesPage() {
     setUser(me);
     if (me) {
       const data = await base44.entities.Message.list("-created_date", 300);
-      const mine = data.filter(m => m.recipient_email === me.email || m.sender_email === me.email);
+      const mine = data.filter(m =>
+        (m.recipient_email === me.email || m.sender_email === me.email) &&
+        !(m.hidden_for || []).includes(me.email)
+      );
       setMessages(mine);
 
       // Fetch listing titles + statuses for all unique listing IDs
