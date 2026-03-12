@@ -65,6 +65,7 @@ import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
 import AdminVerification from './pages/AdminVerification';
 import TenantManagement from './pages/TenantManagement';
+import RentalIncomeDashboard from './pages/RentalIncomeDashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "SavedSearches": SavedSearches,
     "AdminVerification": AdminVerification,
     "TenantManagement": TenantManagement,
+    "RentalIncomeDashboard": RentalIncomeDashboard,
 }
 
 export const pagesConfig = {
