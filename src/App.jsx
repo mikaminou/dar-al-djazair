@@ -111,6 +111,22 @@ function App() {
   const [darkMode, setDarkMode] = React.useState(false);
 
   React.useEffect(() => {
+    // Load PushAlert script
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.async = true;
+    script.src = 'https://cdn.pushalert.co/unified_184a83a152fc56a7d267677aabe26150.js';
+    document.head.appendChild(script);
+
+    // Register service worker for PushAlert
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // Silent fail if sw.js not available - PushAlert handles this
+      });
+    }
+  }, []);
+
+  React.useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     setDarkMode(mediaQuery.matches);
     const handler = (e) => setDarkMode(e.matches);
