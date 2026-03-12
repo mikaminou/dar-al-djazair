@@ -48,8 +48,12 @@ export default function ListingDetailPage() {
     ]);
     if (data.length > 0) {
       setListing(data[0]);
-      // increment views
-      base44.entities.Listing.update(data[0].id, { views_count: (data[0].views_count || 0) + 1 });
+      // increment views only once per user (unique view tracking via localStorage)
+      const viewKey = `dari_viewed_${data[0].id}_${me?.email || 'anon'}`;
+      if (!localStorage.getItem(viewKey)) {
+        localStorage.setItem(viewKey, '1');
+        base44.entities.Listing.update(data[0].id, { views_count: (data[0].views_count || 0) + 1 });
+      }
       // load similar
       const sim = await base44.entities.Listing.filter({ property_type: data[0].property_type, status: "active" }, "-created_date", 4);
       setSimilar(sim.filter(l => l.id !== data[0].id).slice(0, 4));

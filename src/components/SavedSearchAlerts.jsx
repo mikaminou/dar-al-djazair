@@ -38,9 +38,19 @@ function notify(searchName, listing) {
   });
 }
 
+async function requestPermission() {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "default") {
+    await Notification.requestPermission().catch(() => {});
+  }
+}
+
 export default function SavedSearchAlerts() {
   useEffect(() => {
     let cancelled = false;
+
+    // Request notification permission on mount
+    requestPermission();
 
     async function check() {
       if (cancelled) return;
@@ -53,9 +63,9 @@ export default function SavedSearchAlerts() {
 
       for (const search of alertSearches) {
         const since = search.last_checked ? new Date(search.last_checked) : new Date(search.created_date);
-        // fetch listings created after last check
+        // fetch recent active listings (increased limit for better coverage)
         const allListings = await base44.entities.Listing.filter(
-          { status: "active" }, "-created_date", 50
+          { status: "active" }, "-created_date", 100
         ).catch(() => []);
 
         const newMatches = allListings.filter(l =>
@@ -64,10 +74,12 @@ export default function SavedSearchAlerts() {
 
         if (newMatches.length > 0) {
           newMatches.forEach(l => notify(search.name || "Search Alert", l));
-          await base44.entities.SavedSearch.update(search.id, {
-            last_checked: new Date().toISOString()
-          });
         }
+
+        // Always update last_checked so we don't re-check old listings next time
+        await base44.entities.SavedSearch.update(search.id, {
+          last_checked: new Date().toISOString()
+        }).catch(() => {});
       }
     }
 

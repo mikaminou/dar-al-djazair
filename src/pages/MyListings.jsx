@@ -33,6 +33,16 @@ export default function MyListingsPage() {
 
   async function deleteListing(id) {
     if (!confirm(lang === "ar" ? "هل تريد حذف هذا الإعلان؟" : lang === "fr" ? "Supprimer cette annonce ?" : "Delete this listing?")) return;
+    // Soft-hide all messages for this listing from the owner's view
+    const user = await base44.auth.me().catch(() => null);
+    if (user) {
+      const msgs = await base44.entities.Message.filter({ listing_id: id }, "-created_date", 500).catch(() => []);
+      const ownerMsgs = msgs.filter(m => m.sender_email === user.email || m.recipient_email === user.email);
+      await Promise.all(ownerMsgs.map(m => {
+        const hiddenFor = [...new Set([...(m.hidden_for || []), user.email])];
+        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
+      }));
+    }
     await base44.entities.Listing.delete(id);
     setListings(prev => prev.filter(l => l.id !== id));
   }
