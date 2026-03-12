@@ -788,6 +788,13 @@ export default function MessagesPage() {
                 </Button>
               </div>
 
+              <UserProfilePanel
+                open={showProfilePanel}
+                onClose={() => setShowProfilePanel(false)}
+                email={activeThread.other}
+                lang={lang}
+              />
+
               {showProposeModal && activeThread && (
                 <ProposeAppointmentModal
                   thread={activeThread}
