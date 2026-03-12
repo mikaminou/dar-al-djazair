@@ -51,6 +51,24 @@ export default function MyListingsPage() {
     const newStatus = listing.status === "active" ? "archived" : "active";
     await base44.entities.Listing.update(listing.id, { status: newStatus });
     setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
+    // When archiving: hide messages from owner's view (soft archive)
+    // When reactivating: unhide them
+    const user = await base44.auth.me().catch(() => null);
+    if (user && newStatus === "archived") {
+      const msgs = await base44.entities.Message.filter({ listing_id: listing.id }, "-created_date", 500).catch(() => []);
+      const ownerMsgs = msgs.filter(m => m.sender_email === user.email || m.recipient_email === user.email);
+      await Promise.all(ownerMsgs.map(m => {
+        const hiddenFor = [...new Set([...(m.hidden_for || []), user.email])];
+        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
+      }));
+    } else if (user && newStatus === "active") {
+      // Unhide messages for owner when reactivating
+      const msgs = await base44.entities.Message.filter({ listing_id: listing.id }, "-created_date", 500).catch(() => []);
+      await Promise.all(msgs.map(m => {
+        const hiddenFor = (m.hidden_for || []).filter(e => e !== user.email);
+        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
+      }));
+    }
   }
 
   const statusColor = { active: "bg-green-100 text-green-700", pending: "bg-yellow-100 text-yellow-700", archived: "bg-gray-100 text-gray-500", sold: "bg-blue-100 text-blue-700", rented: "bg-purple-100 text-purple-700" };
