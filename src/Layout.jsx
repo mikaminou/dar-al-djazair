@@ -74,20 +74,28 @@ function NavContent({ currentPageName, children }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to={createPageUrl("Favorites")} className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+            <button
+              onClick={() => user ? window.location.href = createPageUrl("Favorites") : base44.auth.redirectToLogin(createPageUrl("Favorites"))}
+              className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            >
               <Heart className="w-5 h-5" />
-            </Link>
+            </button>
 
-            <Link to={createPageUrl("Messages")} className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+            <button
+              onClick={() => user ? window.location.href = createPageUrl("Messages") : base44.auth.redirectToLogin(createPageUrl("Messages"))}
+              className="hidden sm:flex items-center gap-1 p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+            >
               <MessageSquare className="w-5 h-5" />
-            </Link>
+            </button>
 
-            <Link to={createPageUrl("PostListing")}>
-              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 gap-1 hidden sm:flex">
-                <Plus className="w-4 h-4" />
-                {t.postListing}
-              </Button>
-            </Link>
+            <Button
+              size="sm"
+              onClick={() => user ? window.location.href = createPageUrl("PostListing") : base44.auth.redirectToLogin(createPageUrl("PostListing"))}
+              className="bg-emerald-600 hover:bg-emerald-700 gap-1 hidden sm:flex"
+            >
+              <Plus className="w-4 h-4" />
+              {t.postListing}
+            </Button>
 
             {/* User menu */}
             <DropdownMenu>
