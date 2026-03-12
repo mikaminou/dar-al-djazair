@@ -56,11 +56,11 @@ function NavContent({ currentPageName, children }) {
           </nav>
 
           {/* Right side */}
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="flex items-center gap-1 ml-auto select-none">
             {/* Action Buttons */}
             <Link
               to={createPageUrl("PostListing")}
-              className="hidden md:flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition-colors flex-shrink-0"
+              className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0"
             >
               <Plus className="w-4 h-4" />
               <span className="hidden lg:inline">{t.postListing}</span>
@@ -72,7 +72,7 @@ function NavContent({ currentPageName, children }) {
             {/* Messages */}
             <Link
               to={createPageUrl("Messages")}
-              className="hidden sm:flex items-center justify-center p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+              className="hidden sm:flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
               title={lang === "ar" ? "الرسائل" : lang === "fr" ? "Messages" : "Messages"}
             >
               <MessageSquare className="w-5 h-5" />
@@ -81,7 +81,7 @@ function NavContent({ currentPageName, children }) {
             {/* Favorites */}
             <Link
               to={createPageUrl("Favorites")}
-              className="hidden sm:flex items-center justify-center p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+              className="hidden sm:flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
               title={lang === "ar" ? "المفضلة" : lang === "fr" ? "Favoris" : "Favorites"}
             >
               <Heart className="w-5 h-5" />
@@ -90,19 +90,19 @@ function NavContent({ currentPageName, children }) {
             {/* Language Picker */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1 text-gray-600 text-xs px-2 h-9 hover:bg-gray-100">
+                <Button variant="ghost" size="sm" className="gap-1 text-gray-600 text-xs px-2 h-11 min-w-[44px] hover:bg-gray-100 select-none">
                   <Globe className="w-4 h-4" />
                   <span className="hidden sm:inline">{lang.toUpperCase()}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40">
-                <DropdownMenuItem onClick={() => changeLang("en")} className="text-sm">
+              <DropdownMenuContent align="end" className="w-40 select-none">
+                <DropdownMenuItem onClick={() => changeLang("en")} className="text-sm min-h-[44px] flex items-center select-none">
                   🇬🇧 English
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLang("fr")} className="text-sm">
+                <DropdownMenuItem onClick={() => changeLang("fr")} className="text-sm min-h-[44px] flex items-center select-none">
                   🇫🇷 Français
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => changeLang("ar")} className="text-sm">
+                <DropdownMenuItem onClick={() => changeLang("ar")} className="text-sm min-h-[44px] flex items-center select-none">
                   🇩🇿 العربية
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -111,7 +111,7 @@ function NavContent({ currentPageName, children }) {
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full h-9 w-9 hover:bg-gray-100">
+                <Button variant="ghost" size="icon" className="rounded-full min-h-[44px] min-w-[44px] hover:bg-gray-100 select-none">
                   <User className="w-5 h-5 text-gray-600" />
                 </Button>
               </DropdownMenuTrigger>
