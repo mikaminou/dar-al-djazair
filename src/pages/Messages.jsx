@@ -198,28 +198,29 @@ export default function MessagesPage() {
     return unsub;
   }, [user]);
 
-  // ---- typing detection from storage events ----
+  // ---- typing detection via real-time TypingStatus entity subscription ----
   useEffect(() => {
-    function onStorage(e) {
-      if (e.key !== TYPING_KEY) return;
-      try {
-        const { threadId, email, isTyping, ts } = JSON.parse(e.newValue);
-        const me = userRef.current;
-        const active = activeThreadRef.current;
-        if (!me || !active) return;
-        if (email === me.email) return; // my own broadcast
-        if (threadId !== active.thread_id) return;
-        if (Date.now() - ts > 5000) return; // stale
-        setOtherIsTyping(isTyping);
-        if (isTyping) {
+    if (!user) return;
+    const unsub = base44.entities.TypingStatus.subscribe((event) => {
+      const active = activeThreadRef.current;
+      const me = userRef.current;
+      if (!active || !me) return;
+      const data = event.data || {};
+      if (data.typer_email === me.email) return; // ignore own typing
+      if (data.thread_id !== active.thread_id) return;
+      if (event.type === "create" || event.type === "update") {
+        const age = Date.now() - new Date(data.typed_at).getTime();
+        if (age < 5000) {
+          setOtherIsTyping(true);
           clearTimeout(typingTimeoutRef.current);
           typingTimeoutRef.current = setTimeout(() => setOtherIsTyping(false), 4000);
         }
-      } catch {}
-    }
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
+      } else if (event.type === "delete") {
+        setOtherIsTyping(false);
+      }
+    });
+    return unsub;
+  }, [user]);
 
   const messagesContainerRef = useRef(null);
 
