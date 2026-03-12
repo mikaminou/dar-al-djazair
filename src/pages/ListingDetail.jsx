@@ -62,6 +62,10 @@ export default function ListingDetailPage() {
 
   async function toggleFav() {
     const me = await base44.auth.me().catch(() => null);
+    if (!me) {
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
     if (isFav) {
       const favs = await base44.entities.Favorite.filter({ listing_id: id, user_email: me?.email });
       if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
@@ -79,7 +83,11 @@ export default function ListingDetailPage() {
 
   async function sendMessage() {
     if (!msgText.trim()) return;
-    const sender = user?.email || "guest";
+    if (!user) {
+      base44.auth.redirectToLogin(window.location.href);
+      return;
+    }
+    const sender = user.email;
     const recipient = listing.contact_email || listing.created_by || "";
     await base44.entities.Message.create({
       listing_id: id,
