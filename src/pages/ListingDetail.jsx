@@ -296,9 +296,7 @@ export default function ListingDetailPage() {
 
         {/* SIDEBAR */}
         <div className="space-y-4">
-          {/* Contact Card */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden sticky top-4">
-            {/* Seller Profile header */}
             {listing.created_by && (
               <Link
                 to={createPageUrl(`Profile?email=${listing.created_by}`)}
@@ -315,66 +313,63 @@ export default function ListingDetailPage() {
                 </div>
               </Link>
             )}
-
             <div className="p-5 space-y-3">
-              {/* Phone CTA */}
               {listing.contact_phone && (
-                <a href={`tel:${listing.contact_phone}`} className="flex items-center justify-center gap-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-3 font-semibold transition-colors text-sm">
+                <a
+                  href={`tel:${listing.contact_phone}`}
+                  className="flex items-center justify-center gap-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl px-4 py-3 font-semibold transition-colors text-sm"
+                >
                   <Phone className="w-5 h-5" />
                   {listing.contact_phone}
                 </a>
               )}
-
-            {/* In-app message */}
-            {isUnavailable ? (
-              <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
-              </div>
-            ) : msgSent ? (
-              <div className="text-center py-5 text-emerald-600 font-medium">
-                <CheckCircle className="w-9 h-9 mx-auto mb-2" />
-                <p className="text-sm">{lang === "ar" ? "تم إرسال رسالتك!" : lang === "fr" ? "Message envoyé !" : "Message sent!"}</p>
-                <button onClick={() => setMsgSent(false)} className="text-xs text-gray-400 underline mt-1">
-                  {lang === "ar" ? "إرسال رسالة أخرى" : lang === "fr" ? "Envoyer un autre" : "Send another"}
-                </button>
-              </div>
-            ) : user ? (
-              <div className="space-y-2">
-                <Textarea
-                  placeholder={lang === "ar" ? "اكتب رسالتك هنا..." : lang === "fr" ? "Écrivez votre message..." : "Write your message..."}
-                  value={msgText}
-                  onChange={e => setMsgText(e.target.value)}
-                  rows={3}
-                  className="text-sm resize-none"
-                />
-                <Button onClick={sendMessage} disabled={!msgText.trim()} className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+              {isUnavailable ? (
+                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
+                </div>
+              ) : msgSent ? (
+                <div className="text-center py-5 text-emerald-600 font-medium">
+                  <CheckCircle className="w-9 h-9 mx-auto mb-2" />
+                  <p className="text-sm">{lang === "ar" ? "تم إرسال رسالتك!" : lang === "fr" ? "Message envoyé !" : "Message sent!"}</p>
+                  <button onClick={() => setMsgSent(false)} className="text-xs text-gray-400 underline mt-1">
+                    {lang === "ar" ? "إرسال رسالة أخرى" : lang === "fr" ? "Envoyer un autre" : "Send another"}
+                  </button>
+                </div>
+              ) : user ? (
+                <div className="space-y-2">
+                  <Textarea
+                    placeholder={lang === "ar" ? "اكتب رسالتك هنا..." : lang === "fr" ? "Écrivez votre message..." : "Write your message..."}
+                    value={msgText}
+                    onChange={e => setMsgText(e.target.value)}
+                    rows={3}
+                    className="text-sm resize-none"
+                  />
+                  <Button onClick={sendMessage} disabled={!msgText.trim()} className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    {lang === "ar" ? "إرسال رسالة" : lang === "fr" ? "Envoyer un message" : "Send Message"}
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
+                  className="w-full flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                >
                   <MessageCircle className="w-4 h-4" />
-                  {lang === "ar" ? "إرسال رسالة" : lang === "fr" ? "Envoyer un message" : "Send Message"}
-                </Button>
+                  {lang === "ar" ? "سجّل دخول للتواصل مع البائع" : lang === "fr" ? "Connectez-vous pour contacter le vendeur" : "Sign in to contact the seller"}
+                </button>
+              )}
+              <BookingWidget
+                listingId={id}
+                agentEmail={listing.contact_email || listing.created_by}
+                listing={listing}
+                user={user}
+              />
+              <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
+                {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
               </div>
-            ) : (
-              <button
-                onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
-                className="w-full flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                {lang === "ar" ? "سجّل دخول للتواصل مع البائع" : lang === "fr" ? "Connectez-vous pour contacter le vendeur" : "Sign in to contact the seller"}
-              </button>
-            )}
-
-            <BookingWidget
-              listingId={id}
-              agentEmail={listing.contact_email || listing.created_by}
-              listing={listing}
-              user={user}
-            />
-
-            <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
-              {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
             </div>
-            </div>{/* end p-5 */}
-          </div>{/* end contact card */}
+          </div>
         </div>
       </div>
     </div>
