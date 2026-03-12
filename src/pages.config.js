@@ -64,6 +64,7 @@ import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
 import AdminVerification from './pages/AdminVerification';
+import TenantManagement from './pages/TenantManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -85,6 +86,7 @@ export const PAGES = {
     "Profile": Profile,
     "SavedSearches": SavedSearches,
     "AdminVerification": AdminVerification,
+    "TenantManagement": TenantManagement,
 }
 
 export const pagesConfig = {
