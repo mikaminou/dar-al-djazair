@@ -12,7 +12,16 @@ export default function FavoritesPage() {
   const { t, lang } = useLang();
   const [listings, setListings] = useState([]);
   const [favorites, setFavorites] = useState([]);
+  const [compareList, setCompareList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  function toggleCompare(listing) {
+    setCompareList(prev => {
+      if (prev.find(l => l.id === listing.id)) return prev.filter(l => l.id !== listing.id);
+      if (prev.length >= 2) return prev;
+      return [...prev, listing];
+    });
+  }
 
   useEffect(() => { load(); }, []);
 
