@@ -635,13 +635,23 @@ export default function MessagesPage() {
                       : listingsMap[activeThread.listing_id] || activeThread.other}
                   </p>
                 </div>
-                <Link
-                  to={createPageUrl("ListingDetail") + `?id=${activeThread.listing_id}`}
-                  className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 flex-shrink-0 transition-colors font-medium"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  {lang === "ar" ? "الإعلان" : lang === "fr" ? "Voir l'annonce" : "View listing"}
-                </Link>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button
+                    onClick={() => setShowProposeModal(true)}
+                    className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 transition-colors font-medium"
+                    title={lang === "ar" ? "اقتراح موعد" : lang === "fr" ? "Proposer un RDV" : "Propose a visit"}
+                  >
+                    <CalendarDays className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{lang === "ar" ? "موعد" : lang === "fr" ? "RDV" : "Visit"}</span>
+                  </button>
+                  <Link
+                    to={createPageUrl("ListingDetail") + `?id=${activeThread.listing_id}`}
+                    className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 transition-colors font-medium"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{lang === "ar" ? "الإعلان" : lang === "fr" ? "Annonce" : "Listing"}</span>
+                  </Link>
+                </div>
               </div>
 
               {/* Messages */}
