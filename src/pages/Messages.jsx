@@ -334,7 +334,7 @@ export default function MessagesPage() {
   function handleInputChange(e) {
     setInput(e.target.value);
     if (!activeThread || !user) return;
-    // broadcast typing start
+    // broadcast typing start (fire-and-forget)
     broadcastTyping(activeThread.thread_id, user.email, true);
     clearTimeout(typingBroadcastRef.current);
     typingBroadcastRef.current = setTimeout(() => {
