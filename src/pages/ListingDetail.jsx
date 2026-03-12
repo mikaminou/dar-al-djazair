@@ -305,7 +305,7 @@ export default function ListingDetailPage() {
                   {lang === "ar" ? "إرسال رسالة أخرى" : lang === "fr" ? "Envoyer un autre" : "Send another"}
                 </button>
               </div>
-            ) : (
+            ) : user ? (
               <div className="space-y-2">
                 <Textarea
                   placeholder={lang === "ar" ? "اكتب رسالتك هنا..." : lang === "fr" ? "Écrivez votre message..." : "Write your message..."}
@@ -318,12 +318,15 @@ export default function ListingDetailPage() {
                   <MessageCircle className="w-4 h-4" />
                   {lang === "ar" ? "إرسال رسالة" : lang === "fr" ? "Envoyer un message" : "Send Message"}
                 </Button>
-                {!user && (
-                  <p className="text-xs text-gray-400 text-center">
-                    {lang === "ar" ? "سجل دخول لمتابعة الردود" : lang === "fr" ? "Connectez-vous pour suivre les réponses" : "Sign in to track replies"}
-                  </p>
-                )}
               </div>
+            ) : (
+              <button
+                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                className="w-full flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                {lang === "ar" ? "سجّل دخول للتواصل مع البائع" : lang === "fr" ? "Connectez-vous pour contacter le vendeur" : "Sign in to contact the seller"}
+              </button>
             )}
 
             <BookingWidget
