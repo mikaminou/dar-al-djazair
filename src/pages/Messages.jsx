@@ -167,7 +167,10 @@ export default function MessagesPage() {
     const unsub = base44.entities.Message.subscribe((event) => {
       if (event.type === "create") {
         const m = event.data;
-        if (m.recipient_email === user.email || m.sender_email === user.email) {
+        if (
+          (m.recipient_email === user.email || m.sender_email === user.email) &&
+          !(m.hidden_for || []).includes(user.email)
+        ) {
           setMessages(prev => {
             if (prev.find(p => p.id === m.id)) return prev;
             return [...prev, m];
