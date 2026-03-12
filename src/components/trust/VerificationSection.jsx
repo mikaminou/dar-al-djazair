@@ -47,10 +47,10 @@ export default function VerificationSection({ user, lang }) {
 
   // Already approved — show confirmation box
   if (currentStatus === "approved") {
-    const { Icon, color, bg, border } = STATUS_UI.approved;
+    const { color, bg, border } = STATUS_UI.approved;
     return (
       <div className={`flex items-center gap-2 px-4 py-3 rounded-xl border ${border} ${bg} mt-2`}>
-        <Icon className={`w-4 h-4 ${color}`} />
+        <CheckCircle className={`w-4 h-4 ${color}`} />
         <span className={`text-sm font-semibold ${color}`}>{t("approvedMsg")}</span>
       </div>
     );
@@ -58,10 +58,10 @@ export default function VerificationSection({ user, lang }) {
 
   // Pending — show status
   if (request?.status === "pending") {
-    const { Icon, color, bg, border } = STATUS_UI.pending;
+    const { color, bg, border } = STATUS_UI.pending;
     return (
       <div className={`flex items-center gap-2 px-4 py-3 rounded-xl border ${border} ${bg} mt-2`}>
-        <Icon className={`w-4 h-4 ${color}`} />
+        <Clock className={`w-4 h-4 ${color}`} />
         <span className={`text-sm ${color}`}>{t("pendingMsg")}</span>
       </div>
     );
