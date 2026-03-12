@@ -50,6 +50,7 @@
 import Compare from './pages/Compare';
 import Favorites from './pages/Favorites';
 import Home from './pages/Home';
+import ListingAnalytics from './pages/ListingAnalytics';
 import ListingDetail from './pages/ListingDetail';
 import Listings from './pages/Listings';
 import Messages from './pages/Messages';
@@ -57,7 +58,7 @@ import MyListings from './pages/MyListings';
 import PostListing from './pages/PostListing';
 import Profile from './pages/Profile';
 import SavedSearches from './pages/SavedSearches';
-import ListingAnalytics from './pages/ListingAnalytics';
+import AgentAvailability from './pages/AgentAvailability';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "Compare": Compare,
     "Favorites": Favorites,
     "Home": Home,
+    "ListingAnalytics": ListingAnalytics,
     "ListingDetail": ListingDetail,
     "Listings": Listings,
     "Messages": Messages,
@@ -72,7 +74,7 @@ export const PAGES = {
     "PostListing": PostListing,
     "Profile": Profile,
     "SavedSearches": SavedSearches,
-    "ListingAnalytics": ListingAnalytics,
+    "AgentAvailability": AgentAvailability,
 }
 
 export const pagesConfig = {
