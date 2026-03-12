@@ -214,42 +214,49 @@ function NavContent({ currentPageName, children }) {
       </main>
 
       {/* MOBILE BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 z-40 flex justify-around items-center h-24 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] select-none">
-        <Link to={createPageUrl("Home")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
-          <Home className="w-6 h-6" />
-          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
-        </Link>
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white border-t border-gray-200 z-40 flex justify-between items-end h-24 px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] select-none">
+        {/* Left group: Home, Search, Post button */}
+        <div className="flex flex-1 justify-around items-center relative">
+          <Link to={createPageUrl("Home")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+            <Home className="w-6 h-6" />
+            <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "الرئيسية" : lang === "fr" ? "Accueil" : "Home"}</span>
+          </Link>
 
-        <Link to={createPageUrl("Listings")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
-          <Search className="w-6 h-6" />
-          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
-        </Link>
+          <Link to={createPageUrl("Listings")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+            <Search className="w-6 h-6" />
+            <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "بحث" : lang === "fr" ? "Chercher" : "Search"}</span>
+          </Link>
 
-        {/* Central prominent button */}
-        <Link 
-          to={createPageUrl("PostListing")} 
-          className="flex items-center justify-center absolute bottom-14 left-1/2 -translate-x-1/2 h-14 w-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-md select-none transition-all hover:scale-110 active:scale-95"
-        >
-          <Plus className="w-7 h-7" />
-        </Link>
+          {/* Central prominent button */}
+          <Link 
+            to={createPageUrl("PostListing")} 
+            className="flex items-center justify-center absolute bottom-12 left-1/2 -translate-x-1/2 h-14 w-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-md select-none transition-all hover:scale-110 active:scale-95"
+          >
+            <Plus className="w-7 h-7" />
+          </Link>
+        </div>
 
-        <Link to={createPageUrl("Messages")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
-          <MessageSquare className="w-6 h-6" />
-          <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
-        </Link>
+        {/* Right group: Messages, Profile, More */}
+        <div className="flex flex-1 justify-around items-center">
+          <Link to={createPageUrl("Messages")} className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+            <MessageSquare className="w-6 h-6" />
+            <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "رسائل" : lang === "fr" ? "Messages" : "Inbox"}</span>
+          </Link>
 
-        {/* Profile + More menu */}
-        <div className="flex flex-col items-center gap-1.5">
           <Link 
             to={createPageUrl("Profile")} 
-            className="flex items-center justify-center min-h-[44px] min-w-[44px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors"
+            className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors"
           >
             <User className="w-6 h-6" />
+            <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "ملفي" : lang === "fr" ? "Profil" : "Profile"}</span>
           </Link>
+
+          {/* More menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center justify-center min-h-[10px] min-w-[20px] text-gray-500 hover:text-emerald-700 select-none transition-colors">
-                <span className="text-sm font-bold">⋮</span>
+              <button className="flex flex-col items-center justify-center gap-1.5 min-h-[54px] min-w-[54px] text-gray-500 hover:text-emerald-700 rounded-lg select-none transition-colors">
+                <MoreVertical className="w-6 h-6" />
+                <span className="text-[10px] font-semibold leading-tight">{lang === "ar" ? "المزيد" : lang === "fr" ? "Plus" : "More"}</span>
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48 mb-28 select-none">
