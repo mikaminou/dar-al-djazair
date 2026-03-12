@@ -253,9 +253,6 @@ export default function MyListingsPage() {
           <div className="text-center py-20 text-gray-400">
             <Plus className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="mb-4">{t.noResults}</p>
-            <Link to={createPageUrl("PostListing")}>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">{t.postListing}</Button>
-            </Link>
           </div>
         ) : filteredListings.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
