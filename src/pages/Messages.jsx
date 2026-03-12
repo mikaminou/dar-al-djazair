@@ -377,6 +377,21 @@ export default function MessagesPage() {
   }
 
   // ---- derived state ----
+  // Is the active thread's listing unavailable (archived or deleted)?
+  const activeListingStatus = activeThread ? listingsStatusMap[activeThread.listing_id] : null;
+  // null means we haven't loaded it yet (or it was deleted), treat missing as unavailable if we have msgs
+  const listingUnavailable = activeThread && (
+    activeListingStatus === "archived" || activeListingStatus === "sold" ||
+    activeListingStatus === "rented" || activeListingStatus === null
+  ) && threadMessages.length > 0;
+  // Owner of the listing (by checking who the other person is vs listing_id messages)
+  const isListingOwner = activeThread && messages.some(
+    m => m.listing_id === activeThread.listing_id && m.sender_email === user?.email &&
+         m.recipient_email === activeThread.other
+  );
+  // Seeker should see unavailable notice and have input disabled; owner doesn't see this thread at all (hidden)
+  const showUnavailableNotice = listingUnavailable && !isListingOwner;
+
   const realConversations = groupConversations(messages, user?.email || "");
   // Inject phantom thread at top if it exists and isn't already in real convs
   const conversations = phantomThread && !realConversations.find(c => c.thread_id === phantomThread.thread_id)
