@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useLang } from "../components/LanguageContext";
 import { PROPERTY_TYPES } from "../components/constants";
+import MobileHeader from "../components/MobileHeader";
 
 function buildSearchUrl(filters) {
   const params = new URLSearchParams();
@@ -136,8 +137,10 @@ export default function SavedSearchesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <MobileHeader title={l("title")} />
+
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-3 mb-7">
+        <div className="hidden md:flex items-center gap-3 mb-7">
           <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
             <Search className="w-5 h-5 text-emerald-700" />
           </div>
@@ -145,6 +148,12 @@ export default function SavedSearchesPage() {
             <h1 className="text-2xl font-bold text-gray-900">{l("title")}</h1>
             <p className="text-sm text-gray-500">{searches.length} {lang === "ar" ? "بحث محفوظ" : lang === "fr" ? "recherche(s)" : "search(es)"}</p>
           </div>
+        </div>
+
+        {/* Mobile title bar — only on mobile */}
+        <div className="md:hidden flex items-center gap-3 mb-7">
+          <h1 className="text-xl font-bold text-gray-900">{l("title")}</h1>
+          <span className="text-xs text-gray-400">({searches.length})</span>
         </div>
 
         {searches.length === 0 ? (

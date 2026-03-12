@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../components/constants";
+import MobileHeader from "../components/MobileHeader";
 
 const STEPS = ["Type", "Details", "Location", "Photos", "Contact"];
 
@@ -117,9 +118,11 @@ export default function PostListingPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <MobileHeader title={t.postListing} />
+
       <div className="bg-emerald-800 text-white py-8 px-4">
         <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl font-bold mb-4">{t.postListing}</h1>
+          <h1 className="hidden md:block text-2xl font-bold mb-4">{t.postListing}</h1>
           <div className="flex gap-2">
             {STEPS.map((s, i) => (
               <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= step ? "bg-amber-400" : "bg-white/20"}`} />

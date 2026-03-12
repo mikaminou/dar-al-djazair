@@ -36,8 +36,8 @@ function NavContent({ currentPageName, children }) {
         body { font-family: ${isRtl ? "'Cairo', 'Amiri', sans-serif" : "'Inter', sans-serif"}; overscroll-behavior: none; }
       `}</style>
 
-      {/* NAVBAR */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+      {/* NAVBAR — hidden on mobile */}
+      <header className="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3 md:gap-4">
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit">
@@ -178,9 +178,9 @@ function NavContent({ currentPageName, children }) {
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu — only shows on md down with navbar */}
         {menuOpen && (
-          <div className="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+          <div className="hidden md:flex border-t border-gray-100 bg-white px-4 py-3 space-y-1">
             {navLinks.map(link => (
               <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 rounded-lg">
                 {link.label}
@@ -201,8 +201,8 @@ function NavContent({ currentPageName, children }) {
 
       <SavedSearchAlerts />
 
-      {/* PAGE CONTENT */}
-      <main className="flex-1 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      {/* PAGE CONTENT — with mobile header padding */}
+      <main className="flex-1 pt-14 md:pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
         {children}
       </main>
 
