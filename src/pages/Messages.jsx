@@ -179,12 +179,15 @@ export default function MessagesPage() {
             if (prev.find(p => p.id === m.id)) return prev;
             return [...prev, m];
           });
-          // Fetch listing title if not already known
+          // Fetch listing title/status if not already known
           if (m.listing_id) {
             setListingsMap(prev => {
               if (prev[m.listing_id]) return prev;
               base44.entities.Listing.filter({ id: m.listing_id }).then(r => {
-                if (r[0]) setListingsMap(p => ({ ...p, [r[0].id]: r[0].title }));
+                if (r[0]) {
+                  setListingsMap(p => ({ ...p, [r[0].id]: r[0].title }));
+                  setListingsStatusMap(p => ({ ...p, [r[0].id]: r[0].status }));
+                }
               }).catch(() => {});
               return prev;
             });
