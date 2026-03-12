@@ -235,8 +235,11 @@ function NavContent({ currentPageName, children }) {
           <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
           <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
         </div>
-        {/* More menu in top bar */}
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          <NotificationBell user={user} lang={lang} />
+          {/* More menu in top bar */}
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-lg min-h-[44px] min-w-[44px] text-gray-500 hover:text-emerald-700 hover:bg-emerald-50">
               <MoreVertical className="w-5 h-5" />
@@ -263,7 +266,8 @@ function NavContent({ currentPageName, children }) {
               {t.signOut}
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* PAGE CONTENT — with mobile header padding and bottom nav space */}
