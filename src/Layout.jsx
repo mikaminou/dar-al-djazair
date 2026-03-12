@@ -88,16 +88,13 @@ function NavContent({ currentPageName, children }) {
               <MessageSquare className="w-5 h-5" />
             </Link>
 
-            <Button
-              size="sm"
-              asChild
-              className="bg-emerald-600 hover:bg-emerald-700 gap-1 hidden sm:flex"
+            <Link
+              to={createPageUrl("PostListing")}
+              className="hidden sm:flex items-center gap-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-md"
             >
-            <Link to={createPageUrl("PostListing")}>
               <Plus className="w-4 h-4" />
               {t.postListing}
             </Link>
-            </Button>
 
             {/* User menu */}
             <DropdownMenu>
