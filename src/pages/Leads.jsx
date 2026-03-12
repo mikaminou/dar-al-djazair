@@ -52,6 +52,7 @@ export default function LeadsPage() {
   const { lang } = useLang();
   const navigate = useNavigate();
   const [leads, setLeads] = useState([]);
+  const [activityMap, setActivityMap] = useState({}); // leadId → { messageCount, hasAppointment, hasFavorite }
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("new");
   const [view, setView] = useState("list");
