@@ -224,8 +224,8 @@ function NavContent({ currentPageName, children }) {
         <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
       </header>
 
-      {/* PAGE CONTENT — with mobile header padding */}
-      <main className="flex-1 pt-16 md:pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      {/* PAGE CONTENT — with mobile header padding and bottom nav space */}
+      <main className="flex-1 pt-16 md:pt-[max(1rem,env(safe-area-inset-top))] pb-24 md:pb-[max(1rem,env(safe-area-inset-bottom))]">
         {children}
       </main>
 
