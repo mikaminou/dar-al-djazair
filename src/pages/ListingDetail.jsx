@@ -122,6 +122,8 @@ export default function ListingDetailPage() {
     <div className="min-h-screen flex items-center justify-center text-gray-400">{t.noResults}</div>
   );
 
+  const isUnavailable = ["archived", "sold", "rented"].includes(listing.status);
+
   const images = listing.images?.length > 0
     ? listing.images
     : ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80"];
