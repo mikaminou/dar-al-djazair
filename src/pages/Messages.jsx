@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "../components/LanguageContext";
 import AppointmentProposalCard from "../components/appointments/AppointmentProposalCard";
 import ProposeAppointmentModal from "../components/appointments/ProposeAppointmentModal";
+import UserProfilePanel from "../components/messages/UserProfilePanel";
+import ConversationFilters from "../components/messages/ConversationFilters";
 
 // --------------- helpers ---------------
 function getThreadId(listingId, emailA, emailB) {
