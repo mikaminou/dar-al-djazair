@@ -490,7 +490,7 @@ export default function MessagesPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <span className={`text-sm truncate ${hasUnread ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}>
-                          {conv.other?.split("@")[0]}
+                          {usersMap[conv.other] || conv.other?.split("@")[0]}
                         </span>
                         {last && (
                           <span className="text-xs text-gray-400 flex-shrink-0 ml-1">
