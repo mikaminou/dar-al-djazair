@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   MapPin, Maximize2, BedDouble, Bath, Heart, Share2, Phone, Mail,
-  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle
+  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +32,13 @@ export default function ListingDetailPage() {
   const [msgSent, setMsgSent] = useState(false);
   const [user, setUser] = useState(null);
   const [ownerName, setOwnerName] = useState(null);
+  const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
+
+  useEffect(() => {
+    setCanGoBack(window.history.length > 1);
+  }, []);
 
   useEffect(() => {
     if (id) {
@@ -149,12 +154,19 @@ export default function ListingDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back */}
-      <div className="bg-white border-b px-4 py-3">
+      <div className="bg-white border-b px-4 py-3 dark:bg-gray-800 dark:border-gray-700">
         <div className="max-w-6xl mx-auto">
-          <Link to={createPageUrl("Listings")} className="flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700">
-            <ArrowLeft className="w-4 h-4" />
-            {lang === "ar" ? "عودة للنتائج" : lang === "fr" ? "Retour aux résultats" : "Back to results"}
-          </Link>
+          {canGoBack ? (
+            <button onClick={() => window.history.back()} className="flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+              <ArrowLeft className="w-4 h-4" />
+              {lang === "ar" ? "رجوع" : lang === "fr" ? "Retour" : "Back"}
+            </button>
+          ) : (
+            <Link to={createPageUrl("Listings")} className="flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700 dark:text-gray-400 dark:hover:text-emerald-500">
+              <ArrowLeft className="w-4 h-4" />
+              {lang === "ar" ? "عودة للنتائج" : lang === "fr" ? "Retour aux résultats" : "Back to results"}
+            </Link>
+          )}
         </div>
       </div>
 
