@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { MessageSquare, Send, ArrowLeft, User, ExternalLink, Check, CheckCheck, AlertCircle } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, User, ExternalLink, Check, CheckCheck, AlertCircle, CalendarDays } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useLang } from "../components/LanguageContext";
+import AppointmentProposalCard from "../components/appointments/AppointmentProposalCard";
+import ProposeAppointmentModal from "../components/appointments/ProposeAppointmentModal";
 
 // --------------- helpers ---------------
 function getThreadId(listingId, emailA, emailB) {
