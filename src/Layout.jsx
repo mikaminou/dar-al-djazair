@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Building2, Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
+import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown } from "lucide-react";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
@@ -41,9 +41,7 @@ function NavContent({ currentPageName, children }) {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-              <Building2 className="w-4 h-4 text-white" />
-            </div>
+            <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-8 h-8" />
             <span className="font-bold text-xl text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
             <span className="text-xs text-gray-400 hidden sm:block">.dz</span>
           </Link>
@@ -203,9 +201,7 @@ function NavContent({ currentPageName, children }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 bg-emerald-600 rounded-lg flex items-center justify-center">
-                  <Building2 className="w-4 h-4 text-white" />
-                </div>
+                <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
                 <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}.dz</span>
               </div>
               <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>
