@@ -13,20 +13,12 @@ import {
 function NavContent({ currentPageName, children }) {
   const { t, lang, changeLang } = useLang();
   const [user, setUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    base44.auth.me().then(u => { setUser(u); setUserLoading(false); }).catch(() => setUserLoading(false));
+    base44.auth.me().then(setUser).catch(() => {});
   }, []);
-
-  const navigate = (path) => { window.location.href = createPageUrl(path); };
-  const handleAuthNav = (page) => {
-    if (userLoading) return; // wait until auth state is known
-    if (user) navigate(page);
-    else base44.auth.redirectToLogin("/" + page);
-  };
 
   const navLinks = [
     { label: t.buy, href: createPageUrl("Listings") + "?listing_type=sale" },
