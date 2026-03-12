@@ -3,8 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { createPageUrl } from "@/utils";
 import {
   Bell, BellOff, Trash2, Search, ChevronRight, SlidersHorizontal,
-  MapPin, Home, DollarSign, BedDouble, Bath, Maximize2, Sofa, Star
+  MapPin, Home, DollarSign, BedDouble, Bath, Maximize2, Sofa, Star,
+  Sparkles, ChevronDown
 } from "lucide-react";
+import SearchRecommendationsPanel from "../components/savedSearches/SearchRecommendationsPanel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
@@ -61,6 +63,7 @@ export default function SavedSearchesPage() {
   const [searches, setSearches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [matchCounts, setMatchCounts] = useState({});
+  const [openRecs, setOpenRecs] = useState({}); // { [searchId]: boolean }
 
   useEffect(() => { load(); }, []);
 
