@@ -211,7 +211,7 @@ export default function ListingsPage() {
                 <span className="truncate">{matchedSearch.name || (lang === "ar" ? "بحث محفوظ" : lang === "fr" ? "Recherche sauvegardée" : "Saved search")}</span>
               </Button>
             ) : (
-              <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} className="gap-2 text-xs">
+              <Button variant="outline" size="sm" onClick={async () => { const me = await base44.auth.me().catch(() => null); if (!me) { base44.auth.redirectToLogin(window.location.href); return; } setSaveDialogOpen(true); }} className="gap-2 text-xs">
                 <BookmarkPlus className="w-3 h-3" /> {t.saveSearch}
               </Button>
             )}
