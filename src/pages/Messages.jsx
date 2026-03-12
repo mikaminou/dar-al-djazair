@@ -409,6 +409,15 @@ export default function MessagesPage() {
     setPhantomThread(null);
   }
 
+  // ---- archive helper ----
+  function toggleArchive(threadId) {
+    setArchivedThreads(prev => {
+      const next = prev.includes(threadId) ? prev.filter(id => id !== threadId) : [...prev, threadId];
+      localStorage.setItem("dari_archived_threads", JSON.stringify(next));
+      return next;
+    });
+  }
+
   // ---- appointment proposal handlers ----
   async function handleSendProposal({ date, start_time, end_time, notes }) {
     if (!activeThread || !user) return;
