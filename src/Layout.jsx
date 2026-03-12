@@ -181,19 +181,19 @@ function NavContent({ currentPageName, children }) {
 
         {/* Mobile menu — only shows on md down with navbar */}
         {menuOpen && (
-          <div className="hidden md:flex border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+          <div className="hidden md:flex border-t border-gray-100 bg-white px-4 py-3 space-y-1 select-none">
             {navLinks.map(link => (
-              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-emerald-50 rounded-lg">
+              <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 min-h-[44px] flex items-center text-sm font-medium text-gray-700 hover:bg-emerald-50 rounded-lg">
                 {link.label}
               </a>
             ))}
-            <Link to={createPageUrl("Favorites")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            <Link to={createPageUrl("Favorites")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <Heart className="w-4 h-4" /> {t.favorites}
             </Link>
-            <Link to={createPageUrl("Messages")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            <Link to={createPageUrl("Messages")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <MessageSquare className="w-4 h-4" /> {t.messages}
             </Link>
-            <Link to={createPageUrl("MyListings")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
+            <Link to={createPageUrl("MyListings")} onClick={() => setMenuOpen(false)} className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-sm text-gray-700 hover:bg-emerald-50 rounded-lg w-full text-left">
               <User className="w-4 h-4" /> {t.myListings}
             </Link>
           </div>
