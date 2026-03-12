@@ -167,6 +167,17 @@ export default function MessagesPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // ---- load active proposal when active thread changes ----
+  useEffect(() => {
+    if (!activeThread?.thread_id || !user) { setActiveProposal(null); return; }
+    base44.entities.AppointmentProposal.filter({ thread_id: activeThread.thread_id }, "-created_date", 10)
+      .then(proposals => {
+        const pending = proposals.find(p => p.status === "pending");
+        setActiveProposal(pending || proposals[0] || null);
+      })
+      .catch(() => {});
+  }, [activeThread?.thread_id, user]);
+
   // ---- real-time message subscription ----
   useEffect(() => {
     if (!user) return;
