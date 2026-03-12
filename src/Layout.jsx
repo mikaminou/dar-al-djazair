@@ -202,8 +202,14 @@ function NavContent({ currentPageName, children }) {
 
       <SavedSearchAlerts />
 
+      {/* MOBILE HEADER */}
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-30 h-14 flex items-center px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
+        <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
+        <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
+      </header>
+
       {/* PAGE CONTENT — with mobile header padding */}
-      <main className="flex-1 pt-14 md:pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
+      <main className="flex-1 pt-16 md:pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]">
         {children}
       </main>
 
