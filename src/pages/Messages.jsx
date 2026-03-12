@@ -400,6 +400,86 @@ export default function MessagesPage() {
     setPhantomThread(null);
   }
 
+  // ---- appointment proposal handlers ----
+  async function handleSendProposal({ date, start_time, end_time, notes }) {
+    if (!activeThread || !user) return;
+    // decline any existing pending proposal first
+    if (activeProposal?.status === "pending") {
+      await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
+    }
+    const ownerEmail = listingOwnerMap[activeThread.listing_id] || activeThread.other;
+    const otherEmail = activeThread.other;
+    const listingTitle = listingsMap[activeThread.listing_id] || "";
+    const newProp = await base44.entities.AppointmentProposal.create({
+      thread_id: activeThread.thread_id,
+      listing_id: activeThread.listing_id,
+      listing_title: listingTitle,
+      proposer_email: user.email,
+      other_email: otherEmail,
+      proposer_name: user.full_name || user.email,
+      proposed_date: date,
+      proposed_start_time: start_time,
+      proposed_end_time: end_time,
+      notes,
+    });
+    setActiveProposal(newProp);
+    setShowProposeModal(false);
+    // send a system message in chat
+    const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString(lang === "fr" ? "fr-FR" : "en", { day: "numeric", month: "short", year: "numeric" });
+    const msgContent = lang === "fr"
+      ? `📅 Proposition de rendez-vous: ${fmtDate(date)} à ${start_time}${notes ? " — " + notes : ""}`
+      : lang === "ar"
+      ? `📅 اقتراح موعد: ${fmtDate(date)} الساعة ${start_time}`
+      : `📅 Visit proposal: ${fmtDate(date)} at ${start_time}${notes ? " — " + notes : ""}`;
+    const msg = await base44.entities.Message.create({
+      listing_id: activeThread.listing_id,
+      sender_email: user.email,
+      recipient_email: otherEmail,
+      content: msgContent,
+      thread_id: activeThread.thread_id,
+      is_read: false,
+    });
+    setMessages(prev => prev.find(p => p.id === msg.id) ? prev : [...prev, msg]);
+  }
+
+  async function handleAcceptProposal() {
+    if (!activeProposal) return;
+    await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "accepted" });
+    setActiveProposal(prev => ({ ...prev, status: "accepted" }));
+    const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString(lang === "fr" ? "fr-FR" : "en", { day: "numeric", month: "short" });
+    const msgContent = lang === "fr"
+      ? `✅ Rendez-vous confirmé: ${fmtDate(activeProposal.proposed_date)} à ${activeProposal.proposed_start_time}`
+      : lang === "ar"
+      ? `✅ تم تأكيد الموعد: ${fmtDate(activeProposal.proposed_date)} الساعة ${activeProposal.proposed_start_time}`
+      : `✅ Appointment confirmed: ${fmtDate(activeProposal.proposed_date)} at ${activeProposal.proposed_start_time}`;
+    const msg = await base44.entities.Message.create({
+      listing_id: activeThread.listing_id,
+      sender_email: user.email,
+      recipient_email: activeThread.other,
+      content: msgContent,
+      thread_id: activeThread.thread_id,
+      is_read: false,
+    });
+    setMessages(prev => prev.find(p => p.id === msg.id) ? prev : [...prev, msg]);
+  }
+
+  async function handleDeclineProposal() {
+    if (!activeProposal) return;
+    await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
+    setActiveProposal(prev => ({ ...prev, status: "declined" }));
+    const msgContent = lang === "fr" ? "❌ Rendez-vous refusé."
+      : lang === "ar" ? "❌ تم رفض الموعد." : "❌ Appointment declined.";
+    const msg = await base44.entities.Message.create({
+      listing_id: activeThread.listing_id,
+      sender_email: user.email,
+      recipient_email: activeThread.other,
+      content: msgContent,
+      thread_id: activeThread.thread_id,
+      is_read: false,
+    });
+    setMessages(prev => prev.find(p => p.id === msg.id) ? prev : [...prev, msg]);
+  }
+
   // ---- derived state ----
   const realConversations = groupConversations(messages, user?.email || "");
   // Inject phantom thread at top if it exists and isn't already in real convs
