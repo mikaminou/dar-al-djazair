@@ -323,7 +323,7 @@ export default function ListingDetailPage() {
               </div>
             ) : (
               <button
-                onClick={() => base44.auth.redirectToLogin(window.location.href)}
+                onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
                 className="w-full flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
