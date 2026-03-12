@@ -304,13 +304,31 @@ export default function ListingsPage() {
             </div>
           ) : (
             <>
-              <Input
-                placeholder={lang === "ar" ? "اسم البحث..." : lang === "fr" ? "Nom de la recherche..." : "Search name..."}
-                value={searchName}
-                onChange={e => setSearchName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && confirmSaveSearch()}
-                autoFocus
-              />
+              <div className="space-y-3">
+                <Input
+                  placeholder={lang === "ar" ? "اسم البحث..." : lang === "fr" ? "Nom de la recherche..." : "Search name..."}
+                  value={searchName}
+                  onChange={e => setSearchName(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && confirmSaveSearch()}
+                  autoFocus
+                />
+                <div>
+                  <Label className="text-xs text-gray-500 mb-1 block">
+                    {lang === "ar" ? "الوضع المالي (اختياري)" : lang === "fr" ? "Situation financière (optionnel)" : "Financial state (optional)"}
+                  </Label>
+                  <Select value={financialState} onValueChange={setFinancialState}>
+                    <SelectTrigger className="text-sm">
+                      <SelectValue placeholder={lang === "ar" ? "اختر وضعك المالي..." : lang === "fr" ? "Sélectionnez..." : "Select your situation..."} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="cash">{lang === "ar" ? "شراء نقدي" : lang === "fr" ? "Achat comptant" : "Cash buyer"}</SelectItem>
+                      <SelectItem value="pre_approved">{lang === "ar" ? "قرض معتمد مسبقاً" : lang === "fr" ? "Crédit pré-approuvé" : "Pre-approved loan"}</SelectItem>
+                      <SelectItem value="arranging">{lang === "ar" ? "تمويل قيد الترتيب" : lang === "fr" ? "Financement en cours" : "Still arranging financing"}</SelectItem>
+                      <SelectItem value="unspecified">{lang === "ar" ? "غير محدد" : lang === "fr" ? "Non précisé" : "Unspecified"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <DialogFooter className="mt-2">
                 <Button variant="outline" onClick={() => setSaveDialogOpen(false)}>
                   {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
