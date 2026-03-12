@@ -635,9 +635,21 @@ export default function MessagesPage() {
                       </p>
                     </div>
                     {u > 0 && (
-                      <span className="w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0 mt-1">{u}</span>
+                      <span className="w-5 h-5 bg-emerald-500 text-white text-xs rounded-full flex items-center justify-center flex-shrink-0 mt-1 relative z-10">{u}</span>
                     )}
-                  </button>
+                    {/* Archive button — visible on hover */}
+                    <button
+                      onClick={e => { e.stopPropagation(); toggleArchive(conv.thread_id); }}
+                      className="relative z-10 opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-gray-400 hover:text-gray-700 flex-shrink-0 mt-0.5"
+                      title={archivedThreads.includes(conv.thread_id)
+                        ? (lang === "ar" ? "إلغاء الأرشفة" : lang === "fr" ? "Désarchiver" : "Unarchive")
+                        : (lang === "ar" ? "أرشفة" : lang === "fr" ? "Archiver" : "Archive")}
+                    >
+                      {archivedThreads.includes(conv.thread_id)
+                        ? <ArchiveRestore className="w-3.5 h-3.5" />
+                        : <Archive className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
                 );
               })}
             </div>
