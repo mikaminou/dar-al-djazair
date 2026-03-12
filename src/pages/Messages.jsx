@@ -601,11 +601,11 @@ export default function MessagesPage() {
                 const isActive = activeThread?.thread_id === conv.thread_id;
                 const hasUnread = u > 0;
                 return (
-                  <button
+                  <div
                     key={conv.thread_id}
-                    onClick={() => openThread(conv)}
-                    className={`w-full text-left px-4 py-3 flex items-start gap-3 border-b border-gray-50 hover:bg-emerald-50 transition-colors ${isActive ? "bg-emerald-50 border-l-2 border-l-emerald-500" : ""}`}
+                    className={`relative group w-full text-left px-4 py-3 flex items-start gap-3 border-b border-gray-50 hover:bg-emerald-50 transition-colors ${isActive ? "bg-emerald-50 border-l-2 border-l-emerald-500" : ""}`}
                   >
+                  <button onClick={() => openThread(conv)} className="absolute inset-0 w-full" aria-label="open thread" />
                     <div className="relative w-10 h-10 flex-shrink-0 mt-0.5">
                       <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
                         <User className="w-5 h-5 text-emerald-600" />
