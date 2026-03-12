@@ -13,6 +13,7 @@ import { PROPERTY_TYPES } from "../components/constants";
 import LeadsKanban from "../components/leads/LeadsKanban";
 import PriorityBadge from "../components/leads/PriorityBadge";
 import { computePriority } from "../components/leads/leadScoring";
+import ReviewForm from "../components/trust/ReviewForm";
 
 function FilterPills({ filters, lang }) {
   const pills = [];
@@ -56,6 +57,8 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("new");
   const [view, setView] = useState("list");
+  const [reviewLead, setReviewLead] = useState(null); // lead to review
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => { load(); }, []);
 
@@ -63,6 +66,7 @@ export default function LeadsPage() {
     setLoading(true);
     const me = await base44.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
+    setCurrentUser(me);
 
     const [data, messages, appointments, favorites] = await Promise.all([
       base44.entities.Lead.filter({ agent_email: me.email }, "-created_date", 200),
@@ -96,6 +100,11 @@ export default function LeadsPage() {
   async function updateStatus(lead, status) {
     await base44.entities.Lead.update(lead.id, { status });
     setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status } : l));
+    // Prompt for review when deal is closed/won
+    if (status === "won" || status === "closed") {
+      const existing = await base44.entities.Review.filter({ reviewer_email: currentUser?.email, lead_id: lead.id }, null, 1).catch(() => []);
+      if (existing.length === 0) setReviewLead({ ...lead, status });
+    }
   }
 
   const displayed = filter === "all" ? leads : leads.filter(l => l.status === filter);
@@ -126,6 +135,18 @@ export default function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {reviewLead && (
+        <ReviewForm
+          reviewedEmail={reviewLead.seeker_email}
+          reviewedName={reviewLead.seeker_email?.split("@")[0]}
+          leadId={reviewLead.id}
+          listingId={reviewLead.listing_id}
+          listingTitle={reviewLead.listing_title}
+          onClose={() => setReviewLead(null)}
+          onSubmitted={() => setReviewLead(null)}
+          lang={lang}
+        />
+      )}
       <div className="bg-emerald-800 text-white py-8 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-3 mb-1">
