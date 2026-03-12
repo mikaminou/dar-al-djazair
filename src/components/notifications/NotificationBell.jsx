@@ -3,6 +3,28 @@ import { Bell, MessageSquare, Users, AlertCircle, Calendar, CheckCircle2, XCircl
 import { base44 } from "@/api/base44Client";
 import NotificationPanel from "./NotificationPanel";
 
+const playNotificationSound = () => {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.5);
+  } catch (e) {
+    console.log('Could not play sound:', e.message);
+  }
+};
+
 export default function NotificationBell({ user, lang }) {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
@@ -18,6 +40,10 @@ export default function NotificationBell({ user, lang }) {
       if (event.data?.user_email !== user.email) return;
       if (event.type === "create") {
         setNotifications(prev => [event.data, ...prev]);
+        // Play sound for message notifications
+        if (event.data?.type === 'message') {
+          playNotificationSound();
+        }
       } else if (event.type === "update") {
         setNotifications(prev => prev.map(n => n.id === event.id ? event.data : n));
       }
