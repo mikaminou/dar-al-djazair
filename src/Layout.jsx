@@ -59,6 +59,21 @@ function NavContent({ currentPageName, children }) {
           {/* Right side */}
           <div className="flex items-center gap-1 ml-auto select-none">
             {/* Action Buttons */}
+            <DropdownMenu open={createMenuOpen} onOpenChange={setCreateMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex md:hidden items-center justify-center min-h-[44px] min-w-[44px] text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
+                  <Plus className="w-6 h-6" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 select-none">
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("PostListing")} onClick={() => setCreateMenuOpen(false)}>
+                    {lang === "ar" ? "إضافة عقار" : lang === "fr" ? "Ajouter un bien" : "List a Property"}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link
               to={createPageUrl("PostListing")}
               className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0"
