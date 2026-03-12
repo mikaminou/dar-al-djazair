@@ -1,42 +1,51 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Triggered on: Message CREATE
- * Notifies the message recipient with a link to the conversation thread.
- */
+// Example of how to integrate push notifications into existing trigger
+// This extends the existing notifyMessage function with push delivery
+
 Deno.serve(async (req) => {
+  if (req.method !== 'POST') {
+    return Response.json({ error: 'Method not allowed' }, { status: 405 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data } = await req.json();
+    const { recipient_email, sender_name, message_preview, thread_id } = await req.json();
 
-    if (event?.type !== "create") return Response.json({ ok: true, skipped: "not_create" });
-
-    const message = data;
-    if (!message?.recipient_email || !message?.sender_email) {
-      return Response.json({ ok: true, skipped: "missing_fields" });
-    }
-    if (message.sender_email === message.recipient_email) {
-      return Response.json({ ok: true, skipped: "self_message" });
+    if (!recipient_email) {
+      return Response.json({ error: 'Missing recipient_email' }, { status: 400 });
     }
 
-    const refId = `msg_${message.id}`;
-    const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
-    if (existing.length > 0) return Response.json({ ok: true, skipped: "duplicate" });
+    const ref_id = `message_${thread_id}`;
 
-    const senderName = message.sender_email.split("@")[0];
-
+    // Create in-app notification
     await base44.asServiceRole.entities.Notification.create({
-      user_email: message.recipient_email,
-      type: "message",
-      title: `Nouveau message de ${senderName}`,
-      body: message.content?.slice(0, 120) || "",
-      url: `Messages?thread=${message.listing_id}&contact=${encodeURIComponent(message.sender_email)}`,
+      user_email: recipient_email,
+      type: 'message',
+      title: `Message from ${sender_name}`,
+      body: message_preview || 'You have a new message',
+      url: `Messages?thread_id=${thread_id}`,
       is_read: false,
-      ref_id: refId,
+      ref_id,
     });
 
-    return Response.json({ ok: true, action: "notification_created" });
+    // Send push notification
+    try {
+      await base44.asServiceRole.functions.invoke('sendPushNotification', {
+        user_email: recipient_email,
+        title: `Message from ${sender_name}`,
+        body: message_preview || 'You have a new message',
+        url: `Messages?thread_id=${thread_id}`,
+        ref_id,
+        sound_enabled: true,
+      });
+    } catch (pushError) {
+      console.warn('Push notification failed:', pushError);
+    }
+
+    return Response.json({ success: true });
   } catch (error) {
+    console.error('notifyMessage error:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
