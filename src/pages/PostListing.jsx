@@ -147,7 +147,7 @@ export default function PostListingPage() {
     if (editingId) {
       await base44.entities.Listing.update(editingId, payload);
     } else {
-      await base44.entities.Listing.create({ ...payload, status: "active" });
+      await base44.entities.Listing.create({ ...payload, status: "active", active_since: new Date().toISOString() });
     }
     setSaving(false);
     setDone(true);
