@@ -150,12 +150,12 @@ export default function MyListingsPage() {
   const usedWilayas = [...new Set(listings.map(l => l.wilaya).filter(Boolean))].sort();
 
   const statusOptions = [
-    { value: "all", label: { fr: "Tous", ar: "الكل", en: "All" } },
-    { value: "active", label: { fr: "Actifs", ar: "نشط", en: "Active" }, color: "emerald" },
-    { value: "archived", label: { fr: "Archivés", ar: "مؤرشف", en: "Archived" }, color: "gray" },
-    { value: "sold", label: { fr: "Vendus", ar: "مباع", en: "Sold" }, color: "blue" },
-    { value: "rented", label: { fr: "Loués", ar: "مؤجر", en: "Rented" }, color: "purple" },
-    { value: "pending", label: { fr: "En attente", ar: "معلق", en: "Pending" }, color: "yellow" },
+    { value: "all",      label: { fr: "Tous",      ar: "الكل",    en: "All"      } },
+    { value: "active",   label: { fr: "Actifs",    ar: "نشط",     en: "Active"   } },
+    { value: "reserved", label: { fr: "Réservés",  ar: "محجوز",   en: "Reserved" } },
+    { value: "sold",     label: { fr: "Vendus",    ar: "مُباع",   en: "Sold"     } },
+    { value: "rented",   label: { fr: "Loués",     ar: "مُؤجَّر", en: "Rented"  } },
+    { value: "deleted",  label: { fr: "Supprimés", ar: "محذوف",   en: "Deleted"  } },
   ];
 
   return (
