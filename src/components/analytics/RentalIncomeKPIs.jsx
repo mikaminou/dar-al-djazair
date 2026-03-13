@@ -1,5 +1,6 @@
 import React from "react";
 import { DollarSign, TrendingUp, Home, AlertCircle } from "lucide-react";
+import { formatPrice } from "../price.config";
 
 export default function RentalIncomeKPIs({ totalIncome, projectedAnnual, propertyCount, atRiskCount, lang }) {
   const T = {
@@ -40,10 +41,8 @@ export default function RentalIncomeKPIs({ totalIncome, projectedAnnual, propert
               <div>
                 <p className="text-xs text-gray-600 mb-1">{kpi.label}</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {typeof kpi.value === "number" && kpi.label.includes("Income")
-                    ? `DZD ${kpi.value.toLocaleString()}`
-                    : typeof kpi.value === "number"
-                    ? kpi.value
+                  {(kpi.key === "total" || kpi.key === "projected")
+                    ? formatPrice(kpi.value, "rent", lang)
                     : kpi.value}
                 </p>
               </div>
