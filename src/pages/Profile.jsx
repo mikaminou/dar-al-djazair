@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2 } from "lucide-react";
+import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2, Camera } from "lucide-react";
+import UserAvatar from "../components/UserAvatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import ListingCard from "../components/listing/ListingCard";
 import VerifiedBadge from "../components/trust/VerifiedBadge";
@@ -31,6 +32,9 @@ export default function ProfilePage() {
   const [form, setForm] = useState({});
   const [favorites, setFavorites] = useState([]);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = React.useRef();
 
   const isOwnProfile = !profileEmail || profileEmail === currentUser?.email;
 
