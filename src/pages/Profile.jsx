@@ -65,6 +65,7 @@ export default function ProfilePage() {
       agency_name: userInfo?.agency_name || "",
       wilaya: userInfo?.wilaya || "",
       website: userInfo?.website || "",
+      avatar_url: userInfo?.avatar_url || "",
     });
 
     // Load their listings
