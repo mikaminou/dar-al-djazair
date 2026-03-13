@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { User, Building2 } from 'lucide-react';
+import { User, Building2, Camera } from 'lucide-react';
 
 /**
  * Shown to new users who have not yet set first_name.
