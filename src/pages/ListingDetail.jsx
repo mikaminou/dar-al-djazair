@@ -29,6 +29,8 @@ export default function ListingDetailPage() {
   const [isFav, setIsFav] = useState(false);
   const [imgIndex, setImgIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const [msgText, setMsgText] = useState("");
   const [msgSent, setMsgSent] = useState(false);
   const [user, setUser] = useState(null);
@@ -189,7 +191,10 @@ export default function ListingDetailPage() {
         {/* MAIN CONTENT */}
         <div className="lg:col-span-2 space-y-5">
           {/* Image Gallery */}
-          <div className="relative bg-black rounded-2xl overflow-hidden h-80 md:h-[420px]">
+          <div
+            className="relative bg-black rounded-2xl overflow-hidden h-80 md:h-[420px] cursor-zoom-in"
+            onClick={() => { setGalleryIndex(imgIndex); setGalleryOpen(true); }}
+          >
             <img src={images[imgIndex]} alt={listing.title} className="w-full h-full object-cover" />
             {images.length > 1 && (
               <>
@@ -218,9 +223,24 @@ export default function ListingDetailPage() {
           {images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-1">
               {images.map((img, i) => (
-                <img key={i} src={img} onClick={() => setImgIndex(i)} alt="" className={`w-16 h-12 object-cover rounded-lg cursor-pointer flex-shrink-0 ${i === imgIndex ? "ring-2 ring-emerald-500" : "opacity-70"}`} />
+                <img
+                  key={i}
+                  src={img}
+                  onClick={() => setImgIndex(i)}
+                  onDoubleClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}
+                  alt=""
+                  className={`w-16 h-12 object-cover rounded-lg cursor-pointer flex-shrink-0 ${i === imgIndex ? "ring-2 ring-emerald-500" : "opacity-70"}`}
+                />
               ))}
             </div>
+          )}
+
+          {galleryOpen && (
+            <FullscreenGallery
+              images={images}
+              initialIndex={galleryIndex}
+              onClose={() => setGalleryOpen(false)}
+            />
           )}
 
           {/* Title & Price */}
