@@ -36,40 +36,83 @@ export default function MyListingsPage() {
     setLoading(false);
   }
 
-  async function deleteListing(id) {
-    if (!confirm(lang === "ar" ? "هل تريد حذف هذا الإعلان؟" : lang === "fr" ? "Supprimer cette annonce ?" : "Delete this listing?")) return;
+  async function notifySeekers(listingId, notifBody, notifType) {
+    // Find all unique seeker emails who have a conversation about this listing
+    const msgs = await base44.entities.Message.filter({ listing_id: listingId }, "-created_date", 500).catch(() => []);
     const user = await base44.auth.me().catch(() => null);
-    if (user) {
-      const msgs = await base44.entities.Message.filter({ listing_id: id }, "-created_date", 500).catch(() => []);
-      const ownerMsgs = msgs.filter(m => m.sender_email === user.email || m.recipient_email === user.email);
-      await Promise.all(ownerMsgs.map(m => {
-        const hiddenFor = [...new Set([...(m.hidden_for || []), user.email])];
-        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
-      }));
-    }
-    await base44.entities.Listing.delete(id);
-    setListings(prev => prev.filter(l => l.id !== id));
+    if (!user) return;
+    const seekerEmails = [...new Set(msgs
+      .map(m => m.sender_email === user.email ? m.recipient_email : m.sender_email)
+      .filter(e => e && e !== user.email)
+    )];
+    await Promise.all(seekerEmails.map(email =>
+      base44.entities.Notification.create({
+        user_email: email,
+        type: notifType || "listing_match",
+        title: notifBody.title,
+        body: notifBody.body,
+        url: `ListingDetail?id=${listingId}`,
+        ref_id: `status_${listingId}_${Date.now()}`,
+      }).catch(() => {})
+    ));
   }
 
-  async function toggleStatus(listing) {
-    const newStatus = listing.status === "active" ? "archived" : "active";
-    await base44.entities.Listing.update(listing.id, { status: newStatus });
-    setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
+  async function changeStatus(listing, newStatus) {
     const user = await base44.auth.me().catch(() => null);
-    if (user && newStatus === "archived") {
-      const msgs = await base44.entities.Message.filter({ listing_id: listing.id }, "-created_date", 500).catch(() => []);
-      const ownerMsgs = msgs.filter(m => m.sender_email === user.email || m.recipient_email === user.email);
-      await Promise.all(ownerMsgs.map(m => {
-        const hiddenFor = [...new Set([...(m.hidden_for || []), user.email])];
-        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
-      }));
-    } else if (user && newStatus === "active") {
-      const msgs = await base44.entities.Message.filter({ listing_id: listing.id }, "-created_date", 500).catch(() => []);
-      await Promise.all(msgs.map(m => {
-        const hiddenFor = (m.hidden_for || []).filter(e => e !== user.email);
-        return base44.entities.Message.update(m.id, { hidden_for: hiddenFor });
-      }));
+    if (!user) return;
+
+    const updatePayload = { status: newStatus };
+    if (newStatus === "active" && !listing.active_since) {
+      updatePayload.active_since = new Date().toISOString();
     }
+
+    await base44.entities.Listing.update(listing.id, updatePayload);
+    setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
+
+    // Send notifications to seekers based on status transition
+    if (newStatus === "reserved") {
+      await notifySeekers(listing.id, {
+        title: lang === "ar" ? "العقار محجوز" : lang === "fr" ? "Bien réservé" : "Property Reserved",
+        body: lang === "ar"
+          ? "العقار الذي كنت تستفسر عنه تم حجزه. سيقوم المالك بإخطارك إذا أصبح متاحاً مجدداً."
+          : lang === "fr"
+          ? "Le bien sur lequel vous vous renseigniez a été réservé. Le propriétaire vous informera s'il redevient disponible."
+          : "The property you were inquiring about has been reserved. The owner will update you if it becomes available again.",
+      });
+    } else if (newStatus === "active" && listing.status === "reserved") {
+      await notifySeekers(listing.id, {
+        title: lang === "ar" ? "العقار متاح مجدداً" : lang === "fr" ? "Bien à nouveau disponible" : "Property Available Again",
+        body: lang === "ar"
+          ? "بشرى سارة — العقار الذي كنت مهتماً به أصبح متاحاً مجدداً."
+          : lang === "fr"
+          ? "Bonne nouvelle — le bien qui vous intéressait est à nouveau disponible."
+          : "Good news — the property you were interested in is available again.",
+      });
+    } else if (newStatus === "sold") {
+      await notifySeekers(listing.id, {
+        title: lang === "ar" ? "تم بيع العقار" : lang === "fr" ? "Bien vendu" : "Property Sold",
+        body: lang === "ar"
+          ? "تم بيع هذا العقار وهو لم يعد متاحاً."
+          : lang === "fr"
+          ? "Ce bien a été vendu et n'est plus disponible."
+          : "This property has been sold and is no longer available.",
+      });
+    } else if (newStatus === "rented") {
+      await notifySeekers(listing.id, {
+        title: lang === "ar" ? "تم تأجير العقار" : lang === "fr" ? "Bien loué" : "Property Rented",
+        body: lang === "ar"
+          ? "تم تأجير هذا العقار وهو لم يعد متاحاً."
+          : lang === "fr"
+          ? "Ce bien a été loué et n'est plus disponible."
+          : "This property has been rented and is no longer available.",
+      });
+    }
+  }
+
+  async function deleteListing(id) {
+    if (!confirm(lang === "ar" ? "هل تريد حذف هذا الإعلان؟" : lang === "fr" ? "Supprimer cette annonce ?" : "Delete this listing?")) return;
+    await base44.entities.Listing.update(id, { status: "deleted" });
+    setListings(prev => prev.map(l => l.id === id ? { ...l, status: "deleted" } : l));
   }
 
   const statusColor = { active: "bg-green-100 text-green-700", pending: "bg-yellow-100 text-yellow-700", archived: "bg-gray-100 text-gray-500", sold: "bg-blue-100 text-blue-700", rented: "bg-purple-100 text-purple-700" };
