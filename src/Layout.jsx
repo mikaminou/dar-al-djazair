@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, Home, MoreVertical } from "lucide-react";
+import UserAvatar from "./components/UserAvatar";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
