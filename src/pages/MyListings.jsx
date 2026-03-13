@@ -326,7 +326,7 @@ export default function MyListingsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-gray-900 text-sm truncate">{listing.title}</h3>
-                    <Badge className={statusColor[listing.status] || "bg-gray-100"}>{listing.status}</Badge>
+                    <Badge className={statusColor[listing.status] || "bg-gray-100"}>{statusLabel[listing.status]?.[lang] || listing.status}</Badge>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">{listing.wilaya} • {formatPrice(listing.price, lang)}</p>
                   <div className="flex items-center gap-3 mt-0.5">
