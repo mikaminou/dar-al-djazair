@@ -34,7 +34,7 @@ export default function ProfilePage() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const avatarInputRef = React.useRef();
+  const avatarInputRef = useRef();
 
   const isOwnProfile = !profileEmail || profileEmail === currentUser?.email;
 
