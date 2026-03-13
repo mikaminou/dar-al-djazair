@@ -224,21 +224,7 @@ export default function ProfilePage() {
           {editing && (
             <div className="mt-6 border-t pt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">
-                    {lang === "ar" ? "نوع الحساب" : lang === "fr" ? "Type de compte" : "Account Type"}
-                  </label>
-                  <Select value={form.role} onValueChange={v => setForm(p => ({ ...p, role: v }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">{lang === "ar" ? "فرد" : lang === "fr" ? "Particulier" : "Individual"}</SelectItem>
-                      <SelectItem value="agency">{lang === "ar" ? "وكالة" : lang === "fr" ? "Agence" : "Agency"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {form.role === "agency" && (
+                {profileUser?.role === "agency" && (
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-1 block">
                       {lang === "ar" ? "اسم الوكالة" : lang === "fr" ? "Nom de l'agence" : "Agency Name"}
