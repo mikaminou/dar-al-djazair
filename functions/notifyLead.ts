@@ -1,10 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Triggered on: Lead CREATE → new lead notification
- *               Lead UPDATE → high priority threshold notification
- */
-
 const FINANCIAL_STATE_SCORE = { cash: 3, pre_approved: 2, arranging: 1, unspecified: 0 };
 
 function computeScore(lead, { messageCount = 0, hasAppointment = false, hasFavorite = false }) {
@@ -21,6 +16,20 @@ function computeScore(lead, { messageCount = 0, hasAppointment = false, hasFavor
   return score;
 }
 
+async function getRecipientLang(base44, email) {
+  const users = await base44.asServiceRole.entities.User.filter({ email }, null, 1).catch(() => []);
+  return users[0]?.lang || "fr";
+}
+
+const T = {
+  newLead:       { fr: "Nouveau lead", en: "New lead", ar: "عميل جديد" },
+  interestedIn:  { fr: "S'intéresse à", en: "Interested in", ar: "مهتم بـ" },
+  highPriority:  { fr: "Lead haute priorité", en: "High priority lead", ar: "عميل ذو أولوية عالية" },
+  actNow:        { fr: "Agissez maintenant", en: "Act now", ar: "تصرف الآن" },
+  pts:           { fr: "pts", en: "pts", ar: "نقطة" },
+};
+const t = (key, lang) => T[key][lang] || T[key].fr;
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -35,14 +44,15 @@ Deno.serve(async (req) => {
       const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
       if (existing.length > 0) return Response.json({ ok: true, skipped: "duplicate" });
 
+      const lang = await getRecipientLang(base44, lead.agent_email);
       const seekerName = lead.seeker_email?.split("@")[0] || lead.seeker_email;
       const property   = lead.listing_title || lead.listing_id;
 
       await base44.asServiceRole.entities.Notification.create({
         user_email: lead.agent_email,
         type:       "lead_new",
-        title:      `👤 Nouveau lead — ${seekerName}`,
-        body:       `S'intéresse à "${property}"${lead.listing_wilaya ? ` · ${lead.listing_wilaya}` : ""}`,
+        title:      `👤 ${t("newLead", lang)} — ${seekerName}`,
+        body:       `${t("interestedIn", lang)} "${property}"${lead.listing_wilaya ? ` · ${lead.listing_wilaya}` : ""}`,
         url:        "Leads",
         is_read:    false,
         ref_id:     refId,
@@ -71,13 +81,14 @@ Deno.serve(async (req) => {
 
       if (score < 6) return Response.json({ ok: true, skipped: "not_high_priority", score });
 
+      const lang = await getRecipientLang(base44, lead.agent_email);
       const seekerName = lead.seeker_email?.split("@")[0] || lead.seeker_email;
 
       await base44.asServiceRole.entities.Notification.create({
         user_email: lead.agent_email,
         type:       "lead_high_priority",
-        title:      `⚡ Lead haute priorité — ${seekerName}`,
-        body:       `Score ${score} pts · "${lead.listing_title || "Annonce"}" — Agissez maintenant`,
+        title:      `⚡ ${t("highPriority", lang)} — ${seekerName}`,
+        body:       `Score ${score} ${t("pts", lang)} · "${lead.listing_title || ""}" — ${t("actNow", lang)}`,
         url:        "Leads",
         is_read:    false,
         ref_id:     refId,

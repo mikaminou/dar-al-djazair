@@ -1,9 +1,24 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Triggered on: AppointmentProposal CREATE → notify the receiving party
- *               AppointmentProposal UPDATE → notify proposer of accepted/declined
- */
+async function getRecipientLang(base44, email) {
+  const users = await base44.asServiceRole.entities.User.filter({ email }, null, 1).catch(() => []);
+  return users[0]?.lang || "fr";
+}
+
+function fmtDate(dateStr, lang) {
+  const locale = lang === "ar" ? "ar-DZ" : lang === "fr" ? "fr-FR" : "en-GB";
+  return new Date(dateStr).toLocaleDateString(locale, { day: "numeric", month: "short" });
+}
+
+const T = {
+  proposalTitle:  { fr: "Proposition de visite", en: "Visit proposal", ar: "اقتراح زيارة" },
+  proposalBody:   { fr: "le", en: "on", ar: "في" },
+  at:             { fr: "à", en: "at", ar: "الساعة" },
+  acceptedTitle:  { fr: "Visite confirmée", en: "Visit confirmed", ar: "تم تأكيد الزيارة" },
+  declinedTitle:  { fr: "Visite déclinée", en: "Visit declined", ar: "تم رفض الزيارة" },
+};
+const t = (key, lang) => T[key][lang] || T[key].fr;
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -20,16 +35,15 @@ Deno.serve(async (req) => {
       const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
       if (existing.length > 0) return Response.json({ ok: true, skipped: "duplicate" });
 
+      const lang = await getRecipientLang(base44, proposal.other_email);
       const proposerName = proposal.proposer_name || proposal.proposer_email.split("@")[0];
-      const dateStr = proposal.proposed_date
-        ? new Date(proposal.proposed_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
-        : "";
+      const dateStr = proposal.proposed_date ? fmtDate(proposal.proposed_date, lang) : "";
 
       await base44.asServiceRole.entities.Notification.create({
         user_email: proposal.other_email,
         type:       "appointment_proposal",
-        title:      `📅 Proposition de visite — ${proposerName}`,
-        body:       `${proposal.listing_title || "Bien"}${dateStr ? ` · ${dateStr} à ${proposal.proposed_start_time}` : ""}`,
+        title:      `📅 ${t("proposalTitle", lang)} — ${proposerName}`,
+        body:       `${proposal.listing_title || ""}${dateStr ? ` · ${t("proposalBody", lang)} ${dateStr} ${t("at", lang)} ${proposal.proposed_start_time}` : ""}`,
         url:        `Messages?thread=${proposal.listing_id}&contact=${encodeURIComponent(proposal.proposer_email)}`,
         is_read:    false,
         ref_id:     refId,
@@ -44,21 +58,18 @@ Deno.serve(async (req) => {
       const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
       if (existing.length > 0) return Response.json({ ok: true, skipped: "duplicate" });
 
-      const property  = proposal.listing_title || "Bien";
-      const dateStr   = proposal.proposed_date
-        ? new Date(proposal.proposed_date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })
-        : "";
+      const lang = await getRecipientLang(base44, proposal.proposer_email);
+      const property = proposal.listing_title || "";
+      const dateStr  = proposal.proposed_date ? fmtDate(proposal.proposed_date, lang) : "";
 
-      const titles = {
-        accepted: `✅ Visite confirmée — ${property}`,
-        declined: `❌ Visite déclinée — ${property}`,
-      };
+      const titleKey = proposal.status === "accepted" ? "acceptedTitle" : "declinedTitle";
+      const emoji    = proposal.status === "accepted" ? "✅" : "❌";
 
       await base44.asServiceRole.entities.Notification.create({
         user_email: proposal.proposer_email,
         type:       proposal.status === "accepted" ? "appointment_accepted" : "appointment_declined",
-        title:      titles[proposal.status],
-        body:       dateStr ? `${dateStr} à ${proposal.proposed_start_time}` : "",
+        title:      `${emoji} ${t(titleKey, lang)}${property ? ` — ${property}` : ""}`,
+        body:       dateStr ? `${dateStr} ${t("at", lang)} ${proposal.proposed_start_time}` : "",
         url:        "Appointments",
         is_read:    false,
         ref_id:     refId,
