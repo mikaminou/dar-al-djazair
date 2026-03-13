@@ -166,6 +166,28 @@ export default function ListingsPage() {
     setTouchStart(null);
   }
 
+  function generateSearchName(f, fs, l) {
+    const parts = [];
+    if (f.min_bedrooms) {
+      const n = f.min_bedrooms === "5+" ? "5+" : f.min_bedrooms;
+      parts.push(l === "ar" ? `${n} غرف` : l === "fr" ? `${n} ch.` : `${n}-bedroom`);
+    }
+    if (f.property_type) {
+      const pt = { apartment: { en: "apartment", fr: "appartement", ar: "شقة" }, house: { en: "house", fr: "maison", ar: "منزل" }, villa: { en: "villa", fr: "villa", ar: "فيلا" }, land: { en: "land", fr: "terrain", ar: "أرض" }, commercial: { en: "commercial", fr: "commercial", ar: "تجاري" }, office: { en: "office", fr: "bureau", ar: "مكتب" }, farm: { en: "farm", fr: "ferme", ar: "مزرعة" } };
+      parts.push(pt[f.property_type]?.[l] || f.property_type);
+    }
+    if (f.listing_type) {
+      parts.push(f.listing_type === "sale" ? (l === "ar" ? "للبيع" : l === "fr" ? "à vendre" : "for sale") : (l === "ar" ? "للإيجار" : l === "fr" ? "à louer" : "for rent"));
+    }
+    if (f.wilaya) {
+      parts.push(l === "ar" ? `في ${f.wilaya}` : l === "fr" ? `à ${f.wilaya}` : `in ${f.wilaya}`);
+    }
+    const financialLabels = { cash: { en: "cash buyer", fr: "achat comptant", ar: "شراء نقدي" }, pre_approved: { en: "pre-approved loan", fr: "crédit pré-approuvé", ar: "قرض معتمد" }, arranging: { en: "financing in progress", fr: "financement en cours", ar: "تمويل قيد الترتيب" } };
+    if (fs && financialLabels[fs]) parts.push(financialLabels[fs][l] || financialLabels[fs].en);
+    if (parts.length === 0) return l === "ar" ? "بحث جديد" : l === "fr" ? "Nouvelle recherche" : "New search";
+    return parts.join(" ");
+  }
+
   async function confirmSaveSearch() {
     const me = await base44.auth.me().catch(() => null);
     if (!me) {
@@ -173,13 +195,13 @@ export default function ListingsPage() {
       base44.auth.redirectToLogin(window.location.href);
       return;
     }
-    const name = searchName.trim() || `Search ${new Date().toLocaleDateString()}`;
-    const savePayload = { name, filters, alert_enabled: true };
+    const name = generateSearchName(filters, financialState, lang);
+    const savePayload = { name, filters, alert_enabled: true, user_email: me.email };
     if (financialState) savePayload.financial_state = financialState;
     const newSearch = await base44.entities.SavedSearch.create(savePayload);
     setSavedSearches(prev => [newSearch, ...prev]);
     setSaved(true);
-    setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setSearchName(""); setFinancialState(""); }, 1200);
+    setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setFinancialState(""); }, 1200);
 
     // Generate leads: notify agents whose listings match this saved search
     if (me) {
