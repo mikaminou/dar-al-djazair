@@ -104,6 +104,8 @@ export default function MessagesPage() {
   const [showProposeModal, setShowProposeModal] = useState(false);
   const [listingOwnerMap, setListingOwnerMap] = useState({}); // listingId → owner email
   const [usersMap, setUsersMap] = useState({}); // email → full_name
+  const [justSentIds, setJustSentIds] = useState(new Set()); // message IDs just sent (single-check state)
+  const [otherPresence, setOtherPresence] = useState(null); // { last_seen: ISO }
   // phantom thread = a pre-opened thread that has no messages yet (from Leads)
   const [phantomThread, setPhantomThread] = useState(null);
   // conversation filter: "all" | "open" | "closed" | "archived"
@@ -167,9 +169,11 @@ export default function MessagesPage() {
           .then(listings => {
             const titleMap = {};
             const statusMap = {};
-            listings.forEach(l => { if (l) { titleMap[l.id] = l.title; statusMap[l.id] = l.status; } });
+            const ownerMap = {};
+            listings.forEach(l => { if (l) { titleMap[l.id] = l.title; statusMap[l.id] = l.status; ownerMap[l.id] = l.created_by; } });
             setListingsMap(p => ({ ...p, ...titleMap }));
             setListingsStatusMap(p => ({ ...p, ...statusMap }));
+            setListingOwnerMap(p => ({ ...p, ...ownerMap }));
           });
       }
     }, 5000);
@@ -186,6 +190,57 @@ export default function MessagesPage() {
       })
       .catch(() => {});
   }, [activeThread?.thread_id, user]);
+
+  // ---- real-time appointment proposal subscription ----
+  useEffect(() => {
+    if (!user) return;
+    const unsub = base44.entities.AppointmentProposal.subscribe(event => {
+      const active = activeThreadRef.current;
+      if (!active) return;
+      const data = event.data;
+      if (!data || data.thread_id !== active.thread_id) return;
+      if (event.type === "create" || event.type === "update") {
+        setActiveProposal(prev => {
+          if (!prev) return data;
+          if (data.id === prev.id) return { ...prev, ...data };
+          if (data.status === "pending") return data;
+          return prev;
+        });
+      }
+    });
+    return unsub;
+  }, [user]);
+
+  // ---- own presence heartbeat ----
+  useEffect(() => {
+    if (!user) return;
+    async function ping() {
+      const now = new Date().toISOString();
+      const existing = await base44.entities.UserPresence.filter({ user_email: user.email }).catch(() => []);
+      if (existing.length > 0) {
+        base44.entities.UserPresence.update(existing[0].id, { last_seen: now }).catch(() => {});
+      } else {
+        base44.entities.UserPresence.create({ user_email: user.email, last_seen: now }).catch(() => {});
+      }
+    }
+    ping();
+    const interval = setInterval(ping, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // ---- other user's presence ----
+  useEffect(() => {
+    if (!activeThread?.other) { setOtherPresence(null); return; }
+    base44.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
+      setOtherPresence(r[0] || null);
+    }).catch(() => {});
+    const unsub = base44.entities.UserPresence.subscribe(event => {
+      if ((event.data?.user_email || event.data?.user_email) === activeThread.other) {
+        setOtherPresence(event.data);
+      }
+    });
+    return unsub;
+  }, [activeThread?.other]);
 
   // ---- real-time message subscription ----
   useEffect(() => {
@@ -209,6 +264,7 @@ export default function MessagesPage() {
                 if (r[0]) {
                   setListingsMap(p => ({ ...p, [r[0].id]: r[0].title }));
                   setListingsStatusMap(p => ({ ...p, [r[0].id]: r[0].status }));
+                  setListingOwnerMap(p => ({ ...p, [r[0].id]: r[0].created_by }));
                 }
               }).catch(() => {});
               return prev;
@@ -318,9 +374,11 @@ export default function MessagesPage() {
       const listings = await Promise.all(allListingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
       const map = {};
       const statusMap = {};
-      listings.forEach(l => { if (l) { map[l.id] = l.title; statusMap[l.id] = l.status; } });
+      const ownerMap = {};
+      listings.forEach(l => { if (l) { map[l.id] = l.title; statusMap[l.id] = l.status; ownerMap[l.id] = l.created_by; } });
       setListingsMap(map);
       setListingsStatusMap(statusMap);
+      setListingOwnerMap(ownerMap);
 
       // Fetch real display names for all unique other-party emails
       const allEmails = [...new Set(mine.map(m => m.sender_email === me.email ? m.recipient_email : m.sender_email).filter(Boolean))];
@@ -389,6 +447,9 @@ export default function MessagesPage() {
       thread_id: activeThread.thread_id,
       is_read: false,
     });
+    // Single-check state: mark as "just sent" for 2.5s then transition to delivered
+    setJustSentIds(prev => new Set([...prev, msg.id]));
+    setTimeout(() => setJustSentIds(prev => { const n = new Set(prev); n.delete(msg.id); return n; }), 2500);
     // If this was a phantom thread, mark lead as contacted now that first message is sent
     if (activeThread.isPhantom && activeThread.leadId) {
       base44.entities.Lead.update(activeThread.leadId, { status: "contacted" }).catch(() => {});
@@ -517,6 +578,14 @@ export default function MessagesPage() {
     return true; // "all"
   });
 
+  // Counts per filter for the chip badges
+  const convCounts = {
+    all:      allConversations.filter(c => !archivedThreads.includes(c.thread_id)).length,
+    open:     allConversations.filter(c => !archivedThreads.includes(c.thread_id) && !["sold","rented","deleted","reserved"].includes(listingsStatusMap[c.listing_id])).length,
+    closed:   allConversations.filter(c => !archivedThreads.includes(c.thread_id) && ["sold","rented","deleted","reserved"].includes(listingsStatusMap[c.listing_id])).length,
+    archived: allConversations.filter(c => archivedThreads.includes(c.thread_id)).length,
+  };
+
   const threadMessages = activeThread
     ? messages
         .filter(m => (m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email)) === activeThread.thread_id)
@@ -526,15 +595,26 @@ export default function MessagesPage() {
   // Is the active thread's listing unavailable?
   const activeListingStatus = activeThread ? listingsStatusMap[activeThread.listing_id] : null;
   const UNAVAILABLE_STATUSES = ["reserved", "sold", "rented", "deleted"];
-  const listingUnavailable = activeThread && (
-    UNAVAILABLE_STATUSES.includes(activeListingStatus) || activeListingStatus === null
-  ) && threadMessages.length > 0;
-  // Owner of the listing (by checking who the other person is vs listing_id messages)
-  const isListingOwner = activeThread && messages.some(
-    m => m.listing_id === activeThread.listing_id && m.sender_email === user?.email &&
-         m.recipient_email === activeThread.other
-  );
+  const listingUnavailable = activeThread && UNAVAILABLE_STATUSES.includes(activeListingStatus);
+  // Is the current user the owner of this listing?
+  const isListingOwner = activeThread && listingOwnerMap[activeThread.listing_id] === user?.email;
   const showUnavailableNotice = listingUnavailable && !isListingOwner;
+
+  // Presence helper
+  function getPresenceStatus(presence) {
+    if (!presence?.last_seen) return "offline";
+    const diffMs = Date.now() - new Date(presence.last_seen).getTime();
+    if (diffMs < 2 * 60 * 1000) return "online";
+    if (diffMs < 10 * 60 * 1000) return "away";
+    return "offline";
+  }
+  const presenceStatus = activeThread ? getPresenceStatus(otherPresence) : null;
+  const presenceDot = { online: "bg-emerald-500", away: "bg-amber-400", offline: "bg-gray-300" };
+  const presenceLabel = {
+    online: { en: "Online", fr: "En ligne", ar: "متصل" },
+    away:   { en: "Away", fr: "Absent", ar: "بعيد" },
+    offline:{ en: "Offline", fr: "Hors ligne", ar: "غير متصل" },
+  };
 
   function getUnavailableNoticeText() {
     if (activeListingStatus === "reserved") return lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.";
@@ -593,7 +673,7 @@ export default function MessagesPage() {
               {totalUnread > 0 && <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">{totalUnread}</span>}
             </h2>
           </div>
-          <ConversationFilters filter={convFilter} onChange={setConvFilter} lang={lang} />
+          <ConversationFilters filter={convFilter} onChange={setConvFilter} lang={lang} counts={convCounts} />
 
           {conversations.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
@@ -678,13 +758,21 @@ export default function MessagesPage() {
                   <User className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-gray-800">{usersMap[activeThread.other] || activeThread.other?.split("@")[0]}</p>
-                  <p className="text-xs text-gray-400 truncate">
-                    {otherIsTyping
-                      ? <span className="text-emerald-500 font-medium animate-pulse">{l.typing}</span>
-                      : listingsMap[activeThread.listing_id] || activeThread.other}
-                  </p>
-                </div>
+                   <div className="flex items-center gap-2">
+                     <p className="font-semibold text-sm text-gray-800">{usersMap[activeThread.other] || activeThread.other?.split("@")[0]}</p>
+                     {presenceStatus && (
+                       <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                         <span className={`w-2 h-2 rounded-full inline-block ${presenceDot[presenceStatus]}`} />
+                         {presenceLabel[presenceStatus]?.[lang] || presenceLabel[presenceStatus]?.en}
+                       </span>
+                     )}
+                   </div>
+                   <p className="text-xs text-gray-400 truncate">
+                     {otherIsTyping
+                       ? <span className="text-emerald-500 font-medium animate-pulse">{l.typing}</span>
+                       : listingsMap[activeThread.listing_id] || activeThread.other}
+                   </p>
+                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => setShowProfilePanel(true)}
@@ -743,9 +831,11 @@ export default function MessagesPage() {
                         <div className={`flex items-center gap-1 mt-0.5 text-xs ${isMe ? "text-gray-400 justify-end" : "text-gray-400 justify-start"}`}>
                           <span>{new Date(msg.created_date).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
                           {isMe && (
-                            msg.is_read
-                              ? <CheckCheck className="w-3.5 h-3.5 text-emerald-500" title={l.read} />
-                              : <Check className="w-3.5 h-3.5 text-gray-400" title={l.delivered} />
+                            justSentIds.has(msg.id)
+                              ? <Check className="w-3.5 h-3.5 text-gray-300" title="Sent" />
+                              : msg.is_read
+                                ? <CheckCheck className="w-3.5 h-3.5 text-emerald-500" title={l.read} />
+                                : <CheckCheck className="w-3.5 h-3.5 text-gray-400" title={l.delivered} />
                           )}
                         </div>
                       </div>

@@ -143,7 +143,8 @@ export default function ListingDetailPage() {
     <div className="min-h-screen flex items-center justify-center text-gray-400">{t.noResults}</div>
   );
 
-  const isUnavailable = ["archived", "sold", "rented"].includes(listing.status);
+  const isUnavailable = ["reserved", "sold", "rented", "deleted"].includes(listing.status);
+  const isOwner = user && (user.email === listing.created_by || user.email === listing.contact_email);
 
   const images = listing.images?.length > 0
     ? listing.images
@@ -336,10 +337,21 @@ export default function ListingDetailPage() {
                   {listing.contact_phone}
                 </a>
               )}
-              {isUnavailable ? (
+              {isOwner ? (
+                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-3 text-xs text-emerald-700">
+                  <CheckCircle className="w-4 h-4 flex-shrink-0" />
+                  {lang === "ar" ? "أنت صاحب هذا الإعلان." : lang === "fr" ? "Vous êtes le propriétaire de cette annonce." : "You own this listing."}
+                </div>
+              ) : isUnavailable ? (
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
+                  {listing.status === "reserved"
+                    ? (lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.")
+                    : listing.status === "sold"
+                    ? (lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.")
+                    : listing.status === "rented"
+                    ? (lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.")
+                    : (lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.")}
                 </div>
               ) : msgSent ? (
                 <div className="text-center py-5 text-emerald-600 font-medium">
