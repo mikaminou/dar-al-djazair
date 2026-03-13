@@ -84,6 +84,27 @@ export default function OnboardingModal({ user, lang, onComplete }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Avatar Upload */}
+          <div className="flex flex-col items-center gap-2">
+            <div
+              className="relative w-20 h-20 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center cursor-pointer overflow-hidden hover:border-emerald-400 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <Camera className="w-6 h-6 text-gray-400" />
+              )}
+              {uploadingAvatar && (
+                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+            </div>
+            <span className="text-xs text-gray-400">{tx('avatar')} ({tx('optional')})</span>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+          </div>
+
           {/* First + Last Name */}
           <div className="grid grid-cols-2 gap-3">
             <div>
