@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
 
     let created = 0;
     for (const search of savedSearches) {
-      if (!search.created_by) continue;
+      const recipientEmail = search.user_email || search.created_by;
+      if (!recipientEmail) continue;
       // Don't notify the listing owner of their own listing
       if (search.created_by === listing.created_by) continue;
       if (!matchesSearch(listing, search.filters || {})) continue;
