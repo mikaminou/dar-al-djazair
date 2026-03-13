@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageSquare, Eye, Users, Calendar, TrendingUp, MessageCircle } from "lucide-react";
+import { MessageSquare, Eye, Users, Calendar, TrendingUp, MessageCircle, Home, Clock } from "lucide-react";
 
 export default function ActivityKPIs({ data, lang }) {
   const { leads, sentMessages, receivedMessages, appointments, listings } = data;
