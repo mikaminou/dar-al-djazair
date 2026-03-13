@@ -18,10 +18,14 @@ function NavContent({ currentPageName, children }) {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
-    base44.auth.me().then(setUser).catch(() => {});
+    base44.auth.me().then(u => {
+      setUser(u);
+      if (u && !u.first_name) setShowOnboarding(true);
+    }).catch(() => {});
   }, []);
 
   const navLinks = [
