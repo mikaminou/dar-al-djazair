@@ -64,6 +64,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
       role: accountType,
     };
     if (accountType === 'agency') updates.agency_name = agencyName.trim();
+    if (avatarUrl) updates.avatar_url = avatarUrl;
 
     await base44.auth.updateMe(updates);
     setSaving(false);
