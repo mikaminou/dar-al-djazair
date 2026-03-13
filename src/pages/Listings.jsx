@@ -50,7 +50,6 @@ export default function ListingsPage() {
   const [sortBy, setSortBy] = useState("-created_date");
   const [compareList, setCompareList] = useState([]);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [searchName, setSearchName] = useState("");
   const [financialState, setFinancialState] = useState("");
   const [saved, setSaved] = useState(false);
   const [savedSearches, setSavedSearches] = useState([]);
