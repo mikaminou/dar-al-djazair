@@ -80,10 +80,21 @@ export default function ProfilePage() {
     setLoading(false);
   }
 
+  async function handleAvatarFileChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+    setUploadingAvatar(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setForm(p => ({ ...p, avatar_url: file_url }));
+    setUploadingAvatar(false);
+  }
+
   async function saveProfile() {
     setSaving(true);
     await base44.auth.updateMe(form);
     setProfileUser(prev => ({ ...prev, ...form }));
+    setAvatarPreview('');
     setEditing(false);
     setSaving(false);
   }
