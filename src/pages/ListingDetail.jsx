@@ -14,6 +14,7 @@ import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES } from "../components/constants";
 import ListingCard from "../components/listing/ListingCard";
 import ListingMap from "../components/listing/ListingMap";
+import FullscreenGallery from "../components/listing/FullscreenGallery";
 import BookingWidget from "../components/booking/BookingWidget";
 
 export default function ListingDetailPage() {
