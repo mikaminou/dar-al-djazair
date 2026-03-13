@@ -11,6 +11,8 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabNavigationProvider } from '@/components/TabNavigationContext';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import PushAlertManager from '@/components/PushAlertManager';
+import AuthGuard from '@/components/AuthGuard';
+import { Navigate } from 'react-router-dom';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
