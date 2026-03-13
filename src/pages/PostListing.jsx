@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../components/constants";
+import SmartPriceInput from "../components/price/SmartPriceInput";
 import { COMMUNES_BY_WILAYA } from "../components/communesData";
 import MobileHeader from "../components/MobileHeader";
 
@@ -29,7 +30,7 @@ export default function PostListingPage() {
     property_type: "apartment",
     title: "",
     description: "",
-    price: "",
+    price: 0,
     area: "",
     rooms: "",
     bedrooms: "",
@@ -75,7 +76,7 @@ export default function PostListingPage() {
             property_type: listing.property_type || "apartment",
             title: listing.title || "",
             description: listing.description || "",
-            price: listing.price ? String(listing.price) : "",
+            price: listing.price || "",
             area: listing.area ? String(listing.area) : "",
             rooms: listing.rooms ? String(listing.rooms) : "",
             bedrooms: listing.bedrooms ? String(listing.bedrooms) : "",
@@ -295,7 +296,12 @@ export default function PostListingPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.priceLabel}</Label>
-                    <Input type="number" value={form.price} onChange={e => set("price", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="0" />
+                    <SmartPriceInput
+                      listingType={form.listing_type}
+                      value={form.price}
+                      onChange={v => set("price", v)}
+                      lang={lang}
+                    />
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.areaLabel}</Label>
