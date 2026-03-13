@@ -65,6 +65,9 @@ export default function MyListingsPage() {
     if (newStatus === "active" && !listing.active_since) {
       updatePayload.active_since = new Date().toISOString();
     }
+    if (newStatus === "active" && listing.status === "reserved") {
+      // Re-activating from reserved — keep existing active_since for proper analytics
+    }
 
     await base44.entities.Listing.update(listing.id, updatePayload);
     setListings(prev => prev.map(l => l.id === listing.id ? { ...l, status: newStatus } : l));
