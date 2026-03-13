@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../constants";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
+import SmartPriceInput from "../price/SmartPriceInput";
 
 const BEDROOMS_OPTIONS = ["1", "2", "3", "4", "5+"];
 const FURNISHED_OPTIONS = [
@@ -134,20 +135,20 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           </>
         )}
 
-        <Input
-          type="number"
-          placeholder={t.minPrice}
+        <SmartPriceInput
+          listingType={filters.listing_type || "sale"}
           value={filters.min_price || ""}
-          onChange={e => update("min_price", e.target.value)}
-          className="border-gray-200"
+          onChange={v => update("min_price", v)}
+          lang={lang}
+          placeholder={t.minPrice}
         />
 
-        <Input
-          type="number"
-          placeholder={t.maxPrice}
+        <SmartPriceInput
+          listingType={filters.listing_type || "sale"}
           value={filters.max_price || ""}
-          onChange={e => update("max_price", e.target.value)}
-          className="border-gray-200"
+          onChange={v => update("max_price", v)}
+          lang={lang}
+          placeholder={t.maxPrice}
         />
 
         <Button onClick={onSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 select-none">
