@@ -30,6 +30,8 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     individual:  { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
     agency:      { en: 'Agency', fr: 'Agence', ar: 'وكالة' },
     agencyName:  { en: 'Agency Name', fr: "Nom de l'agence", ar: 'اسم الوكالة' },
+    avatar:      { en: 'Profile Photo', fr: 'Photo de profil', ar: 'صورة الملف الشخصي' },
+    optional:    { en: 'Optional', fr: 'Facultatif', ar: 'اختياري' },
     note:        { en: 'Account type cannot be changed after this step.', fr: 'Le type de compte ne peut pas être modifié après cette étape.', ar: 'لا يمكن تغيير نوع الحساب بعد هذه الخطوة.' },
     save:        { en: 'Get Started', fr: 'Commencer', ar: 'ابدأ' },
     required:    { en: 'This field is required.', fr: 'Ce champ est obligatoire.', ar: 'هذا الحقل مطلوب.' },
