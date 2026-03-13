@@ -365,13 +365,11 @@ export default function ListingsPage() {
           ) : (
             <>
               <div className="space-y-3">
-                <Input
-                  placeholder={lang === "ar" ? "اسم البحث..." : lang === "fr" ? "Nom de la recherche..." : "Search name..."}
-                  value={searchName}
-                  onChange={e => setSearchName(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && confirmSaveSearch()}
-                  autoFocus
-                />
+                {/* Auto-generated name preview */}
+                <div className="bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+                  <p className="text-xs text-emerald-600 font-medium mb-0.5">{lang === "ar" ? "اسم البحث" : lang === "fr" ? "Nom de la recherche" : "Search name"}</p>
+                  <p className="text-sm text-emerald-900 font-semibold">{generateSearchName(filters, financialState, lang)}</p>
+                </div>
                 <div>
                   <Label className="text-xs text-gray-500 mb-1 block">
                     {lang === "ar" ? "الوضع المالي (اختياري)" : lang === "fr" ? "Situation financière (optionnel)" : "Financial state (optional)"}
