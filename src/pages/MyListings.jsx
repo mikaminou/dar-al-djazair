@@ -292,6 +292,11 @@ export default function MyListingsPage() {
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Link>
+                  <Link to={createPageUrl(`PostListing?edit=${listing.id}`)}>
+                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-amber-600" title={t.editListing}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </Link>
                   <Link to={createPageUrl(`ListingAnalytics?id=${listing.id}`)}>
                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-emerald-600" title="Analytics">
                       <BarChart3 className="w-4 h-4" />
