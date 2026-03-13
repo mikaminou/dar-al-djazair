@@ -115,7 +115,20 @@ export default function MyListingsPage() {
     setListings(prev => prev.map(l => l.id === id ? { ...l, status: "deleted" } : l));
   }
 
-  const statusColor = { active: "bg-green-100 text-green-700", pending: "bg-yellow-100 text-yellow-700", archived: "bg-gray-100 text-gray-500", sold: "bg-blue-100 text-blue-700", rented: "bg-purple-100 text-purple-700" };
+  const statusColor = {
+    active:   "bg-green-100 text-green-700",
+    reserved: "bg-amber-100 text-amber-700",
+    sold:     "bg-blue-100 text-blue-700",
+    rented:   "bg-purple-100 text-purple-700",
+    deleted:  "bg-red-100 text-red-500",
+  };
+  const statusLabel = {
+    active:   { en: "Active", fr: "Actif", ar: "نشط" },
+    reserved: { en: "Reserved", fr: "Réservé", ar: "محجوز" },
+    sold:     { en: "Sold", fr: "Vendu", ar: "مُباع" },
+    rented:   { en: "Rented", fr: "Loué", ar: "مُؤجَّر" },
+    deleted:  { en: "Deleted", fr: "Supprimé", ar: "محذوف" },
+  };
 
   const filteredListings = listings.filter(l => {
     if (filters.status !== "all" && l.status !== filters.status) return false;
