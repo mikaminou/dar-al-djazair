@@ -7,7 +7,7 @@ const FILTERS = [
   { value: "archived", label: { en: "Archived", fr: "Archivés", ar: "أرشيف"   } },
 ];
 
-export default function ConversationFilters({ filter, onChange, lang }) {
+export default function ConversationFilters({ filter, onChange, lang, counts }) {
   return (
     <div className="flex gap-1 px-3 py-2 border-b border-gray-100 overflow-x-auto scrollbar-none">
       {FILTERS.map(o => (
@@ -20,6 +20,11 @@ export default function ConversationFilters({ filter, onChange, lang }) {
               : "text-gray-500 hover:bg-gray-100"}`}
         >
           {o.label[lang] || o.label.en}
+          {counts?.[o.value] != null && (
+            <span className={`ml-1 text-[10px] font-semibold px-1 py-0 rounded-full ${filter === o.value ? "bg-emerald-200 text-emerald-800" : "bg-gray-200 text-gray-500"}`}>
+              {counts[o.value]}
+            </span>
+          )}
         </button>
       ))}
     </div>

@@ -23,11 +23,15 @@ export default function ProposeAppointmentModal({ thread, currentUser, ownerEmai
     async function fetchSlots() {
       setLoadingSlots(true);
       if (!ownerEmail) { setMode("manual"); setLoadingSlots(false); return; }
-      const slots = await base44.entities.AvailabilitySlot.filter(
-        { agent_email: ownerEmail, listing_id: GLOBAL_ID },
-        "date", 100
-      ).catch(() => []);
-      const future = slots.filter(s => s.date >= today && s.is_active !== false);
+      const [globalSlots, listingSlots] = await Promise.all([
+        base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: GLOBAL_ID }, "date", 100).catch(() => []),
+        thread?.listing_id && thread.listing_id !== GLOBAL_ID
+          ? base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: thread.listing_id }, "date", 100).catch(() => [])
+          : Promise.resolve([]),
+      ]);
+      const seen = new Set();
+      const dedupedSlots = [...globalSlots, ...listingSlots].filter(s => { if (seen.has(s.id)) return false; seen.add(s.id); return true; });
+      const future = dedupedSlots.filter(s => s.date >= today && s.is_active !== false).sort((a, b) => a.date.localeCompare(b.date));
       setOwnerSlots(future);
       if (future.length === 0) setMode("manual");
       setLoadingSlots(false);
