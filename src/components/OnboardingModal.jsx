@@ -14,8 +14,12 @@ export default function OnboardingModal({ user, lang, onComplete }) {
   const [lastName, setLastName] = useState('');
   const [accountType, setAccountType] = useState(user?.role === 'agency' ? 'agency' : 'user');
   const [agencyName, setAgencyName] = useState(user?.agency_name || '');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const fileInputRef = useRef();
 
   const t = {
     title:       { en: 'Complete your profile', fr: 'Complétez votre profil', ar: 'أكمل ملفك الشخصي' },
