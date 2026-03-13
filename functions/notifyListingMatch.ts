@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       const recipientEmail = search.user_email || search.created_by;
       if (!recipientEmail) continue;
       // Don't notify the listing owner of their own listing
-      if (search.created_by === listing.created_by) continue;
+      if (recipientEmail === listing.created_by) continue;
       if (!matchesSearch(listing, search.filters || {})) continue;
 
       const refId = `listing_match_${listing.id}_${search.id}`;
@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
         : "";
 
       await base44.asServiceRole.entities.Notification.create({
-        user_email: search.created_by,
+        user_email: recipientEmail,
         type:       "listing_match",
         title:      `🏠 Nouveau bien correspondant — ${listing.wilaya || ""}`,
         body:       `${listing.title}${priceStr ? ` · ${priceStr}` : ""}${search.name ? ` · Recherche "${search.name}"` : ""}`,
