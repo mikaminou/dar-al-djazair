@@ -340,33 +340,67 @@ export default function MyListingsPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <Button variant="ghost" size="icon" onClick={() => toggleStatus(listing)} title={listing.status === "active" ? "Archive" : "Activate"} className="text-gray-400 hover:text-emerald-600">
-                    {listing.status === "active" ? <ToggleRight className="w-5 h-5 text-emerald-600" /> : <ToggleLeft className="w-5 h-5" />}
-                  </Button>
+                <div className="flex items-center gap-1 flex-shrink-0">
                   <Link to={createPageUrl(`ListingDetail?id=${listing.id}`)}>
                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600">
                       <Eye className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Link to={createPageUrl(`PostListing?edit=${listing.id}`)}>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-amber-600" title={t.editListing}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </Link>
+                  {listing.status !== "deleted" && (
+                    <Link to={createPageUrl(`PostListing?edit=${listing.id}`)}>
+                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-amber-600" title={t.editListing}>
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  )}
                   <Link to={createPageUrl(`ListingAnalytics?id=${listing.id}`)}>
                     <Button variant="ghost" size="icon" className="text-gray-400 hover:text-emerald-600" title="Analytics">
                       <BarChart3 className="w-4 h-4" />
                     </Button>
                   </Link>
-                  <Link to={createPageUrl(`AgentAvailability?id=${listing.id}`)}>
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-blue-600" title="Availability">
-                      <CalendarDays className="w-4 h-4" />
-                    </Button>
-                  </Link>
-                  <Button variant="ghost" size="icon" onClick={() => deleteListing(listing.id)} className="text-gray-400 hover:text-red-600">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {/* Status actions dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-gray-700">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-52">
+                      {listing.status === "reserved" && (
+                        <DropdownMenuItem onClick={() => changeStatus(listing, "active")} className="text-green-700 gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          {lang === "ar" ? "تفعيل مجدداً" : lang === "fr" ? "Remettre actif" : "Mark as Active"}
+                        </DropdownMenuItem>
+                      )}
+                      {listing.status === "active" && (
+                        <DropdownMenuItem onClick={() => changeStatus(listing, "reserved")} className="text-amber-700 gap-2">
+                          <Clock className="w-4 h-4" />
+                          {lang === "ar" ? "تحديد كمحجوز" : lang === "fr" ? "Marquer réservé" : "Mark as Reserved"}
+                        </DropdownMenuItem>
+                      )}
+                      {(listing.status === "active" || listing.status === "reserved") && listing.listing_type === "sale" && (
+                        <DropdownMenuItem onClick={() => changeStatus(listing, "sold")} className="text-blue-700 gap-2">
+                          <CheckCircle2 className="w-4 h-4" />
+                          {lang === "ar" ? "تحديد كمباع" : lang === "fr" ? "Marquer vendu" : "Mark as Sold"}
+                        </DropdownMenuItem>
+                      )}
+                      {(listing.status === "active" || listing.status === "reserved") && listing.listing_type === "rent" && (
+                        <DropdownMenuItem onClick={() => changeStatus(listing, "rented")} className="text-purple-700 gap-2">
+                          <Home className="w-4 h-4" />
+                          {lang === "ar" ? "تحديد كمؤجر" : lang === "fr" ? "Marquer loué" : "Mark as Rented"}
+                        </DropdownMenuItem>
+                      )}
+                      {listing.status !== "deleted" && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => deleteListing(listing.id)} className="text-red-600 gap-2">
+                            <Ban className="w-4 h-4" />
+                            {lang === "ar" ? "حذف الإعلان" : lang === "fr" ? "Supprimer" : "Delete Listing"}
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
             ))}
