@@ -134,8 +134,8 @@ function NavContent({ currentPageName, children }) {
             {/* User menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full min-h-[44px] min-w-[44px] hover:bg-gray-100 select-none">
-                  <User className="w-5 h-5 text-gray-600" />
+                <Button variant="ghost" size="icon" className="rounded-full min-h-[44px] min-w-[44px] hover:bg-gray-100 select-none p-0.5">
+                  {user ? <UserAvatar user={user} size="sm" /> : <User className="w-5 h-5 text-gray-600" />}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 select-none">
