@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Eye, ToggleLeft, ToggleRight, Users, BarChart3, CalendarDays, SlidersHorizontal, X, MapPin, ChevronDown, ChevronUp, Pencil } from "lucide-react";
+import { Plus, Trash2, Eye, Users, BarChart3, CalendarDays, SlidersHorizontal, X, MapPin, ChevronDown, ChevronUp, Pencil, MoreVertical, CheckCircle2, Clock, Home, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES, WILAYAS } from "../components/constants";
 

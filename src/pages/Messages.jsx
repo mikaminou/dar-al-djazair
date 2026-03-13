@@ -523,11 +523,11 @@ export default function MessagesPage() {
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
     : [];
 
-  // Is the active thread's listing unavailable (archived or deleted)?
+  // Is the active thread's listing unavailable?
   const activeListingStatus = activeThread ? listingsStatusMap[activeThread.listing_id] : null;
+  const UNAVAILABLE_STATUSES = ["reserved", "sold", "rented", "deleted"];
   const listingUnavailable = activeThread && (
-    activeListingStatus === "archived" || activeListingStatus === "sold" ||
-    activeListingStatus === "rented" || activeListingStatus === null
+    UNAVAILABLE_STATUSES.includes(activeListingStatus) || activeListingStatus === null
   ) && threadMessages.length > 0;
   // Owner of the listing (by checking who the other person is vs listing_id messages)
   const isListingOwner = activeThread && messages.some(
@@ -535,6 +535,13 @@ export default function MessagesPage() {
          m.recipient_email === activeThread.other
   );
   const showUnavailableNotice = listingUnavailable && !isListingOwner;
+
+  function getUnavailableNoticeText() {
+    if (activeListingStatus === "reserved") return lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.";
+    if (activeListingStatus === "sold") return lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.";
+    if (activeListingStatus === "rented") return lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.";
+    return lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.";
+  }
 
   // total unread across all convs
   const totalUnread = conversations.reduce((sum, c) => sum + countUnread(c, user?.email || ""), 0);
