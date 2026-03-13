@@ -384,12 +384,14 @@ export default function ListingDetailPage() {
                   {lang === "ar" ? "سجّل دخول للتواصل مع البائع" : lang === "fr" ? "Connectez-vous pour contacter le vendeur" : "Sign in to contact the seller"}
                 </button>
               )}
-              <BookingWidget
-                listingId={id}
-                agentEmail={listing.contact_email || listing.created_by}
-                listing={listing}
-                user={user}
-              />
+              {!isOwner && (
+                <BookingWidget
+                  listingId={id}
+                  agentEmail={listing.contact_email || listing.created_by}
+                  listing={listing}
+                  user={user}
+                />
+              )}
               <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
                 {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
               </div>
