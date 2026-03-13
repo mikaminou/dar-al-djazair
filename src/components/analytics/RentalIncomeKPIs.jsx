@@ -12,10 +12,10 @@ export default function RentalIncomeKPIs({ totalIncome, projectedAnnual, propert
   const t = k => T[k]?.[lang] || T[k]?.en;
 
   const kpis = [
-    { label: t("totalRental"), value: totalIncome, Icon: DollarSign, color: "emerald" },
-    { label: t("projected"), value: projectedAnnual, Icon: TrendingUp, color: "blue" },
-    { label: t("properties"), value: propertyCount, Icon: Home, color: "indigo" },
-    { label: t("atRisk"), value: atRiskCount, Icon: AlertCircle, color: "amber" },
+    { key: "total",      label: t("totalRental"), value: totalIncome,     Icon: DollarSign, color: "emerald" },
+    { key: "projected",  label: t("projected"),   value: projectedAnnual, Icon: TrendingUp, color: "blue" },
+    { key: "properties", label: t("properties"),  value: propertyCount,   Icon: Home,       color: "indigo" },
+    { key: "atRisk",     label: t("atRisk"),      value: atRiskCount,     Icon: AlertCircle, color: "amber" },
   ];
 
   return (
