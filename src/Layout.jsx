@@ -6,6 +6,8 @@ import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, 
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
 import NotificationBell from "./components/notifications/NotificationBell";
+import OnboardingModal from "./components/OnboardingModal";
+import VerificationBanner from "./components/VerificationBanner";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator
