@@ -2,16 +2,38 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Clock, Check, X, RefreshCw, User, ArrowLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, Clock, Check, X, RefreshCw, User, ArrowLeft, ChevronRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";
 import ProposeAppointmentModal from "../components/appointments/ProposeAppointmentModal";
 
 const STATUS_STYLES = {
-  pending: { badge: "bg-amber-100 text-amber-700", label: { fr: "En attente", en: "Pending", ar: "في الانتظار" } },
-  accepted: { badge: "bg-green-100 text-green-700", label: { fr: "Confirmé", en: "Confirmed", ar: "مؤكد" } },
-  declined: { badge: "bg-red-100 text-red-600", label: { fr: "Refusé", en: "Declined", ar: "مرفوض" } },
+  pending:  { badge: "bg-amber-100 text-amber-700",  label: { fr: "En attente", en: "Pending Approval", ar: "في انتظار الموافقة" } },
+  accepted: { badge: "bg-green-100 text-green-700",  label: { fr: "Confirmé", en: "Confirmed", ar: "مؤكد" } },
+  declined: { badge: "bg-red-100 text-red-600",      label: { fr: "Refusé", en: "Declined", ar: "مرفوض" } },
+};
+
+const L = {
+  title:          { fr: "Mes Rendez-vous", en: "My Appointments", ar: "مواعيدي" },
+  pending:        { fr: "En attente", en: "Pending", ar: "في الانتظار" },
+  confirmed:      { fr: "Confirmés", en: "Confirmed", ar: "مؤكدة" },
+  declined:       { fr: "Refusés", en: "Declined", ar: "مرفوضة" },
+  empty:          { fr: "Aucun rendez-vous dans cette catégorie", en: "No appointments here", ar: "لا توجد مواعيد هنا" },
+  detail:         { fr: "Détail du rendez-vous", en: "Appointment detail", ar: "تفاصيل الموعد" },
+  back:           { fr: "Retour", en: "Back", ar: "رجوع" },
+  listing:        { fr: "Annonce concernée", en: "Related listing", ar: "الإعلان المرتبط" },
+  with:           { fr: "Avec", en: "With", ar: "مع" },
+  accept:         { fr: "Accepter", en: "Accept", ar: "قبول" },
+  decline:        { fr: "Refuser", en: "Decline", ar: "رفض" },
+  counter:        { fr: "Proposer une autre date", en: "Propose another date", ar: "اقتراح تاريخ آخر" },
+  waiting:        { fr: "En attente de réponse de l'autre partie", en: "Waiting for the other party's response", ar: "في انتظار رد الطرف الآخر" },
+  goToConv:       { fr: "Voir la conversation", en: "Go to conversation", ar: "عرض المحادثة" },
+  availableSlots: { fr: "Disponibilités de l'agent", en: "Agent's availability", ar: "مواعيد الوكيل" },
+  manageAvail:    { fr: "Gérer mes disponibilités", en: "Manage my availability", ar: "إدارة توفري" },
+  iProposed:      { fr: "Vous avez proposé ce rendez-vous", en: "You proposed this appointment", ar: "اقترحت هذا الموعد" },
+  theyProposed:   { fr: "Proposé par l'autre partie", en: "Proposed by the other party", ar: "مقترح من الطرف الآخر" },
+  declinedInfo:   { fr: "Ce rendez-vous a été refusé. Vous pouvez en proposer un nouveau.", en: "This appointment was declined. You can propose a new one.", ar: "تم رفض هذا الموعد. يمكنك اقتراح موعد جديد." },
 };
 
 export default function AppointmentsPage() {
@@ -39,19 +61,15 @@ export default function AppointmentsPage() {
     const all = [...asProposer];
     asOther.forEach(p => { if (!all.find(a => a.id === p.id)) all.push(p); });
     all.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
-    
-    // Fetch user names for all unique emails
+
     const allEmails = new Set();
     all.forEach(p => { allEmails.add(p.proposer_email); allEmails.add(p.other_email); });
     const names = {};
     for (const email of allEmails) {
       const users = await base44.entities.User.filter({ email }).catch(() => []);
-      if (users.length > 0 && users[0].full_name) {
-        names[email] = users[0].full_name;
-      }
+      if (users.length > 0 && users[0].full_name) names[email] = users[0].full_name;
     }
     setUserNames(names);
-    
     setProposals(all);
     setLoading(false);
   }
@@ -59,11 +77,16 @@ export default function AppointmentsPage() {
   async function openDetail(proposal) {
     setSelected(proposal);
     const ownerEmail = proposal.proposer_email === user.email ? proposal.other_email : proposal.proposer_email;
-    const slots = await base44.entities.AvailabilitySlot.filter(
-      { agent_email: ownerEmail, listing_id: "__global__" }, "date", 100
-    ).catch(() => []);
+    // Fetch owner's slots (listing-specific + general)
+    const [listingSlots, generalSlots] = await Promise.all([
+      proposal.listing_id
+        ? base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: proposal.listing_id }, "date", 50).catch(() => [])
+        : Promise.resolve([]),
+      base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: "__global__" }, "date", 50).catch(() => []),
+    ]);
+    const combined = [...listingSlots, ...generalSlots.filter(s => !listingSlots.find(ls => ls.id === s.id))];
     const today = new Date().toISOString().split("T")[0];
-    setOwnerSlots(slots.filter(s => s.date >= today));
+    setOwnerSlots(combined.filter(s => s.mode === "single" && s.date >= today));
   }
 
   async function handleAccept(proposal) {
@@ -108,31 +131,13 @@ export default function AppointmentsPage() {
     );
   };
 
-  const L = {
-    title: { fr: "Mes Rendez-vous", en: "My Appointments", ar: "مواعيدي" },
-    pending: { fr: "En attente", en: "Pending", ar: "في الانتظار" },
-    confirmed: { fr: "Confirmés", en: "Confirmed", ar: "مؤكدة" },
-    declined: { fr: "Refusés", en: "Declined", ar: "مرفوضة" },
-    empty: { fr: "Aucun rendez-vous dans cette catégorie", en: "No appointments here", ar: "لا توجد مواعيد هنا" },
-    detail: { fr: "Détail du rendez-vous", en: "Appointment detail", ar: "تفاصيل الموعد" },
-    back: { fr: "Retour", en: "Back", ar: "رجوع" },
-    listing: { fr: "Annonce concernée", en: "Related listing", ar: "الإعلان المرتبط" },
-    with: { fr: "Avec", en: "With", ar: "مع" },
-    accept: { fr: "Accepter", en: "Accept", ar: "قبول" },
-    decline: { fr: "Refuser", en: "Decline", ar: "رفض" },
-    counter: { fr: "Proposer une autre date", en: "Propose another date", ar: "اقتراح تاريخ آخر" },
-    waiting: { fr: "En attente de réponse de l'autre partie", en: "Waiting for the other party's response", ar: "في انتظار رد الطرف الآخر" },
-    goToConv: { fr: "Voir la conversation", en: "Go to conversation", ar: "عرض المحادثة" },
-    availableSlots: { fr: "Disponibilités", en: "Available slots", ar: "المواعيد المتاحة" },
-  };
-  const t = k => L[k]?.[lang] || L[k]?.fr;
+  const t = k => L[k]?.[lang] || L[k]?.en;
 
   const tabs = [
-    { key: "pending", label: t("pending"), items: proposals.filter(p => p.status === "pending") },
-    { key: "accepted", label: t("confirmed"), items: proposals.filter(p => p.status === "accepted") },
-    { key: "declined", label: t("declined"), items: proposals.filter(p => p.status === "declined") },
+    { key: "pending",  label: t("pending"),   items: proposals.filter(p => p.status === "pending") },
+    { key: "accepted", label: t("confirmed"),  items: proposals.filter(p => p.status === "accepted") },
+    { key: "declined", label: t("declined"),   items: proposals.filter(p => p.status === "declined") },
   ];
-
   const activeItems = tabs.find(tb => tb.key === tab)?.items || [];
 
   if (loading) return (
@@ -146,15 +151,16 @@ export default function AppointmentsPage() {
   // ---- DETAIL VIEW ----
   if (selected) {
     const isMyProposal = selected.proposer_email === user.email;
-    const otherEmail = isMyProposal ? selected.other_email : selected.proposer_email;
-    const canAct = selected.status === "pending" && !isMyProposal;
-    const isWaiting = selected.status === "pending" && isMyProposal;
+    const otherEmail   = isMyProposal ? selected.other_email : selected.proposer_email;
+    const canAct       = selected.status === "pending" && !isMyProposal;
+    const isWaiting    = selected.status === "pending" && isMyProposal;
 
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="bg-gradient-to-br from-emerald-800 to-emerald-700 text-white py-6 px-4">
           <div className="max-w-2xl mx-auto">
-            <button onClick={() => { setSelected(null); setShowCounter(false); }} className="flex items-center gap-2 text-emerald-200 hover:text-white text-sm mb-4">
+            <button onClick={() => { setSelected(null); setShowCounter(false); }}
+              className="flex items-center gap-2 text-emerald-200 hover:text-white text-sm mb-4">
               <ArrowLeft className="w-4 h-4" /> {t("back")}
             </button>
             <h1 className="text-xl font-bold">{t("detail")}</h1>
@@ -167,7 +173,7 @@ export default function AppointmentsPage() {
             <div className="flex items-start justify-between gap-3 mb-3">
               <h2 className="font-bold text-gray-800">{t("listing")}</h2>
               <Badge className={STATUS_STYLES[selected.status]?.badge}>
-                {STATUS_STYLES[selected.status]?.label[lang] || STATUS_STYLES[selected.status]?.label.fr}
+                {STATUS_STYLES[selected.status]?.label[lang] || STATUS_STYLES[selected.status]?.label.en}
               </Badge>
             </div>
             <p className="text-gray-700 font-medium">{selected.listing_title || selected.listing_id}</p>
@@ -175,6 +181,9 @@ export default function AppointmentsPage() {
               <User className="w-4 h-4" />
               <span>{t("with")}: {userNames[otherEmail] || otherEmail?.split("@")[0]}</span>
             </div>
+            <p className="text-xs text-gray-400 mt-2 italic">
+              {isMyProposal ? t("iProposed") : t("theyProposed")}
+            </p>
           </div>
 
           {/* Date/Time */}
@@ -190,7 +199,7 @@ export default function AppointmentsPage() {
             {selected.notes && <p className="text-sm text-gray-500 italic">{selected.notes}</p>}
           </div>
 
-          {/* Actions */}
+          {/* Actions for receiver */}
           {canAct && (
             <div className="space-y-2">
               <Button onClick={() => handleAccept(selected)} className="w-full bg-emerald-600 hover:bg-emerald-700 gap-2">
@@ -207,9 +216,17 @@ export default function AppointmentsPage() {
             </div>
           )}
 
-          {isWaiting && (
+          {/* Pending — waiting */}
+          {isWaiting && selected.status === "pending" && (
             <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-700 text-center">
               {t("waiting")}
+            </div>
+          )}
+
+          {/* Declined — can propose again */}
+          {isMyProposal && selected.status === "declined" && (
+            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 text-center">
+              {t("declinedInfo")}
             </div>
           )}
 
@@ -222,7 +239,7 @@ export default function AppointmentsPage() {
             <ChevronRight className="w-4 h-4" />
           </Link>
 
-          {/* Owner availability */}
+          {/* Agent's upcoming availability */}
           {ownerSlots.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
               <h2 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
@@ -260,9 +277,17 @@ export default function AppointmentsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-br from-emerald-800 to-emerald-700 text-white py-8 px-4">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <CalendarDays className="w-6 h-6 text-emerald-300" />
-          <h1 className="text-xl font-bold">{t("title")}</h1>
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="w-6 h-6 text-emerald-300" />
+            <h1 className="text-xl font-bold">{t("title")}</h1>
+          </div>
+          <Link
+            to={createPageUrl("Availability")}
+            className="text-xs text-emerald-200 hover:text-white flex items-center gap-1 bg-emerald-700 hover:bg-emerald-600 rounded-lg px-3 py-2 transition-colors"
+          >
+            <Settings className="w-3 h-3" /> {t("manageAvail")}
+          </Link>
         </div>
       </div>
 
@@ -270,13 +295,10 @@ export default function AppointmentsPage() {
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
           {tabs.map(tb => (
-            <button
-              key={tb.key}
-              onClick={() => setTab(tb.key)}
+            <button key={tb.key} onClick={() => setTab(tb.key)}
               className={`flex-1 text-sm py-2 px-3 rounded-lg font-medium transition-all flex items-center justify-center gap-1.5 ${
                 tab === tb.key ? "bg-white shadow text-emerald-700" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
+              }`}>
               {tb.label}
               {tb.items.length > 0 && (
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === tb.key ? "bg-emerald-100 text-emerald-700" : "bg-gray-200 text-gray-500"}`}>
@@ -296,24 +318,31 @@ export default function AppointmentsPage() {
           <div className="space-y-3">
             {activeItems.map(proposal => {
               const isMyProposal = proposal.proposer_email === user.email;
-              const otherEmail = isMyProposal ? proposal.other_email : proposal.proposer_email;
+              const otherEmail   = isMyProposal ? proposal.other_email : proposal.proposer_email;
+              const isPendingMine = proposal.status === "pending" && isMyProposal;
               return (
-                <button
-                  key={proposal.id}
-                  onClick={() => openDetail(proposal)}
-                  className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 text-left hover:shadow-md transition-all flex items-center gap-4"
-                >
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                    <CalendarDays className="w-5 h-5 text-emerald-600" />
+                <button key={proposal.id} onClick={() => openDetail(proposal)}
+                  className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm px-5 py-4 text-left hover:shadow-md transition-all flex items-center gap-4">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                    proposal.status === "accepted" ? "bg-emerald-50" : proposal.status === "declined" ? "bg-red-50" : "bg-amber-50"
+                  }`}>
+                    <CalendarDays className={`w-5 h-5 ${
+                      proposal.status === "accepted" ? "text-emerald-600" : proposal.status === "declined" ? "text-red-400" : "text-amber-500"
+                    }`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                   <p className="font-semibold text-gray-800 text-sm truncate">{proposal.listing_title || proposal.listing_id}</p>
-                   <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 flex-wrap">
-                     <span className="flex items-center gap-1"><User className="w-3 h-3" />{userNames[otherEmail] || otherEmail?.split("@")[0]}</span>
-                     <span className="text-gray-300">•</span>
-                     <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{fmtDate(proposal.proposed_date)}</span>
-                     <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{proposal.proposed_start_time}</span>
-                   </div>
+                    <p className="font-semibold text-gray-800 text-sm truncate">{proposal.listing_title || proposal.listing_id}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5 flex-wrap">
+                      <span className="flex items-center gap-1"><User className="w-3 h-3" />{userNames[otherEmail] || otherEmail?.split("@")[0]}</span>
+                      <span className="text-gray-300">•</span>
+                      <span className="flex items-center gap-1"><CalendarDays className="w-3 h-3" />{fmtDate(proposal.proposed_date)}</span>
+                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{proposal.proposed_start_time}</span>
+                    </div>
+                    {isPendingMine && (
+                      <p className="text-xs text-amber-600 mt-1 font-medium">
+                        {lang === "ar" ? "في انتظار موافقة الطرف الآخر" : lang === "fr" ? "En attente de confirmation" : "Awaiting confirmation"}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <Badge className={STATUS_STYLES[proposal.status]?.badge || "bg-gray-100 text-gray-500"}>
