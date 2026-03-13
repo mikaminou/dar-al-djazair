@@ -1,17 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
-/**
- * Lead Alert Service
- *
- * Handles two triggers via entity automations on the Lead entity:
- *  - "create"  → notifies the agent a new lead has arrived
- *  - "update"  → notifies the agent if the lead has just crossed into High priority
- *
- * Deduplication: the `high_priority_alert_sent` flag on the Lead record prevents
- * repeat High Priority emails for the same lead.
- */
-
-// ── Scoring logic (mirrored from components/leads/leadScoring.js) ──────────
 const FINANCIAL_STATE_SCORE = {
   cash: 3, pre_approved: 2, arranging: 1, unspecified: 0,
 };
@@ -37,71 +25,218 @@ function computePriority(lead, activity) {
   return "low";
 }
 
-function buildScoreTriggers(lead, activity) {
+function buildScoreTriggers(lead, activity, lang) {
   const triggers = [];
   const statusBonus = { new: 0, contacted: 1, viewing: 2, won: 4, lost: 0, closed: 0 };
   const sBonus = statusBonus[lead.status] ?? 0;
-  if (sBonus > 0) triggers.push(`Statut avancé "${lead.status}" (+${sBonus} pt${sBonus > 1 ? "s" : ""})`);
+
+  const labels = {
+    statusAdvanced: {
+      fr: `Statut avancé "${lead.status}" (+${sBonus} pt${sBonus > 1 ? "s" : ""})`,
+      en: `Advanced status "${lead.status}" (+${sBonus} pt${sBonus > 1 ? "s" : ""})`,
+      ar: `حالة متقدمة "${lead.status}" (+${sBonus} نقطة)`,
+    },
+    messages: {
+      fr: `${activity.messageCount} message(s) envoyé(s) par l'acheteur (+${Math.min(activity.messageCount, 4)})`,
+      en: `${activity.messageCount} message(s) sent by buyer (+${Math.min(activity.messageCount, 4)})`,
+      ar: `${activity.messageCount} رسالة من المشتري (+${Math.min(activity.messageCount, 4)})`,
+    },
+    appointment: {
+      fr: "Rendez-vous de visite réservé (+2)",
+      en: "Property visit booked (+2)",
+      ar: "تم حجز موعد زيارة (+2)",
+    },
+    favorite: {
+      fr: "Annonce ajoutée aux favoris (+1)",
+      en: "Listing added to favorites (+1)",
+      ar: "تمت إضافة الإعلان إلى المفضلة (+1)",
+    },
+    financial: {
+      cash:         { fr: "Achat comptant (+3)",        en: "Cash purchase (+3)",          ar: "شراء نقدي (+3)" },
+      pre_approved: { fr: "Crédit pré-approuvé (+2)",   en: "Pre-approved financing (+2)", ar: "تمويل معتمد مسبقاً (+2)" },
+      arranging:    { fr: "Financement en cours (+1)",  en: "Arranging financing (+1)",    ar: "التمويل قيد الترتيب (+1)" },
+    },
+  };
+
+  if (sBonus > 0) triggers.push(labels.statusAdvanced[lang] || labels.statusAdvanced.fr);
   const msgBonus = Math.min(activity.messageCount, 4);
-  if (msgBonus > 0) triggers.push(`${activity.messageCount} message(s) envoyé(s) par l'acheteur (+${msgBonus})`);
-  if (activity.hasAppointment) triggers.push("Rendez-vous de visite reservé (+2)");
-  if (activity.hasFavorite)    triggers.push("Annonce ajoutée aux favoris (+1)");
+  if (msgBonus > 0) triggers.push(labels.messages[lang] || labels.messages.fr);
+  if (activity.hasAppointment) triggers.push(labels.appointment[lang] || labels.appointment.fr);
+  if (activity.hasFavorite)    triggers.push(labels.favorite[lang]    || labels.favorite.fr);
   const fsKey = lead.search_filters?.financial_state;
-  const fsBonus = FINANCIAL_STATE_SCORE[fsKey] ?? 0;
-  const fsLabels = { cash: "Achat comptant", pre_approved: "Crédit pré-approuvé", arranging: "Financement en cours" };
-  if (fsBonus > 0) triggers.push(`État financier : ${fsLabels[fsKey] || fsKey} (+${fsBonus})`);
+  if (fsKey && labels.financial[fsKey]) {
+    triggers.push(labels.financial[fsKey][lang] || labels.financial[fsKey].fr);
+  }
   return triggers;
 }
 
-// ── Email helpers ────────────────────────────────────────────────────────────
-function newLeadEmailBody(lead, leadsUrl) {
-  const seekerDisplay = lead.seeker_email?.split("@")[0] || lead.seeker_email;
-  const property = lead.listing_title || `Annonce #${lead.listing_id}`;
-  const location = lead.listing_wilaya ? ` — ${lead.listing_wilaya}` : "";
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;">
-      <div style="background:#059669;color:white;padding:28px 24px;">
-        <p style="margin:0;font-size:13px;opacity:.8;text-transform:uppercase;letter-spacing:.05em;">Dari.dz — Alerte Lead</p>
-        <h2 style="margin:8px 0 0;font-size:22px;">🔔 Nouveau lead reçu</h2>
-      </div>
-      <div style="padding:24px;background:#f9fafb;">
-        <p style="color:#374151;margin:0 0 20px;">Un acheteur potentiel s'intéresse à votre annonce :</p>
-        <table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;">
-          <tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;width:140px;border-bottom:1px solid #f3f4f6;">Contact</td><td style="padding:12px 16px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${lead.seeker_email}</td></tr>
-          <tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;">Bien</td><td style="padding:12px 16px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${property}${location}</td></tr>
-          ${lead.search_name ? `<tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;">Recherche</td><td style="padding:12px 16px;color:#374151;">"${lead.search_name}"</td></tr>` : ""}
-        </table>
-        <div style="margin-top:24px;">
-          <a href="${leadsUrl}" style="display:inline-block;background:#059669;color:white;padding:12px 24px;border-radius:7px;text-decoration:none;font-weight:700;font-size:14px;">Voir le lead →</a>
-        </div>
-      </div>
-    </div>`;
+async function getRecipientLang(base44, email) {
+  const users = await base44.asServiceRole.entities.User.filter({ email }, null, 1).catch(() => []);
+  return users[0]?.lang || "fr";
 }
 
-function highPriorityEmailBody(lead, score, triggers, leadsUrl) {
-  const property = lead.listing_title || `Annonce #${lead.listing_id}`;
-  const location = lead.listing_wilaya ? ` — ${lead.listing_wilaya}` : "";
-  const triggerItems = triggers.map(t => `<li style="margin-bottom:6px;">${t}</li>`).join("");
-  return `
-    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;">
-      <div style="background:#dc2626;color:white;padding:28px 24px;">
-        <p style="margin:0;font-size:13px;opacity:.8;text-transform:uppercase;letter-spacing:.05em;">Dari.dz — Alerte Lead</p>
-        <h2 style="margin:8px 0 4px;font-size:22px;">⚡ Lead Haute Priorité</h2>
-        <p style="margin:0;opacity:.85;font-size:14px;">Ce lead a franchi le seuil de priorité élevée</p>
-      </div>
-      <div style="padding:24px;background:#f9fafb;">
-        <table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;border:1px solid #e5e7eb;margin-bottom:20px;">
-          <tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;width:140px;border-bottom:1px solid #f3f4f6;">Contact</td><td style="padding:12px 16px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${lead.seeker_email}</td></tr>
-          <tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;border-bottom:1px solid #f3f4f6;">Bien</td><td style="padding:12px 16px;font-weight:600;color:#111827;border-bottom:1px solid #f3f4f6;">${property}${location}</td></tr>
-          <tr><td style="padding:12px 16px;color:#6b7280;font-size:13px;">Score</td><td style="padding:12px 16px;"><span style="background:#fef2f2;color:#dc2626;font-weight:700;padding:3px 10px;border-radius:4px;font-size:14px;">${score} pts — HAUTE PRIORITÉ</span></td></tr>
+// ── Shared email layout ──────────────────────────────────────────────────────
+function emailLayout({ headerColor = "#059669", headerLabel, headline, preheader, bodyHtml, ctaUrl, ctaText, footerNote = "" }) {
+  const BASE_URL = Deno.env.get("BASE_URL") || "https://dar-el-djazair.com";
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${headline}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">${preheader}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" style="max-width:600px;" cellpadding="0" cellspacing="0">
+
+          <!-- HEADER -->
+          <tr>
+            <td style="background:${headerColor};border-radius:12px 12px 0 0;padding:28px 32px;">
+              <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);">Dar El Djazair &nbsp;·&nbsp; ${headerLabel}</p>
+              <h1 style="margin:0;font-size:24px;font-weight:700;color:#ffffff;line-height:1.3;">${headline}</h1>
+            </td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style="background:#ffffff;padding:32px;border-left:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+              ${bodyHtml}
+
+              <!-- CTA BUTTON -->
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:28px;">
+                <tr>
+                  <td style="border-radius:8px;background:${headerColor};">
+                    <a href="${ctaUrl}" style="display:inline-block;padding:14px 28px;font-size:15px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:8px;">${ctaText}</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:12px 0 0;font-size:12px;color:#9ca3af;">
+                ${ctaText}: <a href="${ctaUrl}" style="color:#6b7280;">${ctaUrl}</a>
+              </p>
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:20px 32px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9ca3af;">
+                <strong style="color:#6b7280;">Dar El Djazair</strong> &nbsp;·&nbsp; <a href="https://${BASE_URL.replace(/^https?:\/\//, '')}" style="color:#059669;text-decoration:none;">${BASE_URL.replace(/^https?:\/\//, '')}</a>
+                ${footerNote ? `<br/><span style="font-size:11px;">${footerNote}</span>` : ""}
+              </p>
+            </td>
+          </tr>
+
         </table>
-        <div style="background:white;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:20px;">
-          <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#374151;">Signaux détectés :</p>
-          <ul style="margin:0;padding-left:20px;font-size:14px;color:#6b7280;line-height:1.6;">${triggerItems}</ul>
-        </div>
-        <a href="${leadsUrl}" style="display:inline-block;background:#dc2626;color:white;padding:12px 24px;border-radius:7px;text-decoration:none;font-weight:700;font-size:14px;">Voir le lead →</a>
-      </div>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+// ── Email builders ───────────────────────────────────────────────────────────
+function newLeadEmail(lead, leadsUrl, lang) {
+  const seekerDisplay = lead.seeker_email?.split("@")[0] || lead.seeker_email;
+  const property = lead.listing_title || `#${lead.listing_id}`;
+  const location = lead.listing_wilaya ? ` — ${lead.listing_wilaya}` : "";
+
+  const copy = {
+    headerLabel: { fr: "Alerte lead", en: "Lead alert", ar: "تنبيه عميل" },
+    headline:    { fr: "Nouveau lead reçu", en: "You have a new lead", ar: "وصل عميل جديد" },
+    preheader:   { fr: `${seekerDisplay} s'intéresse à ${property}`, en: `${seekerDisplay} is interested in ${property}`, ar: `${seekerDisplay} مهتم بـ ${property}` },
+    intro:       { fr: "Un acheteur potentiel s'intéresse à votre annonce :", en: "A potential buyer is interested in your listing:", ar: "عميل محتمل مهتم بإعلانك :" },
+    labelContact:{ fr: "Contact", en: "Contact", ar: "التواصل" },
+    labelProp:   { fr: "Bien", en: "Listing", ar: "العقار" },
+    labelSearch: { fr: "Recherche", en: "Search", ar: "البحث" },
+    cta:         { fr: "Voir le lead →", en: "View lead →", ar: "عرض العميل ←" },
+    footer:      { fr: "Vous recevez cet email car vous êtes inscrit sur Dar El Djazair.", en: "You're receiving this because you're registered on Dar El Djazair.", ar: "تلقيت هذا البريد لأنك مسجل في دار الجزائر." },
+  };
+  const c = (k) => copy[k][lang] || copy[k].fr;
+
+  const bodyHtml = `
+    <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">${c("intro")}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#f9fafb;">
+      <tr>
+        <td style="padding:12px 16px;font-size:13px;color:#6b7280;width:130px;border-bottom:1px solid #e5e7eb;">${c("labelContact")}</td>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:#111827;border-bottom:1px solid #e5e7eb;">${lead.seeker_email}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;font-size:13px;color:#6b7280;border-bottom:${lead.search_name ? "1px solid #e5e7eb" : "none"};">${c("labelProp")}</td>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:#111827;border-bottom:${lead.search_name ? "1px solid #e5e7eb" : "none"};">${property}${location}</td>
+      </tr>
+      ${lead.search_name ? `<tr><td style="padding:12px 16px;font-size:13px;color:#6b7280;">${c("labelSearch")}</td><td style="padding:12px 16px;font-size:14px;color:#374151;">"${lead.search_name}"</td></tr>` : ""}
+    </table>`;
+
+  return emailLayout({
+    headerColor: "#059669",
+    headerLabel: c("headerLabel"),
+    headline: c("headline"),
+    preheader: c("preheader"),
+    bodyHtml,
+    ctaUrl: leadsUrl,
+    ctaText: c("cta"),
+    footerNote: c("footer"),
+  });
+}
+
+function highPriorityEmail(lead, score, triggers, leadsUrl, lang) {
+  const seekerDisplay = lead.seeker_email?.split("@")[0] || lead.seeker_email;
+  const property = lead.listing_title || `#${lead.listing_id}`;
+  const location = lead.listing_wilaya ? ` — ${lead.listing_wilaya}` : "";
+
+  const copy = {
+    headerLabel: { fr: "Alerte priorité haute", en: "High priority alert", ar: "تنبيه أولوية عالية" },
+    headline:    { fr: "Lead haute priorité !", en: "High priority lead!", ar: "عميل ذو أولوية عالية!" },
+    preheader:   { fr: `${seekerDisplay} — score ${score} pts`, en: `${seekerDisplay} — score ${score} pts`, ar: `${seekerDisplay} — ${score} نقطة` },
+    intro:       { fr: "Ce prospect vient de franchir le seuil de priorité élevée. Contactez-le maintenant pour maximiser vos chances.", en: "This lead just crossed the high priority threshold. Reach out now to maximize your chances.", ar: "تجاوز هذا العميل عتبة الأولوية العالية. تواصل معه الآن لزيادة فرصك." },
+    labelContact:{ fr: "Contact", en: "Contact", ar: "التواصل" },
+    labelProp:   { fr: "Bien", en: "Listing", ar: "العقار" },
+    labelScore:  { fr: "Score", en: "Score", ar: "النقاط" },
+    signals:     { fr: "Signaux détectés", en: "Signals detected", ar: "الإشارات المرصودة" },
+    cta:         { fr: "Voir le lead →", en: "View lead →", ar: "عرض العميل ←" },
+    footer:      { fr: "Vous recevez cet email car vous êtes inscrit sur Dar El Djazair.", en: "You're receiving this because you're registered on Dar El Djazair.", ar: "تلقيت هذا البريد لأنك مسجل في دار الجزائر." },
+    priority:    { fr: "HAUTE PRIORITÉ", en: "HIGH PRIORITY", ar: "أولوية عالية" },
+  };
+  const c = (k) => copy[k][lang] || copy[k].fr;
+
+  const triggerItems = triggers.map(t => `<li style="margin-bottom:6px;color:#374151;">${t}</li>`).join("");
+
+  const bodyHtml = `
+    <p style="margin:0 0 20px;font-size:15px;color:#374151;line-height:1.6;">${c("intro")}</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#f9fafb;margin-bottom:20px;">
+      <tr>
+        <td style="padding:12px 16px;font-size:13px;color:#6b7280;width:130px;border-bottom:1px solid #e5e7eb;">${c("labelContact")}</td>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:#111827;border-bottom:1px solid #e5e7eb;">${lead.seeker_email}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;font-size:13px;color:#6b7280;border-bottom:1px solid #e5e7eb;">${c("labelProp")}</td>
+        <td style="padding:12px 16px;font-size:14px;font-weight:700;color:#111827;border-bottom:1px solid #e5e7eb;">${property}${location}</td>
+      </tr>
+      <tr>
+        <td style="padding:12px 16px;font-size:13px;color:#6b7280;">${c("labelScore")}</td>
+        <td style="padding:12px 16px;">
+          <span style="background:#fef2f2;color:#dc2626;font-weight:700;padding:4px 12px;border-radius:6px;font-size:13px;">${score} pts — ${c("priority")}</span>
+        </td>
+      </tr>
+    </table>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px 20px;">
+      <p style="margin:0 0 10px;font-size:13px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.04em;">${c("signals")}</p>
+      <ul style="margin:0;padding-left:20px;font-size:14px;line-height:1.8;">${triggerItems}</ul>
     </div>`;
+
+  return emailLayout({
+    headerColor: "#dc2626",
+    headerLabel: c("headerLabel"),
+    headline: c("headline"),
+    preheader: c("preheader"),
+    bodyHtml,
+    ctaUrl: leadsUrl,
+    ctaText: c("cta"),
+    footerNote: c("footer"),
+  });
 }
 
 // ── Main handler ─────────────────────────────────────────────────────────────
@@ -111,20 +246,29 @@ Deno.serve(async (req) => {
     const payload = await req.json();
     const { event, data } = payload;
 
-    const appId = Deno.env.get("BASE44_APP_ID") || "";
-    const leadsUrl = `https://app.base44.com/apps/${appId}/Leads`;
+    const BASE_URL = Deno.env.get("BASE_URL") || "https://dar-el-djazair.com";
+    const leadsUrl = `${BASE_URL}/Leads`;
 
     // ── TRIGGER 1: New lead created ──────────────────────────────────────────
     if (event?.type === "create") {
       const lead = data;
-      if (!lead?.agent_email) {
-        return Response.json({ ok: true, skipped: "no agent_email" });
-      }
+      if (!lead?.agent_email) return Response.json({ ok: true, skipped: "no agent_email" });
+
+      const lang = await getRecipientLang(base44, lead.agent_email);
+      const seekerDisplay = lead.seeker_email?.split("@")[0] || lead.seeker_email;
+      const property = lead.listing_title || lead.listing_id;
+
+      const subjects = {
+        fr: `Nouveau lead — ${seekerDisplay} s'intéresse à "${property}"`,
+        en: `New lead — ${seekerDisplay} is interested in "${property}"`,
+        ar: `عميل جديد — ${seekerDisplay} مهتم بـ "${property}"`,
+      };
 
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: lead.agent_email,
-        subject: `🔔 Nouveau lead — ${lead.seeker_email?.split("@")[0]} s'intéresse à "${lead.listing_title || lead.listing_id}"`,
-        body: newLeadEmailBody(lead, leadsUrl),
+        from_name: "Dar El Djazair",
+        subject: subjects[lang] || subjects.fr,
+        body: newLeadEmail(lead, leadsUrl, lang),
       });
 
       return Response.json({ ok: true, action: "new_lead_alert_sent", to: lead.agent_email });
@@ -133,49 +277,37 @@ Deno.serve(async (req) => {
     // ── TRIGGER 2: Lead updated — check for high priority threshold crossing ─
     if (event?.type === "update") {
       const lead = data;
-      if (!lead?.agent_email) {
-        return Response.json({ ok: true, skipped: "no agent_email" });
-      }
+      if (!lead?.agent_email) return Response.json({ ok: true, skipped: "no agent_email" });
+      if (lead.high_priority_alert_sent === true) return Response.json({ ok: true, skipped: "already_sent" });
 
-      // Deduplication guard — only ever send once per lead
-      if (lead.high_priority_alert_sent === true) {
-        return Response.json({ ok: true, skipped: "high_priority_alert_already_sent" });
-      }
-
-      // Fetch activity signals in parallel
       const [messages, appointments, favorites] = await Promise.all([
-        base44.asServiceRole.entities.Message.filter(
-          { sender_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 50
-        ),
-        base44.asServiceRole.entities.Appointment.filter(
-          { buyer_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 10
-        ),
-        base44.asServiceRole.entities.Favorite.filter(
-          { user_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 5
-        ),
+        base44.asServiceRole.entities.Message.filter({ sender_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 50),
+        base44.asServiceRole.entities.Appointment.filter({ buyer_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 10),
+        base44.asServiceRole.entities.Favorite.filter({ user_email: lead.seeker_email, listing_id: lead.listing_id }, "-created_date", 5),
       ]);
 
-      const activity = {
-        messageCount:   messages.length,
-        hasAppointment: appointments.length > 0,
-        hasFavorite:    favorites.length > 0,
+      const activity = { messageCount: messages.length, hasAppointment: appointments.length > 0, hasFavorite: favorites.length > 0 };
+      const priority = computePriority(lead, activity);
+      if (priority !== "high") return Response.json({ ok: true, skipped: "not_high_priority", priority });
+
+      const lang = await getRecipientLang(base44, lead.agent_email);
+      const score = computeScore(lead, activity);
+      const triggers = buildScoreTriggers(lead, activity, lang);
+
+      const seekerDisplay = lead.seeker_email?.split("@")[0] || lead.seeker_email;
+      const subjects = {
+        fr: `Lead haute priorité — ${seekerDisplay} (score ${score} pts)`,
+        en: `High priority lead — ${seekerDisplay} (score ${score} pts)`,
+        ar: `عميل أولوية عالية — ${seekerDisplay} (${score} نقطة)`,
       };
 
-      const priority = computePriority(lead, activity);
-      if (priority !== "high") {
-        return Response.json({ ok: true, skipped: "not_high_priority", priority });
-      }
-
-      const score = computeScore(lead, activity);
-      const triggers = buildScoreTriggers(lead, activity);
-
-      // Mark BEFORE sending to prevent race-condition duplicates
       await base44.asServiceRole.entities.Lead.update(lead.id, { high_priority_alert_sent: true });
 
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: lead.agent_email,
-        subject: `⚡ Lead haute priorité — ${lead.seeker_email?.split("@")[0]} (score ${score} pts)`,
-        body: highPriorityEmailBody(lead, score, triggers, leadsUrl),
+        from_name: "Dar El Djazair",
+        subject: subjects[lang] || subjects.fr,
+        body: highPriorityEmail(lead, score, triggers, leadsUrl, lang),
       });
 
       return Response.json({ ok: true, action: "high_priority_alert_sent", to: lead.agent_email, score });
