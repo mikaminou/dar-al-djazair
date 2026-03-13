@@ -234,6 +234,14 @@ function NavContent({ currentPageName, children }) {
       </header>
 
       <SavedSearchAlerts />
+      {showOnboarding && user && (
+        <OnboardingModal
+          user={user}
+          lang={lang}
+          onComplete={updatedUser => { setUser(updatedUser); setShowOnboarding(false); }}
+        />
+      )}
+      <VerificationBanner user={user} lang={lang} />
 
       {/* MOBILE HEADER */}
       <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
