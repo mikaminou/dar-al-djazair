@@ -301,7 +301,7 @@ export default function ProfilePage() {
                   <Save className="w-4 h-4" />
                   {saving ? "..." : (lang === "ar" ? "حفظ" : lang === "fr" ? "Enregistrer" : "Save")}
                 </Button>
-                <Button variant="outline" onClick={() => setEditing(false)} className="gap-2">
+                <Button variant="outline" onClick={() => { setEditing(false); setAvatarPreview(''); }} className="gap-2">
                   <X className="w-4 h-4" />
                   {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
                 </Button>
