@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
     doc.text('Montant payé:', 20, y);
     doc.setFontSize(14);
     doc.setTextColor(16, 185, 129);
-    doc.text(`${amount.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} DA`, pageWidth - 40, y, { align: 'right' });
+    doc.text(`${new Intl.NumberFormat('fr-FR').format(amount)} DA`, pageWidth - 40, y, { align: 'right' });
 
     y += 20;
     doc.setDrawColor(16, 185, 129);

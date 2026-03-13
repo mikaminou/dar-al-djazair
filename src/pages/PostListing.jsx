@@ -137,7 +137,7 @@ export default function PostListingPage() {
     setSaving(true);
     const payload = {
       ...form,
-      price: Number(form.price),
+      price: Number(form.price) || 0,
       area: form.area ? Number(form.area) : undefined,
       rooms: form.rooms ? Number(form.rooms) : undefined,
       bedrooms: form.bedrooms ? Number(form.bedrooms) : undefined,
