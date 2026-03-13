@@ -39,6 +39,16 @@ export default function OnboardingModal({ user, lang, onComplete }) {
   const tx = k => t[k]?.[lang] || t[k]?.en;
   const isRtl = lang === 'ar';
 
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+    setUploadingAvatar(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setAvatarUrl(file_url);
+    setUploadingAvatar(false);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = {};
