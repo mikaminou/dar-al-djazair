@@ -7,7 +7,7 @@ import {
   formatSaleDisplay,
   formatRentalDisplay,
   storedValueToTyped,
-} from "@/lib/price.config";
+} from "@/components/price.config";
 
 const L = {
   willDisplay: { fr: "→ Affiché comme", en: "→ Will display as", ar: "→ سيظهر كـ" },

@@ -252,10 +252,8 @@ export const TRANSLATIONS = {
   }
 };
 
-export function formatPrice(price, lang = "fr") {
-  const formatted = new Intl.NumberFormat("fr-DZ").format(price);
-  return `${formatted} ${lang === "ar" ? "دج" : "DA"}`;
-}
+// Re-export from price.config.js — single source of truth
+export { formatPrice } from "./price.config";
 
 export function getLabel(item, lang) {
   if (!item || !item.label) return "";
