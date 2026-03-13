@@ -255,8 +255,7 @@ export default function ListingDetailPage() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-700">{formatPrice(listing.price, lang)}</div>
-                {listing.listing_type === "rent" && <div className="text-xs text-gray-400">{t.perMonth}</div>}
+                <div className="text-2xl font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</div>
               </div>
             </div>
 

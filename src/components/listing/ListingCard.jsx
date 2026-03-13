@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { Heart, MapPin, Maximize2, BedDouble, Bath, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../LanguageContext";
-import { formatPrice } from "../constants";
+import { formatPrice } from "../price.config";
 import VerifiedBadge from "../trust/VerifiedBadge";
 
 export default function ListingCard({ listing, isFavorite, onToggleFavorite, onToggleCompare, isCompared }) {
@@ -73,10 +73,7 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
 
         <div className="flex items-center justify-between border-t border-gray-100 pt-3">
           <div>
-            <span className="text-lg font-bold text-emerald-700">{formatPrice(listing.price, lang)}</span>
-            {listing.listing_type === "rent" && listing.price_period === "monthly" && (
-              <span className="text-xs text-gray-400 ml-1">{t.perMonth}</span>
-            )}
+            <span className="text-lg font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</span>
           </div>
           {onToggleCompare && (
             <button
