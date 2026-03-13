@@ -509,7 +509,7 @@ export default function MessagesPage() {
   const conversations = allConversations.filter(conv => {
     const isArchived = archivedThreads.includes(conv.thread_id);
     const listingStatus = listingsStatusMap[conv.listing_id];
-    const isClosed = ["sold", "rented", "archived"].includes(listingStatus);
+    const isClosed = ["sold", "rented", "deleted", "reserved"].includes(listingStatus);
     if (convFilter === "archived") return isArchived;
     if (isArchived) return false; // hide archived from other views
     if (convFilter === "open")   return !isClosed;
@@ -773,7 +773,7 @@ export default function MessagesPage() {
               {showUnavailableNotice && (
                 <div className="mx-3 mb-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available."}
+                  {getUnavailableNoticeText()}
                 </div>
               )}
 
