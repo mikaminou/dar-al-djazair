@@ -567,22 +567,24 @@ export default function MessagesPage() {
     : realConversations;
 
   // Apply conversation filter
+  // Note: "deleted" is treated as "closed" but conversations remain visible with notice
   const conversations = allConversations.filter(conv => {
     const isArchived = archivedThreads.includes(conv.thread_id);
     const listingStatus = listingsStatusMap[conv.listing_id];
-    const isClosed = ["sold", "rented", "deleted", "reserved"].includes(listingStatus);
+    const isClosed = ["sold", "rented", "reserved"].includes(listingStatus); // NOTE: "deleted" not here — it's visible but disabled
     if (convFilter === "archived") return isArchived;
     if (isArchived) return false; // hide archived from other views
-    if (convFilter === "open")   return !isClosed;
+    if (convFilter === "open")   return !isClosed && listingStatus !== "deleted";
     if (convFilter === "closed") return isClosed;
-    return true; // "all"
+    return true; // "all" (includes deleted)
   });
 
   // Counts per filter for the chip badges
+  // Note: "deleted" is NOT part of "closed" for badge count purposes; it's in "all" only
   const convCounts = {
     all:      allConversations.filter(c => !archivedThreads.includes(c.thread_id)).length,
-    open:     allConversations.filter(c => !archivedThreads.includes(c.thread_id) && !["sold","rented","deleted","reserved"].includes(listingsStatusMap[c.listing_id])).length,
-    closed:   allConversations.filter(c => !archivedThreads.includes(c.thread_id) && ["sold","rented","deleted","reserved"].includes(listingsStatusMap[c.listing_id])).length,
+    open:     allConversations.filter(c => !archivedThreads.includes(c.thread_id) && !["sold","rented","reserved","deleted"].includes(listingsStatusMap[c.listing_id])).length,
+    closed:   allConversations.filter(c => !archivedThreads.includes(c.thread_id) && ["sold","rented","reserved"].includes(listingsStatusMap[c.listing_id])).length,
     archived: allConversations.filter(c => archivedThreads.includes(c.thread_id)).length,
   };
 
@@ -592,12 +594,13 @@ export default function MessagesPage() {
         .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
     : [];
 
-  // Is the active thread's listing unavailable?
+  // Is the active thread's listing unavailable for messaging?
   const activeListingStatus = activeThread ? listingsStatusMap[activeThread.listing_id] : null;
   const UNAVAILABLE_STATUSES = ["reserved", "sold", "rented", "deleted"];
   const listingUnavailable = activeThread && UNAVAILABLE_STATUSES.includes(activeListingStatus);
   // Is the current user the owner of this listing?
   const isListingOwner = activeThread && listingOwnerMap[activeThread.listing_id] === user?.email;
+  // Show notice and disable messaging for non-owners when listing is unavailable
   const showUnavailableNotice = listingUnavailable && !isListingOwner;
 
   // Presence helper
@@ -783,8 +786,15 @@ export default function MessagesPage() {
                   </button>
                   <button
                     onClick={() => setShowProposeModal(true)}
-                    className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-1.5 transition-colors font-medium"
-                    title={lang === "ar" ? "اقتراح موعد" : lang === "fr" ? "Proposer un RDV" : "Propose a visit"}
+                    disabled={showUnavailableNotice}
+                    className={`flex items-center gap-1.5 text-xs border rounded-lg px-3 py-1.5 transition-colors font-medium ${
+                      showUnavailableNotice
+                        ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                        : "text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200"
+                    }`}
+                    title={showUnavailableNotice
+                      ? (lang === "ar" ? "لا يمكن اقتراح موعد" : lang === "fr" ? "Impossible de proposer un RDV" : "Cannot propose a visit")
+                      : (lang === "ar" ? "اقتراح موعد" : lang === "fr" ? "Proposer un RDV" : "Propose a visit")}
                   >
                     <CalendarDays className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{lang === "ar" ? "موعد" : lang === "fr" ? "RDV" : "Visit"}</span>
