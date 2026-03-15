@@ -4,12 +4,15 @@ function matchesSearch(listing, filters = {}) {
   if (filters.listing_type  && filters.listing_type  !== listing.listing_type)  return false;
   if (filters.property_type && filters.property_type !== listing.property_type) return false;
   if (filters.wilaya        && filters.wilaya         !== listing.wilaya)        return false;
-  if (filters.min_price  != null && listing.price < filters.min_price)          return false;
-  if (filters.max_price  != null && listing.price > filters.max_price)          return false;
-  if (filters.min_area   != null && (listing.area  || 0) < filters.min_area)    return false;
-  if (filters.max_area   != null && (listing.area  || 0) > filters.max_area)    return false;
-  if (filters.min_rooms  != null && (listing.rooms || 0) < filters.min_rooms)   return false;
-  if (filters.min_bedrooms != null && (listing.bedrooms || 0) < filters.min_bedrooms) return false;
+  if (filters.min_price     != null && listing.price < filters.min_price)        return false;
+  if (filters.max_price     != null && listing.price > filters.max_price)        return false;
+  if (filters.min_area      != null && (listing.area     || 0) < filters.min_area)     return false;
+  if (filters.max_area      != null && (listing.area     || 0) > filters.max_area)     return false;
+  if (filters.min_rooms     != null && (listing.rooms    || 0) < filters.min_rooms)    return false;
+  if (filters.min_bedrooms  != null && (listing.bedrooms || 0) < filters.min_bedrooms) return false;
+  if (filters.min_bathrooms != null && (listing.bathrooms || 0) < filters.min_bathrooms) return false;
+  if (filters.furnished     != null && filters.furnished !== ""
+      && listing.furnished  !== filters.furnished) return false;
   return true;
 }
 
