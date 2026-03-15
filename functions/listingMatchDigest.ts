@@ -1,5 +1,4 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
-import { formatPrice } from '../components/price.config.js';
 
 async function getRecipientLang(base44, email) {
   const users = await base44.asServiceRole.entities.User.filter({ email }, null, 1).catch(() => []);
@@ -10,6 +9,53 @@ async function getRecipientLang(base44, email) {
 function getWindowIndex(date = new Date()) {
   const utcHours = Math.floor(date.getTime() / 3600000);
   return Math.floor(utcHours / 4);
+}
+
+// Inline price formatting (mirrors price.config.js)
+function formatPrice(amount, listingType = 'sale', lang = 'fr') {
+  if (amount == null || amount === '') return '';
+  const n = Number(amount);
+  if (isNaN(n) || n < 0) return '';
+  if (listingType === 'rent') return formatRentalDisplay(n, lang);
+  return formatSaleDisplay(n, lang);
+}
+
+function formatSaleDisplay(n, lang = 'fr') {
+  const DA = lang === 'ar' ? 'دج' : 'DA';
+
+  if (n >= 1_000_000_000) {
+    const milliards = Math.floor(n / 1_000_000_000);
+    const millions  = Math.round((n % 1_000_000_000) / 1_000_000);
+    if (millions === 0) {
+      if (lang === 'ar') return `${milliards} مليار ${DA}`;
+      if (lang === 'en') return `${milliards} billion ${DA}`;
+      return `${milliards} milliard${milliards > 1 ? 's' : ''} ${DA}`;
+    }
+    if (lang === 'ar') {
+      return milliards === 1
+        ? `مليار و ${millions} مليون ${DA}`
+        : `${milliards} مليار و ${millions} مليون ${DA}`;
+    }
+    if (lang === 'en') return `${milliards}B ${millions}M ${DA}`;
+    return `${milliards} milliard${milliards > 1 ? 's' : ''} ${millions} million${millions > 1 ? 's' : ''} ${DA}`;
+  }
+
+  if (n >= 1_000_000) {
+    const millions = Math.round(n / 1_000_000);
+    if (lang === 'ar') return `${millions} مليون ${DA}`;
+    if (lang === 'en') return `${millions} million${millions > 1 ? 's' : ''} ${DA}`;
+    return `${millions} million${millions > 1 ? 's' : ''} ${DA}`;
+  }
+
+  const locale = lang === 'fr' ? 'fr-FR' : lang === 'ar' ? 'ar-DZ' : 'en-GB';
+  return `${new Intl.NumberFormat(locale).format(n)} ${DA}`;
+}
+
+function formatRentalDisplay(n, lang = 'fr') {
+  const locale   = lang === 'fr' ? 'fr-FR' : lang === 'ar' ? 'ar-DZ' : 'en-GB';
+  const DA       = lang === 'ar' ? 'دج' : 'DA';
+  const perMonth = lang === 'ar' ? '/ شهر' : lang === 'fr' ? '/ mois' : '/ month';
+  return `${new Intl.NumberFormat(locale).format(n)} ${DA} ${perMonth}`;
 }
 
 function emailLayout({ bodyHtml, ctaUrl, ctaText, headline, preheader, headerLabel, footerNote = "" }) {
@@ -233,7 +279,7 @@ Deno.serve(async (req) => {
           if (listing) {
             matches.push({
               listing,
-              search_name: notif.title?.split(" — ")?.[1] || "—", // Extract search name from notification title if available
+              search_name: notif.title?.split(" — ")?.[1] || "—",
               notif_id: notif.id,
               ref_id: refId,
             });
