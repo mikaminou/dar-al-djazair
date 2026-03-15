@@ -47,7 +47,13 @@ Deno.serve(async (req) => {
       const recipientEmail = search.user_email || search.created_by;
       if (!recipientEmail) continue;
       if (recipientEmail === listing.created_by) continue;
-      if (!matchesSearch(listing, search.filters || {})) continue;
+
+      const cleanFilters = Object.fromEntries(
+        Object.entries(search.filters || {}).filter(([_, v]) =>
+          v !== "" && v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0)
+        )
+      );
+      if (!matchesSearch(listing, cleanFilters)) continue;
 
       const refId = `listing_match_${listing.id}_${search.id}`;
       const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
