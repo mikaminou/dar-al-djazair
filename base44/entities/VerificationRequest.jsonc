@@ -1,0 +1,43 @@
+{
+  "name": "VerificationRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "individual"
+      ]
+    },
+    "document_uri": {
+      "type": "string",
+      "description": "Private file URI for the uploaded verification document"
+    },
+    "agency_name": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "admin_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "document_uri"
+  ]
+}

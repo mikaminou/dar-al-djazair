@@ -114,6 +114,45 @@ export default function PostListingPage() {
     </div>
   );
 
+  // Access gate: only verified professionals can post
+  if (currentUser && currentUser.role !== 'professional' && currentUser.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
+          <div className="text-5xl mb-4">🏢</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {lang === 'ar' ? 'حساب محترف مطلوب' : lang === 'fr' ? 'Compte professionnel requis' : 'Professional Account Required'}
+          </h2>
+          <p className="text-gray-500 mb-6 text-sm">
+            {lang === 'ar' ? 'نشر الإعلانات متاح فقط للمحترفين العقاريين الموثقين. يرجى التسجيل كمحترف وإتمام التحقق من هويتك.' : lang === 'fr' ? 'La publication d\'annonces est réservée aux professionnels immobiliers vérifiés. Inscrivez-vous en tant que professionnel et faites vérifier votre compte.' : 'Listing properties is available to verified real estate professionals only. Register as a professional and complete identity verification.'}
+          </p>
+          <button onClick={() => window.location.href = createPageUrl('Profile')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition-colors">
+            {lang === 'ar' ? 'اذهب إلى ملفي الشخصي' : lang === 'fr' ? 'Mon profil' : 'Go to My Profile'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentUser && currentUser.role === 'professional' && !currentUser.is_verified) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {lang === 'ar' ? 'في انتظار التحقق' : lang === 'fr' ? 'Vérification en attente' : 'Verification Required'}
+          </h2>
+          <p className="text-gray-500 mb-6 text-sm">
+            {lang === 'ar' ? 'يجب التحقق من حسابك قبل نشر الإعلانات. يرجى رفع وثيقتك في ملفك الشخصي.' : lang === 'fr' ? 'Votre compte doit être vérifié avant de publier des annonces. Téléversez votre document dans votre profil.' : 'Your account must be verified before posting listings. Please upload your verification document in your profile.'}
+          </p>
+          <button onClick={() => window.location.href = createPageUrl('Profile')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition-colors">
+            {lang === 'ar' ? 'أكمل التحقق' : lang === 'fr' ? 'Compléter la vérification' : 'Complete Verification'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
   const toggleFeature = (feat) => {
     set("features", form.features.includes(feat)

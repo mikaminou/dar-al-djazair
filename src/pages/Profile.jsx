@@ -136,7 +136,7 @@ export default function ProfilePage() {
   );
 
   const displayName = profileUser.agency_name || profileUser.full_name || profileUser.email;
-  const isAgency = profileUser.role === "agency";
+  const isProfessional = profileUser.role === "professional";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -187,10 +187,10 @@ export default function ProfilePage() {
                       <VerifiedBadge type={profileUser.verification_type || "individual"} size="sm" lang={lang} />
                     )}
                   </div>
-                  {isAgency && (
+                  {isProfessional && (
                     <Badge className="bg-blue-100 text-blue-700 mt-1">
                       <Building2 className="w-3 h-3 mr-1" />
-                      {lang === "ar" ? "وكالة عقارية" : lang === "fr" ? "Agence immobilière" : "Real Estate Agency"}
+                      {lang === "ar" ? "محترف عقاري" : lang === "fr" ? "Professionnel immobilier" : "Real Estate Professional"}
                     </Badge>
                   )}
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
@@ -258,10 +258,10 @@ export default function ProfilePage() {
           {editing && (
             <div className="mt-6 border-t pt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {profileUser?.role === "agency" && (
+                {isProfessional && (
                   <div>
                     <label className="text-xs font-medium text-gray-600 mb-1 block">
-                      {lang === "ar" ? "اسم الوكالة" : lang === "fr" ? "Nom de l'agence" : "Agency Name"}
+                      {lang === "ar" ? "اسم النشاط التجاري" : lang === "fr" ? "Nom de l'entreprise" : "Business Name"}
                     </label>
                     <Input value={form.agency_name} onChange={e => setForm(p => ({ ...p, agency_name: e.target.value }))} />
                   </div>

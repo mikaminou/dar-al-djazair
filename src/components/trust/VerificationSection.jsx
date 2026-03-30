@@ -15,7 +15,7 @@ export default function VerificationSection({ user, lang }) {
   const [file, setFile]         = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  const isAgency = user?.role === "agency";
+  const isProfessional = user?.role === "professional";
 
   useEffect(() => {
     if (!user?.email) return;
@@ -26,7 +26,7 @@ export default function VerificationSection({ user, lang }) {
   }, [user?.email]);
 
   const T = {
-    agencyTitle: { fr: "Vérification agence",          en: "Agency Verification",          ar: "التحقق من الوكالة"    },
+    agencyTitle: { fr: "Vérification professionnelle", en: "Professional Verification",  ar: "التحقق المهني" },
     idTitle:     { fr: "Vérification d'identité",       en: "Identity Verification",        ar: "التحقق من الهوية"     },
     agencyDesc:  { fr: "Téléversez votre registre de commerce (PDF ou image).", en: "Upload your registre de commerce (PDF or image).", ar: "ارفع سجلك التجاري." },
     idDesc:      { fr: "Téléversez votre carte nationale (recto/verso, PDF ou image).", en: "Upload your national ID card (PDF or image).", ar: "ارفع بطاقة هويتك الوطنية." },
@@ -79,14 +79,14 @@ export default function VerificationSection({ user, lang }) {
       const req = await base44.entities.VerificationRequest.create({
         user_email:  user.email,
         user_name:   user.full_name || user.email,
-        type:        isAgency ? "agency" : "individual",
+        type:        isProfessional ? "professional" : "individual",
         document_uri: file_uri,
         agency_name: user.agency_name || "",
         status:      "pending",
       });
       setRequest(req);
     }
-    await base44.auth.updateMe({ verification_status: "pending", verification_type: isAgency ? "agency" : "individual" });
+    await base44.auth.updateMe({ verification_status: "pending", verification_type: isProfessional ? "professional" : "individual" });
     setFile(null);
     setUploading(false);
   }
@@ -95,9 +95,9 @@ export default function VerificationSection({ user, lang }) {
     <div className="mt-6 border-t pt-5">
       <div className="flex items-center gap-2 mb-1">
         <Shield className="w-4 h-4 text-emerald-600" />
-        <h3 className="font-semibold text-sm text-gray-800">{isAgency ? t("agencyTitle") : t("idTitle")}</h3>
+        <h3 className="font-semibold text-sm text-gray-800">{isProfessional ? t("agencyTitle") : t("idTitle")}</h3>
       </div>
-      <p className="text-xs text-gray-500 mb-3">{isAgency ? t("agencyDesc") : t("idDesc")}</p>
+      <p className="text-xs text-gray-500 mb-3">{isProfessional ? t("agencyDesc") : t("idDesc")}</p>
 
       {request?.status === "rejected" && (
         <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">

@@ -1,0 +1,75 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user",
+        "professional"
+      ],
+      "default": "user",
+      "description": "Permission role. 'user' = individual, 'professional' = real estate professional/agency"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "premium"
+      ],
+      "default": "free",
+      "description": "Subscription plan. 'free' = regular user, 'premium' = verified professional with listing rights"
+    },
+    "first_name": {
+      "type": "string"
+    },
+    "last_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "bio": {
+      "type": "string"
+    },
+    "agency_name": {
+      "type": "string",
+      "description": "Business/agency name for professional accounts"
+    },
+    "wilaya": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "avatar_url": {
+      "type": "string"
+    },
+    "is_verified": {
+      "type": "boolean",
+      "description": "Set to true only after admin approval. Defaults to null (not verified)."
+    },
+    "verification_type": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "individual"
+      ]
+    },
+    "lang": {
+      "type": "string",
+      "enum": [
+        "fr",
+        "en",
+        "ar"
+      ],
+      "default": "fr",
+      "description": "User's preferred language for notifications and UI"
+    }
+  },
+  "required": [
+    "first_name",
+    "last_name"
+  ]
+}

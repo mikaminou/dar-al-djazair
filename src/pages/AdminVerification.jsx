@@ -54,7 +54,7 @@ export default function AdminVerification() {
     pending:  { fr: "En attente",                en: "Pending",                ar: "قيد المراجعة"   },
     approved: { fr: "Approuvées",               en: "Approved",               ar: "مقبولة"         },
     rejected: { fr: "Refusées",                 en: "Rejected",               ar: "مرفوضة"         },
-    agency:   { fr: "Agence",                   en: "Agency",                 ar: "وكالة"          },
+    professional: { fr: "Professionnel",             en: "Professional",           ar: "محترف"          },
     individual:{ fr: "Particulier",             en: "Individual",             ar: "فرد"            },
     viewDoc:  { fr: "Voir le document",         en: "View document",          ar: "عرض الوثيقة"    },
     approve:  { fr: "Approuver",                en: "Approve",                ar: "قبول"           },
@@ -119,7 +119,7 @@ export default function AdminVerification() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1.5">
                       <Badge className={STATUS_COLORS[req.status]}>{t(req.status)}</Badge>
-                      <Badge className={req.type === "agency" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}>
+                      <Badge className={req.type === "professional" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}>
                         {t(req.type)}
                       </Badge>
                       {req.agency_name && (

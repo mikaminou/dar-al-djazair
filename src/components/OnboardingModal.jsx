@@ -12,7 +12,7 @@ import { User, Building2, Camera } from 'lucide-react';
 export default function OnboardingModal({ user, lang, onComplete }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [accountType, setAccountType] = useState(user?.role === 'agency' ? 'agency' : 'user');
+  const [accountType, setAccountType] = useState(user?.role === 'professional' ? 'professional' : 'user');
   const [agencyName, setAgencyName] = useState(user?.agency_name || '');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
@@ -27,9 +27,9 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     firstName:   { en: 'First Name', fr: 'Prénom', ar: 'الاسم الأول' },
     lastName:    { en: 'Last Name', fr: 'Nom de famille', ar: 'اللقب' },
     accountType: { en: 'Account Type', fr: 'Type de compte', ar: 'نوع الحساب' },
-    individual:  { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
-    agency:      { en: 'Agency', fr: 'Agence', ar: 'وكالة' },
-    agencyName:  { en: 'Agency Name', fr: "Nom de l'agence", ar: 'اسم الوكالة' },
+    individual:    { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
+    professional:  { en: 'Professional / Agency', fr: 'Professionnel / Agence', ar: 'محترف / وكالة' },
+    agencyName:    { en: 'Business Name', fr: "Nom de l'entreprise", ar: 'اسم النشاط التجاري' },
     avatar:      { en: 'Profile Photo', fr: 'Photo de profil', ar: 'صورة الملف الشخصي' },
     optional:    { en: 'Optional', fr: 'Facultatif', ar: 'اختياري' },
     note:        { en: 'Account type cannot be changed after this step.', fr: 'Le type de compte ne peut pas être modifié après cette étape.', ar: 'لا يمكن تغيير نوع الحساب بعد هذه الخطوة.' },
@@ -54,7 +54,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     const errs = {};
     if (!firstName.trim()) errs.firstName = tx('required');
     if (!lastName.trim()) errs.lastName = tx('required');
-    if (accountType === 'agency' && !agencyName.trim()) errs.agencyName = tx('required');
+    if (accountType === 'professional' && !agencyName.trim()) errs.agencyName = tx('required');
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
     setSaving(true);
@@ -62,8 +62,9 @@ export default function OnboardingModal({ user, lang, onComplete }) {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       role: accountType,
+      plan: accountType === 'professional' ? 'premium' : 'free',
     };
-    if (accountType === 'agency') updates.agency_name = agencyName.trim();
+    if (accountType === 'professional') updates.agency_name = agencyName.trim();
     if (avatarUrl) updates.avatar_url = avatarUrl;
 
     await base44.auth.updateMe(updates);
@@ -133,17 +134,17 @@ export default function OnboardingModal({ user, lang, onComplete }) {
               </button>
               <button
                 type="button"
-                onClick={() => setAccountType('agency')}
-                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${accountType === 'agency' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                onClick={() => setAccountType('professional')}
+                className={`flex flex-col items-center justify-center gap-2 p-4 rounded-xl border-2 transition-all ${accountType === 'professional' ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-gray-200 text-gray-500 hover:border-gray-300'}`}
               >
                 <Building2 className="w-6 h-6" />
-                <span className="text-sm font-medium">{tx('agency')}</span>
+                <span className="text-sm font-medium">{tx('professional')}</span>
               </button>
             </div>
           </div>
 
           {/* Agency Name */}
-          {accountType === 'agency' && (
+          {accountType === 'professional' && (
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('agencyName')} *</label>
               <Input value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder={tx('agencyName')} className={errors.agencyName ? 'border-red-400' : ''} />
