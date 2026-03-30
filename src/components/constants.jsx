@@ -1,13 +1,68 @@
 export const WILAYAS = [
-  "Adrar", "Chlef", "Laghouat", "Oum El Bouaghi", "Batna", "Béjaïa", "Biskra",
-  "Béchar", "Blida", "Bouira", "Tamanrasset", "Tébessa", "Tlemcen", "Tiaret",
-  "Tizi Ouzou", "Alger", "Djelfa", "Jijel", "Sétif", "Saïda", "Skikda",
-  "Sidi Bel Abbès", "Annaba", "Guelma", "Constantine", "Médéa", "Mostaganem",
-  "M'Sila", "Mascara", "Ouargla", "Oran", "El Bayadh", "Illizi", "Bordj Bou Arréridj",
-  "Boumerdès", "El Tarf", "Tindouf", "Tissemsilt", "El Oued", "Khenchela",
-  "Souk Ahras", "Tipaza", "Mila", "Aïn Defla", "Naâma", "Aïn Témouchent",
-  "Ghardaïa", "Relizane", "Timimoun", "Bordj Badji Mokhtar", "Ouled Djellal",
-  "Béni Abbès", "In Salah", "In Guezzam", "Touggourt", "Djanet", "M'Ghair", "El Meniaa"
+  // --- Original 48 ---
+  { code: "01", value: "adrar", label: { en: "Adrar", fr: "Adrar", ar: "أدرار" } },
+  { code: "02", value: "chlef", label: { en: "Chlef", fr: "Chlef", ar: "الشلف" } },
+  { code: "03", value: "laghouat", label: { en: "Laghouat", fr: "Laghouat", ar: "الأغواط" } },
+  { code: "04", value: "oum_el_bouaghi", label: { en: "Oum El Bouaghi", fr: "Oum El Bouaghi", ar: "أم البواقي" } },
+  { code: "05", value: "batna", label: { en: "Batna", fr: "Batna", ar: "باتنة" } },
+  { code: "06", value: "bejaia", label: { en: "Bejaia", fr: "Béjaïa", ar: "بجاية" } },
+  { code: "07", value: "biskra", label: { en: "Biskra", fr: "Biskra", ar: "بسكرة" } },
+  { code: "08", value: "bechar", label: { en: "Bechar", fr: "Béchar", ar: "بشار" } },
+  { code: "09", value: "blida", label: { en: "Blida", fr: "Blida", ar: "البليدة" } },
+  { code: "10", value: "bouira", label: { en: "Bouira", fr: "Bouira", ar: "البويرة" } },
+  { code: "11", value: "tamanrasset", label: { en: "Tamanrasset", fr: "Tamanrasset", ar: "تمنراست" } },
+  { code: "12", value: "tebessa", label: { en: "Tebessa", fr: "Tébessa", ar: "تبسة" } },
+  { code: "13", value: "tlemcen", label: { en: "Tlemcen", fr: "Tlemcen", ar: "تلمسان" } },
+  { code: "14", value: "tiaret", label: { en: "Tiaret", fr: "Tiaret", ar: "تيارت" } },
+  { code: "15", value: "tizi_ouzou", label: { en: "Tizi Ouzou", fr: "Tizi Ouzou", ar: "تيزي وزو" } },
+  { code: "16", value: "alger", label: { en: "Algiers", fr: "Alger", ar: "الجزائر" } },
+  { code: "17", value: "djelfa", label: { en: "Djelfa", fr: "Djelfa", ar: "الجلفة" } },
+  { code: "18", value: "jijel", label: { en: "Jijel", fr: "Jijel", ar: "جيجل" } },
+  { code: "19", value: "setif", label: { en: "Setif", fr: "Sétif", ar: "سطيف" } },
+  { code: "20", value: "saida", label: { en: "Saida", fr: "Saïda", ar: "سعيدة" } },
+  { code: "21", value: "skikda", label: { en: "Skikda", fr: "Skikda", ar: "سكيكدة" } },
+  { code: "22", value: "sidi_bel_abbes", label: { en: "Sidi Bel Abbes", fr: "Sidi Bel Abbès", ar: "سيدي بلعباس" } },
+  { code: "23", value: "annaba", label: { en: "Annaba", fr: "Annaba", ar: "عنابة" } },
+  { code: "24", value: "guelma", label: { en: "Guelma", fr: "Guelma", ar: "قالمة" } },
+  { code: "25", value: "constantine", label: { en: "Constantine", fr: "Constantine", ar: "قسنطينة" } },
+  { code: "26", value: "medea", label: { en: "Medea", fr: "Médéa", ar: "المدية" } },
+  { code: "27", value: "mostaganem", label: { en: "Mostaganem", fr: "Mostaganem", ar: "مستغانم" } },
+  { code: "28", value: "msila", label: { en: "M'Sila", fr: "M'Sila", ar: "المسيلة" } },
+  { code: "29", value: "mascara", label: { en: "Mascara", fr: "Mascara", ar: "معسكر" } },
+  { code: "30", value: "ouargla", label: { en: "Ouargla", fr: "Ouargla", ar: "ورقلة" } },
+  { code: "31", value: "oran", label: { en: "Oran", fr: "Oran", ar: "وهران" } },
+  { code: "32", value: "el_bayadh", label: { en: "El Bayadh", fr: "El Bayadh", ar: "البيض" } },
+  { code: "33", value: "illizi", label: { en: "Illizi", fr: "Illizi", ar: "إليزي" } },
+  { code: "34", value: "bordj_bou_arreridj", label: { en: "Bordj Bou Arreridj", fr: "Bordj Bou Arréridj", ar: "برج بوعريريج" } },
+  { code: "35", value: "boumerdes", label: { en: "Boumerdes", fr: "Boumerdès", ar: "بومرداس" } },
+  { code: "36", value: "el_tarf", label: { en: "El Tarf", fr: "El Tarf", ar: "الطارف" } },
+  { code: "37", value: "tindouf", label: { en: "Tindouf", fr: "Tindouf", ar: "تندوف" } },
+  { code: "38", value: "tissemsilt", label: { en: "Tissemsilt", fr: "Tissemsilt", ar: "تيسمسيلت" } },
+  { code: "39", value: "el_oued", label: { en: "El Oued", fr: "El Oued", ar: "الوادي" } },
+  { code: "40", value: "khenchela", label: { en: "Khenchela", fr: "Khenchela", ar: "خنشلة" } },
+  { code: "41", value: "souk_ahras", label: { en: "Souk Ahras", fr: "Souk Ahras", ar: "سوق أهراس" } },
+  { code: "42", value: "tipaza", label: { en: "Tipaza", fr: "Tipaza", ar: "تيبازة" } },
+  { code: "43", value: "mila", label: { en: "Mila", fr: "Mila", ar: "ميلة" } },
+  { code: "44", value: "ain_defla", label: { en: "Ain Defla", fr: "Aïn Defla", ar: "عين الدفلى" } },
+  { code: "45", value: "naama", label: { en: "Naama", fr: "Naâma", ar: "النعامة" } },
+  { code: "46", value: "ain_temouchent", label: { en: "Ain Temouchent", fr: "Aïn Témouchent", ar: "عين تموشنت" } },
+  { code: "47", value: "ghardaia", label: { en: "Ghardaia", fr: "Ghardaïa", ar: "غرداية" } },
+  { code: "48", value: "relizane", label: { en: "Relizane", fr: "Relizane", ar: "غليزان" } },
+
+  // --- New Wilayas (from 49 to 58 - 2019 reform) ---
+  { code: "49", value: "timimoun", label: { en: "Timimoun", fr: "Timimoun", ar: "تيميمون" } },
+  { code: "50", value: "bordj_badji_mokhtar", label: { en: "Bordj Badji Mokhtar", fr: "Bordj Badji Mokhtar", ar: "برج باجي مختار" } },
+  { code: "51", value: "ouled_djellal", label: { en: "Ouled Djellal", fr: "Ouled Djellal", ar: "أولاد جلال" } },
+  { code: "52", value: "beni_abbes", label: { en: "Beni Abbes", fr: "Béni Abbès", ar: "بني عباس" } },
+  { code: "53", value: "in_salah", label: { en: "In Salah", fr: "In Salah", ar: "عين صالح" } },
+  { code: "54", value: "in_guezzam", label: { en: "In Guezzam", fr: "In Guezzam", ar: "عين قزام" } },
+  { code: "55", value: "touggourt", label: { en: "Touggourt", fr: "Touggourt", ar: "تقرت" } },
+  { code: "56", value: "djanet", label: { en: "Djanet", fr: "Djanet", ar: "جانت" } },
+  { code: "57", value: "el_mghair", label: { en: "El M'Ghair", fr: "El M'Ghair", ar: "المغير" } },
+  { code: "58", value: "el_meniaa", label: { en: "El Meniaa", fr: "El Meniaa", ar: "المنيعة" } }
+
+  // ⚠️ Wilaya 59–69 exist administratively (delegated wilayas turned full),
+  // but are not always standardized yet in all APIs
 ];
 
 export const PROPERTY_TYPES = [
@@ -16,15 +71,156 @@ export const PROPERTY_TYPES = [
   { value: "villa", label: { en: "Villa", fr: "Villa", ar: "فيلا" } },
   { value: "land", label: { en: "Land", fr: "Terrain", ar: "أرض" } },
   { value: "commercial", label: { en: "Commercial", fr: "Commercial", ar: "تجاري" } },
-  { value: "new_development", label: { en: "New Development", fr: "Programme Neuf", ar: "مشروع جديد" } },
+  { value: "new_development", label: { en: "Real Estate Development", fr: "Promotion Immobilière", ar: "ترقية عقارية" } },
   { value: "office", label: { en: "Office", fr: "Bureau", ar: "مكتب" } },
   { value: "farm", label: { en: "Farm", fr: "Ferme", ar: "مزرعة" } }
 ];
 
 export const FEATURES_LIST = [
-  "Parking", "Garage", "Garden", "Terrace", "Balcony", "Pool",
-  "Elevator", "Security", "Air Conditioning", "Heating", "Solar Panels",
-  "Well", "Concierge", "Interphone", "Double Glazing", "Cave"
+  {
+    value: "parking",
+    label: {
+      en: "Parking",
+      fr: "Parking",
+      ar: "موقف سيارات"
+    },
+    synonyms: ["parking", "stationnement", "garage extérieur"]
+  },
+  {
+    value: "garage",
+    label: {
+      en: "Garage",
+      fr: "Garage",
+      ar: "مرآب"
+    },
+    synonyms: ["garage", "box"]
+  },
+  {
+    value: "garden",
+    label: {
+      en: "Garden",
+      fr: "Jardin",
+      ar: "حديقة"
+    },
+    synonyms: ["jardin", "espace vert"]
+  },
+  {
+    value: "terrace",
+    label: {
+      en: "Terrace",
+      fr: "Terrasse",
+      ar: "تراس"
+    },
+    synonyms: ["terrasse"]
+  },
+  {
+    value: "balcony",
+    label: {
+      en: "Balcony",
+      fr: "Balcon",
+      ar: "شرفة"
+    },
+    synonyms: ["balcon"]
+  },
+  {
+    value: "pool",
+    label: {
+      en: "Pool",
+      fr: "Piscine",
+      ar: "مسبح"
+    },
+    synonyms: ["piscine"]
+  },
+  {
+    value: "elevator",
+    label: {
+      en: "Elevator",
+      fr: "Ascenseur",
+      ar: "مصعد"
+    },
+    synonyms: ["ascenseur"]
+  },
+  {
+    value: "security",
+    label: {
+      en: "Security",
+      fr: "Sécurité",
+      ar: "أمن"
+    },
+    synonyms: ["sécurité", "gardiennage", "résidence sécurisée"]
+  },
+  {
+    value: "air_conditioning",
+    label: {
+      en: "Air Conditioning",
+      fr: "Climatisation",
+      ar: "مكيف هواء"
+    },
+    synonyms: ["clim", "climatisation"]
+  },
+  {
+    value: "heating",
+    label: {
+      en: "Heating",
+      fr: "Chauffage",
+      ar: "تدفئة"
+    },
+    synonyms: ["chauffage"]
+  },
+  {
+    value: "solar_panels",
+    label: {
+      en: "Solar Panels",
+      fr: "Panneaux solaires",
+      ar: "ألواح شمسية"
+    },
+    synonyms: ["solaire", "panneaux solaires"]
+  },
+  {
+    value: "well",
+    label: {
+      en: "Well",
+      fr: "Puits",
+      ar: "بئر"
+    },
+    synonyms: ["puits"]
+  },
+  {
+    value: "concierge",
+    label: {
+      en: "Concierge",
+      fr: "Concierge",
+      ar: "حارس"
+    },
+    synonyms: ["concierge", "gardien"]
+  },
+  {
+    value: "interphone",
+    label: {
+      en: "Intercom",
+      fr: "Interphone",
+      ar: "انترفون"
+    },
+    synonyms: ["interphone"]
+  },
+  {
+    value: "double_glazing",
+    label: {
+      en: "Double Glazing",
+      fr: "Double vitrage",
+      ar: "زجاج مزدوج"
+    },
+    synonyms: ["double vitrage"]
+  },
+  {
+    value: "cellar",
+    label: {
+      en: "Cellar",
+      fr: "Cave",
+      ar: "قبو"
+    },
+    synonyms: ["cave", "sous-sol"]
+  }
 ];
 
 export const TRANSLATIONS = {
