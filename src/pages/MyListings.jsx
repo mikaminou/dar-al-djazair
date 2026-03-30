@@ -15,6 +15,7 @@ export default function MyListingsPage() {
   const { t, lang } = useLang();
   const [listings, setListings] = useState([]);
   const [leadCounts, setLeadCounts] = useState({});
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: "all", property_type: "all", wilaya: "all", minPrice: "", maxPrice: "" });
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -25,6 +26,7 @@ export default function MyListingsPage() {
     setLoading(true);
     const user = await base44.auth.me().catch(() => null);
     if (!user) { setLoading(false); return; }
+    setCurrentUser(user);
     const [data, leads] = await Promise.all([
       base44.entities.Listing.filter({ created_by: user.email }, "-created_date", 100),
       base44.entities.Lead.filter({ agent_email: user.email, status: "new" }, "-created_date", 200).catch(() => []),
@@ -160,6 +162,22 @@ export default function MyListingsPage() {
     { value: "rented",   label: { fr: "Loués",     ar: "مُؤجَّر", en: "Rented"  } },
     { value: "deleted",  label: { fr: "Supprimés", ar: "محذوف",   en: "Deleted"  } },
   ];
+
+  if (!loading && currentUser && currentUser.role !== "professional" && currentUser.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {lang === "ar" ? "متاح للمحترفين فقط" : lang === "fr" ? "Réservé aux professionnels" : "Professionals Only"}
+          </h2>
+          <p className="text-gray-500 text-sm">
+            {lang === "ar" ? "هذه الصفحة متاحة فقط للمحترفين العقاريين الموثقين." : lang === "fr" ? "Cette page est réservée aux professionnels immobiliers vérifiés." : "This page is only available to verified real estate professionals."}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

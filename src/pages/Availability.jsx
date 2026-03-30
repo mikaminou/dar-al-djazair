@@ -99,6 +99,22 @@ export default function AvailabilityPage() {
 
   if (!user) { base44.auth.redirectToLogin(); return null; }
 
+  if (user.role !== "professional" && user.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {lang === "ar" ? "متاح للمحترفين فقط" : lang === "fr" ? "Réservé aux professionnels" : "Professionals Only"}
+          </h2>
+          <p className="text-gray-500 text-sm">
+            {lang === "ar" ? "هذه الصفحة متاحة فقط للمحترفين العقاريين الموثقين." : lang === "fr" ? "Cette page est réservée aux professionnels immobiliers vérifiés." : "This page is only available to verified real estate professionals."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-gradient-to-br from-emerald-800 to-emerald-700 text-white py-8 px-4">

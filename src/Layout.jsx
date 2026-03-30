@@ -29,10 +29,12 @@ function NavContent({ currentPageName, children }) {
     }).catch(() => {});
   }, []);
 
+  const isPro = user?.role === "professional" || user?.role === "admin";
+
   const navLinks = [
     { label: t.buy, href: createPageUrl("Listings") + "?listing_type=sale" },
     { label: t.rent, href: createPageUrl("Listings") + "?listing_type=rent" },
-    { label: t.sell, href: createPageUrl("PostListing") },
+    ...(isPro ? [{ label: t.sell, href: createPageUrl("PostListing") }] : []),
   ];
 
   const isRtl = lang === "ar";
@@ -81,6 +83,7 @@ function NavContent({ currentPageName, children }) {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {isPro && (
             <Link
               to={createPageUrl("PostListing")}
               className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0"
@@ -88,6 +91,7 @@ function NavContent({ currentPageName, children }) {
               <Plus className="w-4 h-4" />
               <span className="hidden lg:inline">{t.postListing}</span>
             </Link>
+            )}
 
             {/* Notifications */}
             <NotificationBell user={user} lang={lang} />
@@ -147,6 +151,13 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("Profile")}>{lang === "ar" ? "ملفي الشخصي" : lang === "fr" ? "Mon profil" : "My Profile"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+                    </DropdownMenuItem>
+                    {isPro && (<>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
@@ -154,9 +165,6 @@ function NavContent({ currentPageName, children }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("OwnerDashboard")}>{lang === "ar" ? "لوحة التحليلات" : lang === "fr" ? "Tableau de bord" : "Analytics Dashboard"}</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                      <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Availability")}>{lang === "ar" ? "مواعيد الزيارة" : lang === "fr" ? "Mes Disponibilités" : "My Availability"}</Link>
@@ -167,9 +175,7 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("RentalIncomeDashboard")}>{lang === "ar" ? "لوحة دخل الإيجار" : lang === "fr" ? "Revenu Locatif" : "Rental Income"}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                      <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
-                    </DropdownMenuItem>
+                    </>)}
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
                     </DropdownMenuItem>
@@ -268,14 +274,16 @@ function NavContent({ currentPageName, children }) {
               <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+              <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+            </DropdownMenuItem>
+            {isPro && (<>
+            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
               <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
               <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
-            </DropdownMenuItem>
+            </>)}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
               {t.signOut}
@@ -321,12 +329,18 @@ function NavContent({ currentPageName, children }) {
 
           {/* Centered Plus Button */}
           <div className="relative -top-6">
+            {isPro ? (
             <Link 
               to={createPageUrl("PostListing")} 
               className="flex items-center justify-center h-14 w-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
             >
               <Plus className="w-7 h-7" />
             </Link>
+            ) : (
+            <div className="flex items-center justify-center h-14 w-14 bg-gray-200 text-gray-400 rounded-full shadow-lg cursor-not-allowed">
+              <Plus className="w-7 h-7" />
+            </div>
+            )}
           </div>
 
           {/* Messages */}

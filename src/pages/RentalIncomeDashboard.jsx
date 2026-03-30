@@ -51,6 +51,22 @@ export default function RentalIncomeDashboard() {
     );
   }
 
+  if (data.me.role !== "professional" && data.me.role !== "admin") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
+          <div className="text-5xl mb-4">🔒</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            {lang === "ar" ? "متاح للمحترفين فقط" : lang === "fr" ? "Réservé aux professionnels" : "Professionals Only"}
+          </h2>
+          <p className="text-gray-500 text-sm">
+            {lang === "ar" ? "هذه الصفحة متاحة فقط للمحترفين العقاريين الموثقين." : lang === "fr" ? "Cette page est réservée aux professionnels immobiliers vérifiés." : "This page is only available to verified real estate professionals."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // Process data
   const T = {
     title: { en: "Rental Income Dashboard", fr: "Tableau de Bord de Revenus Locatifs", ar: "لوحة دخل الإيجار" },
