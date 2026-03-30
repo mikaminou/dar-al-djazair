@@ -18,6 +18,9 @@ import {
 function NavContent({ currentPageName, children }) {
   const { t, lang, changeLang } = useLang();
   const [user, setUser] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Global presence heartbeat — runs on every page so online status is accurate
   useEffect(() => {
