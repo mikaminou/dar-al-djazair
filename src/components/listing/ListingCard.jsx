@@ -40,7 +40,7 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
 
       <div className="p-4">
         <Link to={createPageUrl(`ListingDetail?id=${listing.id}`)}>
-          <h3 className="font-semibold text-gray-900 text-sm mb-1 line-clamp-1 hover:text-emerald-700">{listing.title}</h3>
+          <h3 className="text-lg font-bold text-emerald-700">{listing.title}</h3>
         </Link>
         {listing.owner_is_verified && (
           <div className="mb-2">
