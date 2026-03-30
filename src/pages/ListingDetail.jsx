@@ -17,6 +17,7 @@ import ListingCard from "../components/listing/ListingCard";
 import ListingMap from "../components/listing/ListingMap";
 import FullscreenGallery from "../components/listing/FullscreenGallery";
 import BookingWidget from "../components/booking/BookingWidget";
+import { LISTING_CONFIG } from "../components/listing.config";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -156,6 +157,9 @@ export default function ListingDetailPage() {
 
   const propType = PROPERTY_TYPES.find(p => p.value === listing.property_type);
 
+  const showPrice = !listing.hide_price;
+  const showLocation = !listing.hide_location;
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Back */}
@@ -191,50 +195,59 @@ export default function ListingDetailPage() {
       <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* MAIN CONTENT */}
         <div className="lg:col-span-2 space-y-5">
-          {/* Image Gallery */}
-          <div
-            className="relative bg-black rounded-2xl overflow-hidden h-80 md:h-[420px] cursor-zoom-in"
-            onClick={() => { setGalleryIndex(imgIndex); setGalleryOpen(true); }}
-          >
-            <img src={images[imgIndex]} alt={listing.title} className="w-full h-full object-cover" />
-            {images.length > 1 && (
-              <>
-                <button onClick={() => setImgIndex(i => (i - 1 + images.length) % images.length)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white">
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button onClick={() => setImgIndex(i => (i + 1) % images.length)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white">
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1">
-                  {images.map((_, i) => (
-                    <div key={i} onClick={() => setImgIndex(i)} className={`w-2 h-2 rounded-full cursor-pointer ${i === imgIndex ? "bg-white" : "bg-white/50"}`} />
+          {/* Image Gallery — ImmobilienScout-style grid */}
+          <div className="rounded-2xl overflow-hidden">
+            {images.length === 1 ? (
+              <div
+                className="relative bg-black h-[320px] md:h-[460px] cursor-zoom-in"
+                onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
+              >
+                <img src={images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
+                  {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
+                </div>
+              </div>
+            ) : (
+              <div className="flex gap-1 h-[320px] md:h-[400px]">
+                {/* Large main image */}
+                <div
+                  className="relative flex-[2] cursor-zoom-in overflow-hidden"
+                  onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
+                >
+                  <img src={images[0]} alt={listing.title} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
+                    {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
+                  </div>
+                  <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                    1 / {images.length}
+                  </div>
+                </div>
+                {/* Right column of 4 thumbnails */}
+                <div className="flex flex-col gap-1 flex-1">
+                  {[1,2,3,4].map(i => (
+                    images[i] ? (
+                      <div
+                        key={i}
+                        className="relative flex-1 cursor-zoom-in overflow-hidden"
+                        onClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}
+                      >
+                        <img src={images[i]} alt="" className="w-full h-full object-cover hover:scale-[1.05] transition-transform duration-300" />
+                        {i === 4 && images.length > 5 && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white font-semibold text-sm">+{images.length - 5}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div key={i} className="flex-1 bg-gray-100" />
+                    )
                   ))}
                 </div>
-              </>
+              </div>
             )}
-            <div className="absolute top-4 left-4 flex gap-2">
-              <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>
-                {listing.listing_type === "sale" ? t.sale : t.forRent}
-              </Badge>
-              {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
-            </div>
           </div>
-
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {images.map((img, i) => (
-                <img
-                  key={i}
-                  src={img}
-                  onClick={() => setImgIndex(i)}
-                  onDoubleClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}
-                  alt=""
-                  className={`w-16 h-12 object-cover rounded-lg cursor-pointer flex-shrink-0 ${i === imgIndex ? "ring-2 ring-emerald-500" : "opacity-70"}`}
-                />
-              ))}
-            </div>
-          )}
 
           {galleryOpen && (
             <FullscreenGallery
@@ -251,11 +264,16 @@ export default function ListingDetailPage() {
                 <h1 className="text-xl font-bold text-gray-900 mb-1">{listing.title}</h1>
                 <div className="flex items-center gap-1 text-gray-500 text-sm">
                   <MapPin className="w-4 h-4" />
-                  {listing.commune ? `${listing.commune}, ` : ""}{listing.wilaya}
+                  {showLocation
+                    ? (listing.commune ? `${listing.commune}, ` : "") + listing.wilaya
+                    : listing.wilaya}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</div>
+                {showPrice
+                  ? <div className="text-2xl font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</div>
+                  : <div className="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">{lang === "ar" ? "السعر عند الاتصال" : lang === "fr" ? "Prix sur demande" : "Price on request"}</div>
+                }
               </div>
             </div>
 
@@ -301,8 +319,16 @@ export default function ListingDetailPage() {
             </div>
           )}
 
-          {/* Map */}
-          <ListingMap latitude={listing.latitude} longitude={listing.longitude} title={listing.title} />
+          {/* Map — only shown if location is not hidden */}
+          {showLocation && (
+            <ListingMap latitude={listing.latitude} longitude={listing.longitude} title={listing.title} />
+          )}
+          {!showLocation && (listing.latitude || listing.longitude) && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center text-gray-400 text-sm">
+              <MapPin className="w-6 h-6 mx-auto mb-1 opacity-40" />
+              {lang === "ar" ? "الموقع التفصيلي متاح عند التواصل مع المالك." : lang === "fr" ? "L'emplacement exact est disponible sur demande." : "Exact location available on request."}
+            </div>
+          )}
 
           {/* Similar Listings */}
           {similar.length > 0 && (
@@ -412,6 +438,17 @@ export default function ListingDetailPage() {
                   listing={listing}
                   user={user}
                 />
+              )}
+              {/* Rental contract — owner only, on-demand, rent listings only */}
+              {isOwner && LISTING_CONFIG.ALLOW_RENTAL_CONTRACT && listing.listing_type === "rent" && (
+                <a
+                  href={`/RentalContract?listing_id=${id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 w-full border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
+                >
+                  📄 {lang === "ar" ? "إنشاء عقد إيجار" : lang === "fr" ? "Générer un contrat de location" : "Generate Rental Contract"}
+                </a>
               )}
               <div className="pt-3 border-t border-gray-100 text-xs text-gray-400 text-center">
                 {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}

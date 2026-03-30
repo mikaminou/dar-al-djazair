@@ -387,10 +387,10 @@ export default function MyListingsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
-                      {listing.status === "reserved" && (
+                      {(listing.status === "reserved" || listing.status === "sold" || listing.status === "rented" || listing.status === "deleted") && (
                         <DropdownMenuItem onClick={() => changeStatus(listing, "active")} className="text-green-700 gap-2">
                           <CheckCircle2 className="w-4 h-4" />
-                          {lang === "ar" ? "تفعيل مجدداً" : lang === "fr" ? "Remettre actif" : "Mark as Active"}
+                          {lang === "ar" ? "تفعيل مجدداً" : lang === "fr" ? "Remettre actif" : "Reactivate Listing"}
                         </DropdownMenuItem>
                       )}
                       {listing.status === "active" && (

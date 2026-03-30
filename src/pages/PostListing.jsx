@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../components/constants";
 import SmartPriceInput from "../components/price/SmartPriceInput";
+import { LISTING_CONFIG } from "../components/listing.config";
 import { COMMUNES_BY_WILAYA } from "../components/communesData";
 import MobileHeader from "../components/MobileHeader";
 
@@ -31,6 +32,7 @@ export default function PostListingPage() {
     title: "",
     description: "",
     price: 0,
+    hide_price: !LISTING_CONFIG.DEFAULT_PRICE_VISIBLE,
     area: "",
     rooms: "",
     bedrooms: "",
@@ -42,6 +44,7 @@ export default function PostListingPage() {
     wilaya: "",
     commune: "",
     address: "",
+    hide_location: !LISTING_CONFIG.DEFAULT_LOCATION_VISIBLE,
     images: [],
     contact_name: "",
     contact_phone: "",
@@ -77,6 +80,7 @@ export default function PostListingPage() {
             title: listing.title || "",
             description: listing.description || "",
             price: listing.price || "",
+            hide_price: listing.hide_price ?? false,
             area: listing.area ? String(listing.area) : "",
             rooms: listing.rooms ? String(listing.rooms) : "",
             bedrooms: listing.bedrooms ? String(listing.bedrooms) : "",
@@ -88,6 +92,7 @@ export default function PostListingPage() {
             wilaya: listing.wilaya || "",
             commune: listing.commune || "",
             address: listing.address || "",
+            hide_location: listing.hide_location ?? true,
             images: listing.images || [],
             contact_name: listing.contact_name || "",
             contact_phone: listing.contact_phone || "",
@@ -336,35 +341,21 @@ export default function PostListingPage() {
                   <div>
                     <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.priceLabel}</Label>
                     <SmartPriceInput
-                      listingType={form.listing_type}
-                      value={form.price}
-                      onChange={v => set("price", v)}
-                      lang={lang}
-                    />
+                        listingType={form.listing_type}
+                        value={form.price}
+                        onChange={v => set("price", v)}
+                        lang={lang}
+                      />
+                    {LISTING_CONFIG.ALLOW_HIDE_PRICE && (
+                      <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                        <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-emerald-600" />
+                        <span className="text-xs text-gray-500">{lang === "ar" ? "إخفاء السعر (اتصل لمعرفة السعر)" : lang === "fr" ? "Masquer le prix (Prix sur demande)" : "Hide price (Contact for price)"}</span>
+                      </label>
+                    )}
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.areaLabel}</Label>
-                    <Input type="number" value={form.area} onChange={e => set("area", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="m²" />
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.rooms}</Label>
-                    <Input type="number" value={form.rooms} onChange={e => set("rooms", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="0" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.bedrooms}</Label>
-                    <Input type="number" value={form.bedrooms} onChange={e => set("bedrooms", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="0" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.bathrooms}</Label>
-                    <Input type="number" value={form.bathrooms} onChange={e => set("bathrooms", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="0" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.floor}</Label>
-                    <Input type="number" value={form.floor} onChange={e => set("floor", e.target.value)} className="border-gray-200 focus:border-emerald-400" placeholder="0" />
-                  </div>
-                </div>
 
-                <div>
+                  <div>
                   <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.furnished}</Label>
                   <Select value={form.furnished} onValueChange={v => set("furnished", v)}>
                     <SelectTrigger className="border-gray-200">
@@ -463,6 +454,16 @@ export default function PostListingPage() {
                     placeholder={form.commune ? `${form.commune}${form.wilaya ? ", " + form.wilaya : ""}...` : ""}
                   />
                 </div>
+
+                {LISTING_CONFIG.ALLOW_HIDE_LOCATION && (
+                  <label className="flex items-center gap-2 cursor-pointer select-none bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    <input type="checkbox" checked={form.hide_location} onChange={e => set("hide_location", e.target.checked)} className="accent-emerald-600" />
+                    <div>
+                      <span className="text-sm font-medium text-gray-700">{lang === "ar" ? "إخفاء الموقع التفصيلي" : lang === "fr" ? "Masquer l'emplacement exact" : "Hide exact location"}</span>
+                      <p className="text-xs text-gray-400 mt-0.5">{lang === "ar" ? "سيُعرض الولاية فقط. يمكن للمهتمين طلب العنوان." : lang === "fr" ? "Seule la wilaya sera affichée. Les acheteurs peuvent demander l'adresse." : "Only the wilaya will be shown publicly. Interested buyers can request the address."}</p>
+                    </div>
+                  </label>
+                )}
               </div>
             )}
 

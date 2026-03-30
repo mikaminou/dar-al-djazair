@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../constants";
+import { COMMUNES_BY_WILAYA } from "../communesData";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import SmartPriceInput from "../price/SmartPriceInput";
@@ -44,6 +45,9 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
   ];
   const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
   const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w, label: w }))];
+  const communeOptions = filters.wilaya && filters.wilaya !== "all"
+    ? [{ value: "all", label: lang === "ar" ? "كل البلديات" : lang === "fr" ? "Toutes les communes" : "All communes" }, ...(COMMUNES_BY_WILAYA[filters.wilaya] || []).map(c => ({ value: c, label: c }))]
+    : [];
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-4 select-none">
@@ -135,6 +139,40 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           </>
         )}
 
+        {/* Commune filter — appears when a wilaya is selected */}
+        {filters.wilaya && filters.wilaya !== "all" && communeOptions.length > 1 && (
+          isMobile ? (
+            <>
+              <button
+                onClick={() => setDrawerOpen("commune")}
+                className="border border-gray-200 rounded-md px-3 py-2 text-sm text-gray-600 text-left"
+              >
+                {communeOptions.find(o => o.value === (filters.commune || "all"))?.label}
+              </button>
+              <SelectDrawer
+                open={drawerOpen === "commune"}
+                onOpenChange={(open) => setDrawerOpen(open ? "commune" : null)}
+                options={communeOptions}
+                value={filters.commune || "all"}
+                onValueChange={v => update("commune", v === "all" ? "" : v)}
+                label={lang === "ar" ? "البلدية" : lang === "fr" ? "Commune" : "Commune"}
+              />
+            </>
+          ) : (
+            <Select value={filters.commune || "all"} onValueChange={v => update("commune", v === "all" ? "" : v)}>
+              <SelectTrigger className="border-gray-200 select-none">
+                <SelectValue placeholder={lang === "ar" ? "كل البلديات" : lang === "fr" ? "Toutes communes" : "All communes"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="all">{lang === "ar" ? "كل البلديات" : lang === "fr" ? "Toutes les communes" : "All communes"}</SelectItem>
+                {(COMMUNES_BY_WILAYA[filters.wilaya] || []).map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )
+        )}
+
         <SmartPriceInput
           listingType={filters.listing_type || "sale"}
           value={filters.min_price || ""}
@@ -176,7 +214,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* Min bedrooms */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">{t.bedrooms} (min)</label>
+              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "غرف النوم (الحد الأدنى)" : lang === "fr" ? "Chambres (min)" : "Min. bedrooms"}</label>
               <Select value={filters.min_bedrooms || "any"} onValueChange={v => update("min_bedrooms", v === "any" ? "" : v)}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue placeholder="Any" />
@@ -190,7 +228,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
 
             {/* Min bathrooms */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">{t.bathrooms} (min)</label>
+              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "الحمامات (الحد الأدنى)" : lang === "fr" ? "Salles de bain (min)" : "Min. bathrooms"}</label>
               <Select value={filters.min_bathrooms || "any"} onValueChange={v => update("min_bathrooms", v === "any" ? "" : v)}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue placeholder="Any" />
@@ -204,7 +242,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
 
             {/* Min area */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">{t.minArea || "Min Area"} (m²)</label>
+              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "المساحة الدنيا (م²)" : lang === "fr" ? "Surface min (m²)" : "Min. area (m²)"}</label>
               <Input
                 type="number"
                 placeholder="0"
@@ -216,7 +254,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
 
             {/* Furnished */}
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">{t.furnished}</label>
+              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "التأثيث" : lang === "fr" ? "Ameublement" : "Furnished"}</label>
               <Select value={filters.furnished || "any"} onValueChange={v => update("furnished", v === "any" ? "" : v)}>
                 <SelectTrigger className="border-gray-200">
                   <SelectValue placeholder="Any" />

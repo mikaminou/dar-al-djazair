@@ -73,7 +73,10 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
 
         <div className="flex items-center justify-between border-t border-gray-100 pt-3">
           <div>
-            <span className="text-lg font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</span>
+            {listing.hide_price
+              ? <span className="text-sm font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">{lang === "ar" ? "السعر عند الاتصال" : lang === "fr" ? "Prix sur demande" : "Price on request"}</span>
+              : <span className="text-lg font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</span>
+            }
           </div>
           {onToggleCompare && (
             <button
