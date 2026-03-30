@@ -1,0 +1,20 @@
+{
+  "name": "TypingStatus",
+  "type": "object",
+  "properties": {
+    "thread_id": {
+      "type": "string"
+    },
+    "typer_email": {
+      "type": "string"
+    },
+    "typed_at": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "thread_id",
+    "typer_email",
+    "typed_at"
+  ]
+}

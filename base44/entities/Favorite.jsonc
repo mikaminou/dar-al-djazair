@@ -1,0 +1,15 @@
+{
+  "name": "Favorite",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "listing_id"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "slot_id": {
+      "type": "string"
+    },
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string"
+    },
+    "buyer_email": {
+      "type": "string"
+    },
+    "buyer_name": {
+      "type": "string"
+    },
+    "buyer_phone": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string"
+    },
+    "start_time": {
+      "type": "string"
+    },
+    "end_time": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "cancelled"
+      ],
+      "default": "pending"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "listing_id",
+    "agent_email",
+    "buyer_name"
+  ]
+}

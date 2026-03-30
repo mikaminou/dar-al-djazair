@@ -1,0 +1,33 @@
+{
+  "name": "PushSubscription",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who owns this push subscription"
+    },
+    "endpoint": {
+      "type": "string",
+      "description": "Push service endpoint URL from service worker subscription"
+    },
+    "keys_p256dh": {
+      "type": "string",
+      "description": "P256DH key for encryption"
+    },
+    "keys_auth": {
+      "type": "string",
+      "description": "Auth key for encryption"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether this subscription is still valid"
+    }
+  },
+  "required": [
+    "user_email",
+    "endpoint",
+    "keys_p256dh",
+    "keys_auth"
+  ]
+}

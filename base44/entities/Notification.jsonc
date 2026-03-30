@@ -1,0 +1,49 @@
+{
+  "name": "Notification",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "The email of the user who should receive this notification"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "message",
+        "lead_new",
+        "lead_high_priority",
+        "appointment_proposal",
+        "appointment_accepted",
+        "appointment_declined",
+        "appointment_reminder",
+        "listing_match",
+        "tenant_renewal"
+      ],
+      "description": "Type of notification, used to select icon and color"
+    },
+    "title": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "description": "Page + params in format 'PageName?param=value'. Used to navigate on click."
+    },
+    "is_read": {
+      "type": "boolean",
+      "default": false
+    },
+    "ref_id": {
+      "type": "string",
+      "description": "Unique deduplication key. Format: type_entityId. Never create two notifications with the same ref_id."
+    }
+  },
+  "required": [
+    "user_email",
+    "type",
+    "title",
+    "ref_id"
+  ]
+}

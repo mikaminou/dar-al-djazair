@@ -1,0 +1,78 @@
+{
+  "name": "Tenant",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string",
+      "description": "ID of the rental listing"
+    },
+    "property_address": {
+      "type": "string",
+      "description": "Property address for easy reference"
+    },
+    "tenant_name": {
+      "type": "string"
+    },
+    "tenant_phone": {
+      "type": "string"
+    },
+    "rent_amount": {
+      "type": "number",
+      "description": "Amount per payment period"
+    },
+    "period_type": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "trimestrial",
+        "6months",
+        "yearly",
+        "custom"
+      ],
+      "description": "Type of rental period"
+    },
+    "period_months": {
+      "type": "number",
+      "description": "Number of months in the period (for custom periods)"
+    },
+    "total_paid_upfront": {
+      "type": "number",
+      "description": "Total amount paid for the current period"
+    },
+    "period_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "period_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Auto-calculated from start date and duration"
+    },
+    "special_conditions": {
+      "type": "string",
+      "description": "Any special conditions or notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "ended"
+      ],
+      "default": "active"
+    },
+    "landlord_email": {
+      "type": "string",
+      "description": "Email of the landlord who owns this tenant record"
+    }
+  },
+  "required": [
+    "listing_id",
+    "property_address",
+    "tenant_name",
+    "rent_amount",
+    "period_type",
+    "total_paid_upfront",
+    "period_start_date",
+    "landlord_email"
+  ]
+}
