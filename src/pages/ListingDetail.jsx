@@ -222,20 +222,19 @@ export default function ListingDetailPage() {
                 </div>
               </div>
               <div className="flex flex-col gap-1 flex-1">
-                {[1,2,3,4].map(i => (
-                  images[i] ? (
+                {images.slice(1, 5).map((img, idx) => {
+                  const i = idx + 1;
+                  return (
                     <div key={i} className="relative flex-1 cursor-zoom-in overflow-hidden" onClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}>
-                      <img src={images[i]} alt="" className="w-full h-full object-cover hover:scale-[1.05] transition-transform duration-300" />
+                      <img src={img} alt="" className="w-full h-full object-cover hover:scale-[1.05] transition-transform duration-300" />
                       {i === 4 && images.length > 5 && (
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                           <span className="text-white font-semibold text-sm">+{images.length - 5}</span>
                         </div>
                       )}
                     </div>
-                  ) : (
-                    <div key={i} className="flex-1 bg-gray-100" />
-                  )
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
