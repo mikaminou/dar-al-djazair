@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SmartPriceInput from "../price/SmartPriceInput";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../constants";
 import { COMMUNES_BY_WILAYA } from "../communesData";
@@ -165,19 +166,19 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           </Button>
         </div>
 
-        {/* Price slider — always visible, compact */}
+        {/* Price slider — range, no max input */}
         <div className="px-1 pt-1">
-          <RangeFilter
-            min={0}
-            max={200_000_000}
-            step={500_000}
-            minValue={filters.min_price || ""}
-            maxValue={filters.max_price || ""}
-            onMinChange={v => update("min_price", v)}
-            onMaxChange={v => update("max_price", v)}
-            unit="DZD"
-            label={lang === "ar" ? "السعر" : lang === "fr" ? "Prix" : "Price"}
-          />
+        <RangeFilter
+          min={0}
+          max={200_000_000}
+          step={500_000}
+          minValue={filters.min_price || ""}
+          maxValue=""
+          onMinChange={v => update("min_price", v)}
+          onMaxChange={() => {}}
+          unit="DZD"
+          label={lang === "ar" ? "السعر" : lang === "fr" ? "Prix" : "Price"}
+        />
         </div>
       </div>
 
@@ -278,6 +279,21 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Max price — using smart input */}
+          <div>
+            <label className="text-xs text-gray-500 font-medium mb-2 block">
+              {lang === "ar" ? "السعر الأقصى" : lang === "fr" ? "Prix maximum" : "Max price"}
+            </label>
+            <SmartPriceInput
+              listingType={filters.listing_type || "sale"}
+              value={filters.max_price ? Number(filters.max_price) : ""}
+              onChange={v => update("max_price", v)}
+              lang={lang}
+              placeholder={lang === "ar" ? "أدخل السعر الأقصى" : lang === "fr" ? "Entrez le prix max" : "Enter max price"}
+              className="h-10"
+            />
           </div>
 
           {/* Amenities */}
