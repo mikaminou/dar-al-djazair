@@ -22,6 +22,7 @@ export default function PostListingPage() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [authChecked, setAuthChecked] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [editingId, setEditingId] = useState(null); // null = create, string = edit mode
@@ -167,9 +168,22 @@ export default function PostListingPage() {
   };
 
   async function uploadImages(files) {
+    setUploadError("");
+    const fileList = Array.from(files);
+    const remaining = LISTING_CONFIG.MAX_IMAGES - form.images.length;
+    if (remaining <= 0) {
+      setUploadError(lang === "ar" ? `الحد الأقصى ${LISTING_CONFIG.MAX_IMAGES} صور` : lang === "fr" ? `Maximum ${LISTING_CONFIG.MAX_IMAGES} photos autorisées` : `Maximum ${LISTING_CONFIG.MAX_IMAGES} images allowed`);
+      return;
+    }
+    const toUpload = fileList.slice(0, remaining);
+    const oversized = toUpload.filter(f => f.size > LISTING_CONFIG.MAX_IMAGE_SIZE_MB * 1024 * 1024);
+    if (oversized.length > 0) {
+      setUploadError(lang === "ar" ? `حجم الصورة يجب أن يكون أقل من ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} ميغابايت` : lang === "fr" ? `Taille max par photo : ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} Mo` : `Each image must be under ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} MB`);
+      return;
+    }
     setUploadingImages(true);
     const urls = [];
-    for (const file of Array.from(files)) {
+    for (const file of toUpload) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       urls.push(file_url);
     }
@@ -470,14 +484,19 @@ export default function PostListingPage() {
             {/* STEP 3: Photos */}
             {step === 3 && (
               <div className="space-y-4">
-                <label className={`block border-2 border-dashed rounded-xl p-10 text-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all ${uploadingImages ? "opacity-50 pointer-events-none" : ""}`}>
+                <label className={`block border-2 border-dashed rounded-xl p-10 text-center cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all ${uploadingImages || form.images.length >= LISTING_CONFIG.MAX_IMAGES ? "opacity-50 pointer-events-none" : ""}`}>
                   <Upload className="w-9 h-9 text-emerald-400 mx-auto mb-3" />
                   <p className="text-sm font-medium text-gray-700">
                     {lang === "ar" ? "اضغط لرفع الصور" : lang === "fr" ? "Cliquez pour ajouter des photos" : "Click to upload photos"}
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">JPG, PNG, WEBP — max 10 {lang === "ar" ? "صور" : lang === "fr" ? "photos" : "photos"}</p>
-                  <input type="file" multiple accept="image/*" className="hidden" onChange={e => uploadImages(e.target.files)} />
+                  <p className="text-xs text-gray-400 mt-1">
+                    JPG, PNG, WEBP — max {LISTING_CONFIG.MAX_IMAGE_SIZE_MB} MB — {form.images.length}/{LISTING_CONFIG.MAX_IMAGES} {lang === "ar" ? "صور" : lang === "fr" ? "photos" : "images"}
+                  </p>
+                  <input type="file" multiple accept={LISTING_CONFIG.ACCEPTED_IMAGE_TYPES.join(",")} className="hidden" onChange={e => uploadImages(e.target.files)} />
                 </label>
+                {uploadError && (
+                  <p className="text-sm text-red-500 text-center">{uploadError}</p>
+                )}
                 {uploadingImages && (
                   <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
                     <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
