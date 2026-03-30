@@ -18,7 +18,7 @@ import VerificationSection from "../components/trust/VerificationSection";
 import ReviewsSection from "../components/trust/ReviewsSection";
 import MobileHeader from "../components/MobileHeader";
 
-const inputCls = "dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
+const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block";
 
 export default function ProfilePage() {
