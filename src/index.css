@@ -40,38 +40,62 @@
   }
 
   .dark {
-    --background: 222 18% 7%;
-    --foreground: 0 0% 96%;
-    --card: 222 14% 10%;
-    --card-foreground: 0 0% 96%;
-    --popover: 222 14% 10%;
-    --popover-foreground: 0 0% 96%;
-    --primary: 0 0% 96%;
-    --primary-foreground: 222 18% 7%;
-    --secondary: 222 12% 16%;
-    --secondary-foreground: 0 0% 92%;
-    --muted: 222 12% 16%;
-    --muted-foreground: 0 0% 72%;
-    --accent: 222 12% 16%;
-    --accent-foreground: 0 0% 96%;
-    --destructive: 0 55% 42%;
-    --destructive-foreground: 214 16% 93%;
-    --border: 222 12% 19%;
-    --input: 222 12% 19%;
-    --ring: 215 20% 65%;
-    --chart-1: 220 65% 58%;
-    --chart-2: 160 50% 45%;
-    --chart-3: 30 70% 55%;
-    --chart-4: 280 55% 60%;
-    --chart-5: 340 65% 55%;
-    --sidebar-background: 222 18% 8%;
-    --sidebar-foreground: 214 12% 85%;
-    --sidebar-primary: 214 16% 90%;
-    --sidebar-primary-foreground: 222 18% 7%;
-    --sidebar-accent: 222 12% 14%;
-    --sidebar-accent-foreground: 214 12% 85%;
-    --sidebar-border: 222 12% 19%;
-    --sidebar-ring: 215 20% 65%;
+    /* Base */
+    --background: 222 20% 6%;            /* deeper, cleaner base */
+    --foreground: 210 20% 92%;           /* soft white */
+
+    /* Surfaces (CLEAR hierarchy) */
+    --card: 222 16% 10%;                 /* level 1 */
+    --card-foreground: 210 20% 92%;
+
+    --popover: 222 16% 12%;              /* level 2 (slightly higher) */
+    --popover-foreground: 210 20% 92%;
+
+    /* Primary (keep strong contrast) */
+    --primary: 210 20% 92%;
+    --primary-foreground: 222 20% 6%;
+
+    /* Secondary / muted layers */
+    --secondary: 222 14% 16%;            /* distinct from card */
+    --secondary-foreground: 210 15% 85%;
+
+    --muted: 222 14% 14%;
+    --muted-foreground: 215 12% 65%;
+
+    /* Accent */
+    --accent: 222 14% 18%;
+    --accent-foreground: 210 20% 92%;
+
+    /* Destructive (less aggressive red) */
+    --destructive: 0 60% 50%;
+    --destructive-foreground: 210 20% 95%;
+
+    /* Borders & inputs (IMPORTANT for depth) */
+    --border: 222 12% 22%;               /* more visible */
+    --input: 222 12% 20%;
+
+    /* Focus ring (slightly vibrant for UX) */
+    --ring: 160 70% 45%;
+
+    /* Charts (more vibrant for dark mode) */
+    --chart-1: 200 70% 55%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 35 80% 55%;
+    --chart-4: 280 60% 65%;
+    --chart-5: 340 70% 60%;
+
+    /* Sidebar (separated from main UI) */
+    --sidebar-background: 222 20% 8%;
+    --sidebar-foreground: 210 15% 85%;
+
+    --sidebar-primary: 210 20% 92%;
+    --sidebar-primary-foreground: 222 20% 6%;
+
+    --sidebar-accent: 222 14% 14%;
+    --sidebar-accent-foreground: 210 15% 85%;
+
+    --sidebar-border: 222 12% 20%;
+    --sidebar-ring: 160 70% 45%;
   }
 }
 
@@ -126,7 +150,7 @@
 
   /* Dark mode: cards and panels */
   .dark [class*="bg-white"] {
-    background-color: #13161c;
+  background-color: hsl(var(--card));
   }
 
   /* Ensure select option text is readable in dark mode */
