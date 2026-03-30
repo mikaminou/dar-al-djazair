@@ -27,7 +27,7 @@ function NavContent({ currentPageName, children }) {
       base44.auth.me().then(u => {
         if (u) {
           setUser(u);
-          if (!u.full_name) setShowOnboarding(true);
+          if (!u.first_name) setShowOnboarding(true);
         }
       }).catch(() => {});
     }, 200);
