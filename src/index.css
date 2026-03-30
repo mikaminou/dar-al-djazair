@@ -4,128 +4,81 @@
 
 @layer base {
   :root {
-    /* Base */
     --background: 0 0% 100%;
-    --foreground: 0 0% 5%; /* stronger black for readability */
-
-    /* Surfaces */
+    --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 5%;
-
+    --card-foreground: 0 0% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 5%;
-
-    /* Primary */
-    --primary: 0 0% 10%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 98%;
-
-    /* Secondary / muted */
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 10%;
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 35%; /* FIX: less washed out */
-
-    /* Accent */
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 10%;
-
-    /* Destructive */
-    --destructive: 0 84% 60%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-
-    /* Borders & inputs */
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-
-    /* Focus */
-    --ring: 0 0% 10%;
-
-    /* Charts */
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-
     --radius: 0.5rem;
-
-    /* Sidebar */
     --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5% 26%;
-
-    --sidebar-primary: 240 6% 10%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 240 6% 10%;
-
-    --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    /* Base */
-    --background: 222 20% 6%;
-    --foreground: 210 20% 92%;
-
-    /* Surfaces */
-    --card: 222 16% 10%;
-    --card-foreground: 210 20% 92%;
-
-    --popover: 222 16% 12%;
-    --popover-foreground: 210 20% 92%;
-
-    /* Primary */
-    --primary: 210 20% 92%;
-    --primary-foreground: 222 20% 6%;
-
-    /* Secondary */
-    --secondary: 222 14% 16%;
-    --secondary-foreground: 210 15% 85%;
-
-    --muted: 222 14% 14%;
-    --muted-foreground: 215 12% 65%;
-
-    /* Accent */
-    --accent: 222 14% 18%;
-    --accent-foreground: 210 20% 92%;
-
-    /* Destructive */
-    --destructive: 0 60% 50%;
-    --destructive-foreground: 210 20% 95%;
-
-    /* Borders */
-    --border: 222 12% 22%;
-    --input: 222 12% 20%;
-
-    /* Focus */
-    --ring: 160 70% 45%;
-
-    /* Charts */
-    --chart-1: 200 70% 55%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 35 80% 55%;
-    --chart-4: 280 60% 65%;
-    --chart-5: 340 70% 60%;
-
-    /* Sidebar */
-    --sidebar-background: 222 20% 8%;
-    --sidebar-foreground: 210 15% 85%;
-
-    --sidebar-primary: 210 20% 92%;
-    --sidebar-primary-foreground: 222 20% 6%;
-
-    --sidebar-accent: 222 14% 14%;
-    --sidebar-accent-foreground: 210 15% 85%;
-
-    --sidebar-border: 222 12% 20%;
-    --sidebar-ring: 160 70% 45%;
+    /* Deep gray base — no pure black */
+    --background: 222 18% 7%;
+    --foreground: 160 20% 93%;
+    --card: 222 14% 10%;
+    --card-foreground: 160 20% 93%;
+    --popover: 222 14% 10%;
+    --popover-foreground: 160 20% 93%;
+    --primary: 160 20% 95%;
+    --primary-foreground: 222 18% 7%;
+    --secondary: 222 12% 15%;
+    --secondary-foreground: 160 20% 90%;
+    --muted: 222 12% 15%;
+    --muted-foreground: 160 12% 68%;
+    --accent: 222 12% 15%;
+    --accent-foreground: 214 16% 90%;
+    --destructive: 0 55% 42%;
+    --destructive-foreground: 214 16% 93%;
+    --border: 222 12% 19%;
+    --input: 222 12% 19%;
+    --ring: 215 20% 65%;
+    --chart-1: 220 65% 58%;
+    --chart-2: 160 50% 45%;
+    --chart-3: 30 70% 55%;
+    --chart-4: 280 55% 60%;
+    --chart-5: 340 65% 55%;
+    --sidebar-background: 222 18% 8%;
+    --sidebar-foreground: 214 12% 85%;
+    --sidebar-primary: 214 16% 90%;
+    --sidebar-primary-foreground: 222 18% 7%;
+    --sidebar-accent: 222 12% 14%;
+    --sidebar-accent-foreground: 214 12% 85%;
+    --sidebar-border: 222 12% 19%;
+    --sidebar-ring: 215 20% 65%;
   }
 }
 
+
+
 @layer base {
-  /* Minimal global rules (SAFE) */
   * {
     @apply border-border outline-ring/50;
   }
@@ -134,66 +87,52 @@
     @apply bg-background text-foreground;
   }
 
-  /* Ensure correct text everywhere (FIX for grey text bug) */
-  p, span, div, label, input, textarea, select {
-    color: hsl(var(--foreground));
-  }
-
-  /* Smooth transitions (no global bg override bug) */
+  /* Smooth theme transitions — no flash */
   html {
     transition: background-color 0.2s ease, color 0.15s ease;
   }
 
-  body, header, nav, footer, aside {
-    transition: background-color 0.2s ease,
-                border-color 0.15s ease,
-                color 0.15s ease,
-                box-shadow 0.2s ease;
+  body, header, nav, footer, aside,
+  .bg-white, .bg-gray-50, .bg-gray-100,
+  [class*="bg-"] {
+    transition: background-color 0.2s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.2s ease;
   }
 
-  /* Light mode form fix */
-  input,
-  textarea,
-  select {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-  }
-
-  /* Dark mode forms */
+  /* Dark mode: native form elements */
   .dark input,
   .dark textarea,
   .dark select {
-    background-color: hsl(var(--input));
-    color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
+    background-color: #1a1d24;
+    color: #f0fdf4;
+    border-color: #2e3240;
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: hsl(var(--muted-foreground));
+    color: #8ba89e;
   }
 
   .dark input:focus,
   .dark textarea:focus,
   .dark select:focus {
     outline: none;
-    border-color: hsl(var(--ring));
-    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.3);
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3);
   }
 
-  /* Labels */
+  /* Dark mode: form labels */
   .dark label {
-    color: hsl(var(--foreground));
+    color: #d1fae5;
   }
 
-  /* Cards fix (safe) */
-  .dark .bg-white {
-    background-color: hsl(var(--card));
+  /* Dark mode: cards and panels */
+  .dark [class*="bg-white"] {
+    background-color: #13161c;
   }
 
-  /* Select options */
+  /* Ensure select option text is readable in dark mode */
   .dark select option {
-    background-color: hsl(var(--input));
-    color: hsl(var(--foreground));
+    background-color: #1a1d24;
+    color: #e5e7eb;
   }
 }
