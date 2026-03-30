@@ -63,6 +63,9 @@ export default function ProfilePage() {
       phone: userInfo?.phone || "",
       bio: userInfo?.bio || "",
       agency_name: userInfo?.agency_name || "",
+      owner_full_name: userInfo?.owner_full_name || "",
+      professional_type: userInfo?.professional_type || "",
+      years_of_experience: userInfo?.years_of_experience ?? "",
       wilaya: userInfo?.wilaya || "",
       website: userInfo?.website || "",
       avatar_url: userInfo?.avatar_url || "",
@@ -190,7 +193,12 @@ export default function ProfilePage() {
                   {isProfessional && (
                     <Badge className="bg-blue-100 text-blue-700 mt-1">
                       <Building2 className="w-3 h-3 mr-1" />
-                      {lang === "ar" ? "محترف عقاري" : lang === "fr" ? "Professionnel immobilier" : "Real Estate Professional"}
+                      {profileUser.professional_type === 'agence_immobiliere'
+                        ? (lang === 'ar' ? 'وكالة عقارية' : lang === 'fr' ? 'Agence immobilière' : 'Real Estate Agency')
+                        : profileUser.professional_type === 'promoteur'
+                        ? (lang === 'ar' ? 'مرقي عقاري' : lang === 'fr' ? 'Promoteur immobilier' : 'Property Developer')
+                        : (lang === 'ar' ? 'محترف عقاري' : lang === 'fr' ? 'Professionnel immobilier' : 'Real Estate Professional')}
+                      {profileUser.years_of_experience ? ` · ${profileUser.years_of_experience} ${lang === 'ar' ? 'سنة' : lang === 'fr' ? 'ans' : 'yrs'}` : ''}
                     </Badge>
                   )}
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500">
@@ -259,12 +267,36 @@ export default function ProfilePage() {
             <div className="mt-6 border-t pt-6 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {isProfessional && (
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">
-                      {lang === "ar" ? "اسم النشاط التجاري" : lang === "fr" ? "Nom de l'entreprise" : "Business Name"}
-                    </label>
-                    <Input value={form.agency_name} onChange={e => setForm(p => ({ ...p, agency_name: e.target.value }))} />
-                  </div>
+                  <>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        {lang === "ar" ? "اسم المالك" : lang === "fr" ? "Nom du propriétaire" : "Owner Name"}
+                      </label>
+                      <Input value={form.owner_full_name} onChange={e => setForm(p => ({ ...p, owner_full_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        {lang === "ar" ? "اسم النشاط التجاري" : lang === "fr" ? "Nom de l'entreprise" : "Business Name"}
+                      </label>
+                      <Input value={form.agency_name} onChange={e => setForm(p => ({ ...p, agency_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        {lang === "ar" ? "نوع المحترف" : lang === "fr" ? "Type de professionnel" : "Professional Type"}
+                      </label>
+                      <select value={form.professional_type} onChange={e => setForm(p => ({ ...p, professional_type: e.target.value }))} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">—</option>
+                        <option value="agence_immobiliere">{lang === "ar" ? "وكالة عقارية" : lang === "fr" ? "Agence immobilière" : "Real Estate Agency"}</option>
+                        <option value="promoteur">{lang === "ar" ? "مرقي عقاري" : lang === "fr" ? "Promoteur immobilier" : "Property Developer"}</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        {lang === "ar" ? "سنوات الخبرة" : lang === "fr" ? "Années d'expérience" : "Years of Experience"}
+                      </label>
+                      <Input type="number" min="0" max="60" value={form.years_of_experience} onChange={e => setForm(p => ({ ...p, years_of_experience: e.target.value }))} placeholder="0" />
+                    </div>
+                  </>
                 )}
                 <div>
                   <label className="text-xs font-medium text-gray-600 mb-1 block">

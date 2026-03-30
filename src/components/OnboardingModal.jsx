@@ -12,8 +12,11 @@ import { User, Building2, Camera } from 'lucide-react';
 export default function OnboardingModal({ user, lang, onComplete }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [ownerFullName, setOwnerFullName] = useState('');
   const [accountType, setAccountType] = useState(user?.role === 'professional' ? 'professional' : 'user');
   const [agencyName, setAgencyName] = useState(user?.agency_name || '');
+  const [professionalType, setProfessionalType] = useState('');
+  const [yearsOfExperience, setYearsOfExperience] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarPreview, setAvatarPreview] = useState('');
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -22,19 +25,24 @@ export default function OnboardingModal({ user, lang, onComplete }) {
   const fileInputRef = useRef();
 
   const t = {
-    title:       { en: 'Complete your profile', fr: 'Complétez votre profil', ar: 'أكمل ملفك الشخصي' },
-    subtitle:    { en: 'Tell us a bit about yourself to get started.', fr: 'Dites-nous qui vous êtes pour commencer.', ar: 'أخبرنا قليلاً عن نفسك للبدء.' },
-    firstName:   { en: 'First Name', fr: 'Prénom', ar: 'الاسم الأول' },
-    lastName:    { en: 'Last Name', fr: 'Nom de famille', ar: 'اللقب' },
-    accountType: { en: 'Account Type', fr: 'Type de compte', ar: 'نوع الحساب' },
-    individual:    { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
-    professional:  { en: 'Professional / Agency', fr: 'Professionnel / Agence', ar: 'محترف / وكالة' },
-    agencyName:    { en: 'Business Name', fr: "Nom de l'entreprise", ar: 'اسم النشاط التجاري' },
-    avatar:      { en: 'Profile Photo', fr: 'Photo de profil', ar: 'صورة الملف الشخصي' },
-    optional:    { en: 'Optional', fr: 'Facultatif', ar: 'اختياري' },
-    note:        { en: 'Account type cannot be changed after this step.', fr: 'Le type de compte ne peut pas être modifié après cette étape.', ar: 'لا يمكن تغيير نوع الحساب بعد هذه الخطوة.' },
-    save:        { en: 'Get Started', fr: 'Commencer', ar: 'ابدأ' },
-    required:    { en: 'This field is required.', fr: 'Ce champ est obligatoire.', ar: 'هذا الحقل مطلوب.' },
+    title:            { en: 'Complete your profile', fr: 'Complétez votre profil', ar: 'أكمل ملفك الشخصي' },
+    subtitle:         { en: 'Tell us a bit about yourself to get started.', fr: 'Dites-nous qui vous êtes pour commencer.', ar: 'أخبرنا قليلاً عن نفسك للبدء.' },
+    firstName:        { en: 'First Name', fr: 'Prénom', ar: 'الاسم الأول' },
+    lastName:         { en: 'Last Name', fr: 'Nom de famille', ar: 'اللقب' },
+    ownerFullName:    { en: 'Owner Name', fr: 'Nom du propriétaire', ar: 'اسم المالك' },
+    accountType:      { en: 'Account Type', fr: 'Type de compte', ar: 'نوع الحساب' },
+    individual:       { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
+    professional:     { en: 'Professional / Agency', fr: 'Professionnel / Agence', ar: 'محترف / وكالة' },
+    agencyName:       { en: 'Business Name', fr: "Nom de l'entreprise", ar: 'اسم النشاط التجاري' },
+    professionalType: { en: 'Professional Type', fr: 'Type de professionnel', ar: 'نوع المحترف' },
+    agenceImmobiliere:{ en: 'Real Estate Agency', fr: 'Agence immobilière', ar: 'وكالة عقارية' },
+    promoteur:        { en: 'Property Developer', fr: 'Promoteur immobilier', ar: 'مرقي عقاري' },
+    yearsOfExp:       { en: 'Years of Experience', fr: "Années d'expérience", ar: 'سنوات الخبرة' },
+    avatar:           { en: 'Profile Photo', fr: 'Photo de profil', ar: 'صورة الملف الشخصي' },
+    optional:         { en: 'Optional', fr: 'Facultatif', ar: 'اختياري' },
+    note:             { en: 'Account type cannot be changed after this step.', fr: 'Le type de compte ne peut pas être modifié après cette étape.', ar: 'لا يمكن تغيير نوع الحساب بعد هذه الخطوة.' },
+    save:             { en: 'Get Started', fr: 'Commencer', ar: 'ابدأ' },
+    required:         { en: 'This field is required.', fr: 'Ce champ est obligatoire.', ar: 'هذا الحقل مطلوب.' },
   };
   const tx = k => t[k]?.[lang] || t[k]?.en;
   const isRtl = lang === 'ar';
@@ -52,19 +60,30 @@ export default function OnboardingModal({ user, lang, onComplete }) {
   async function handleSubmit(e) {
     e.preventDefault();
     const errs = {};
-    if (!firstName.trim()) errs.firstName = tx('required');
-    if (!lastName.trim()) errs.lastName = tx('required');
-    if (accountType === 'professional' && !agencyName.trim()) errs.agencyName = tx('required');
+    if (accountType === 'professional') {
+      if (!ownerFullName.trim()) errs.ownerFullName = tx('required');
+      if (!agencyName.trim()) errs.agencyName = tx('required');
+    } else {
+      if (!firstName.trim()) errs.firstName = tx('required');
+      if (!lastName.trim()) errs.lastName = tx('required');
+    }
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
     setSaving(true);
     const updates = {
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
       role: accountType,
       plan: accountType === 'professional' ? 'premium' : 'free',
     };
-    if (accountType === 'professional') updates.agency_name = agencyName.trim();
+    if (accountType === 'professional') {
+      updates.owner_full_name = ownerFullName.trim();
+      updates.first_name = ownerFullName.trim();
+      updates.agency_name = agencyName.trim();
+      if (professionalType) updates.professional_type = professionalType;
+      if (yearsOfExperience) updates.years_of_experience = Number(yearsOfExperience);
+    } else {
+      updates.first_name = firstName.trim();
+      updates.last_name = lastName.trim();
+    }
     if (avatarUrl) updates.avatar_url = avatarUrl;
 
     await base44.auth.updateMe(updates);
@@ -106,19 +125,27 @@ export default function OnboardingModal({ user, lang, onComplete }) {
             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
 
-          {/* First + Last Name */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Name fields */}
+          {accountType === 'professional' ? (
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('firstName')} *</label>
-              <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={tx('firstName')} className={errors.firstName ? 'border-red-400' : ''} />
-              {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+              <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('ownerFullName')} *</label>
+              <Input value={ownerFullName} onChange={e => setOwnerFullName(e.target.value)} placeholder={tx('ownerFullName')} className={errors.ownerFullName ? 'border-red-400' : ''} />
+              {errors.ownerFullName && <p className="text-xs text-red-500 mt-1">{errors.ownerFullName}</p>}
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('lastName')} *</label>
-              <Input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={tx('lastName')} className={errors.lastName ? 'border-red-400' : ''} />
-              {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('firstName')} *</label>
+                <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={tx('firstName')} className={errors.firstName ? 'border-red-400' : ''} />
+                {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('lastName')} *</label>
+                <Input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={tx('lastName')} className={errors.lastName ? 'border-red-400' : ''} />
+                {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Account Type */}
           <div>
@@ -143,13 +170,29 @@ export default function OnboardingModal({ user, lang, onComplete }) {
             </div>
           </div>
 
-          {/* Agency Name */}
+          {/* Agency Name + Professional Details */}
           {accountType === 'professional' && (
-            <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('agencyName')} *</label>
-              <Input value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder={tx('agencyName')} className={errors.agencyName ? 'border-red-400' : ''} />
-              {errors.agencyName && <p className="text-xs text-red-500 mt-1">{errors.agencyName}</p>}
-            </div>
+            <>
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('agencyName')} *</label>
+                <Input value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder={tx('agencyName')} className={errors.agencyName ? 'border-red-400' : ''} />
+                {errors.agencyName && <p className="text-xs text-red-500 mt-1">{errors.agencyName}</p>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('professionalType')}</label>
+                  <select value={professionalType} onChange={e => setProfessionalType(e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="">—</option>
+                    <option value="agence_immobiliere">{tx('agenceImmobiliere')}</option>
+                    <option value="promoteur">{tx('promoteur')}</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('yearsOfExp')}</label>
+                  <Input type="number" min="0" max="60" value={yearsOfExperience} onChange={e => setYearsOfExperience(e.target.value)} placeholder="0" />
+                </div>
+              </div>
+            </>
           )}
 
           <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">{tx('note')}</p>

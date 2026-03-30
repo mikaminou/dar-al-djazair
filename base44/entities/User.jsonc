@@ -27,6 +27,10 @@
     "last_name": {
       "type": "string"
     },
+    "owner_full_name": {
+      "type": "string",
+      "description": "Full name of the owner/contact person for professional accounts"
+    },
     "phone": {
       "type": "string"
     },
@@ -36,6 +40,19 @@
     "agency_name": {
       "type": "string",
       "description": "Business/agency name for professional accounts"
+    },
+    "professional_type": {
+      "type": "string",
+      "enum": [
+        "agence_immobiliere",
+        "promoteur"
+      ],
+      "description": "Type of professional: real estate agency or property developer"
+    },
+    "years_of_experience": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Years of experience for professional accounts"
     },
     "wilaya": {
       "type": "string"
@@ -69,7 +86,6 @@
     }
   },
   "required": [
-    "first_name",
-    "last_name"
+    "first_name"
   ]
 }
