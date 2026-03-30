@@ -40,38 +40,39 @@
   }
 
   .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Deep gray base — no pure black */
+    --background: 222 18% 7%;
+    --foreground: 214 16% 90%;
+    --card: 222 14% 10%;
+    --card-foreground: 214 16% 90%;
+    --popover: 222 14% 10%;
+    --popover-foreground: 214 16% 90%;
+    --primary: 214 16% 93%;
+    --primary-foreground: 222 18% 7%;
+    --secondary: 222 12% 15%;
+    --secondary-foreground: 214 16% 90%;
+    --muted: 222 12% 15%;
+    --muted-foreground: 215 10% 55%;
+    --accent: 222 12% 15%;
+    --accent-foreground: 214 16% 90%;
+    --destructive: 0 55% 42%;
+    --destructive-foreground: 214 16% 93%;
+    --border: 222 12% 19%;
+    --input: 222 12% 19%;
+    --ring: 215 20% 65%;
+    --chart-1: 220 65% 58%;
+    --chart-2: 160 50% 45%;
+    --chart-3: 30 70% 55%;
+    --chart-4: 280 55% 60%;
+    --chart-5: 340 65% 55%;
+    --sidebar-background: 222 18% 8%;
+    --sidebar-foreground: 214 12% 85%;
+    --sidebar-primary: 214 16% 90%;
+    --sidebar-primary-foreground: 222 18% 7%;
+    --sidebar-accent: 222 12% 14%;
+    --sidebar-accent-foreground: 214 12% 85%;
+    --sidebar-border: 222 12% 19%;
+    --sidebar-ring: 215 20% 65%;
   }
 }
 
@@ -84,5 +85,16 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Smooth theme transitions — no flash */
+  html {
+    transition: background-color 0.2s ease, color 0.15s ease;
+  }
+
+  body, header, nav, footer, aside,
+  .bg-white, .bg-gray-50, .bg-gray-100,
+  [class*="bg-"] {
+    transition: background-color 0.2s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.2s ease;
   }
 }

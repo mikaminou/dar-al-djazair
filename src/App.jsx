@@ -1,4 +1,5 @@
 import React, { Suspense } from 'react';
+import { ThemeProvider } from '@/lib/ThemeContext';
 import { motion } from 'framer-motion';
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -121,8 +122,6 @@ const AuthenticatedApp = () => {
 
 
 function App() {
-  const [darkMode, setDarkMode] = React.useState(false);
-
   React.useEffect(() => {
     // Load PushAlert script
     const script = document.createElement('script');
@@ -131,42 +130,25 @@ function App() {
     script.src = 'https://cdn.pushalert.co/unified_184a83a152fc56a7d267677aabe26150.js';
     document.head.appendChild(script);
 
-    // Register service worker for PushAlert
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
-        // Silent fail if sw.js not available - PushAlert handles this
-      });
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
   }, []);
-
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setDarkMode(mediaQuery.matches);
-    const handler = (e) => setDarkMode(e.matches);
-    mediaQuery.addEventListener("change", handler);
-    return () => mediaQuery.removeEventListener("change", handler);
-  }, []);
-
-  React.useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <TabNavigationProvider>
-            <AuthenticatedApp />
-          </TabNavigationProvider>
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
-  )
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <TabNavigationProvider>
+              <AuthenticatedApp />
+            </TabNavigationProvider>
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ThemeProvider>
+  );
 }
 
 export default App

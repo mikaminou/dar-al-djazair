@@ -6,6 +6,7 @@ import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, 
 import UserAvatar from "./components/UserAvatar";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
 import SavedSearchAlerts from "./components/SavedSearchAlerts";
+import ThemeToggle from "./components/ThemeToggle";
 import NotificationBell from "./components/notifications/NotificationBell";
 import OnboardingModal from "./components/OnboardingModal";
 import VerificationBanner from "./components/VerificationBanner";
@@ -40,7 +41,7 @@ function NavContent({ currentPageName, children }) {
   const isRtl = lang === "ar";
 
   return (
-    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0 select-none">
+    <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen flex flex-col bg-gray-50 dark:bg-[#0f1115] pb-20 md:pb-0 select-none">
       <style>{`
         :root { --primary: #059669; }
         body { font-family: ${isRtl ? "'Cairo', 'Amiri', sans-serif" : "'Inter', sans-serif"}; overscroll-behavior: none; }
@@ -48,7 +49,7 @@ function NavContent({ currentPageName, children }) {
       `}</style>
 
       {/* NAVBAR — hidden on mobile */}
-      <header className="hidden md:block bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm select-none">
+      <header className="hidden md:block bg-white dark:bg-[#13161c] border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50 shadow-sm dark:shadow-none select-none">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3 md:gap-4">
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit min-h-[44px] select-none rounded">
@@ -113,6 +114,9 @@ function NavContent({ currentPageName, children }) {
             >
               <Heart className="w-5 h-5" />
             </Link>
+
+            {/* Theme Toggle */}
+            <ThemeToggle lang={lang} />
 
             {/* Language Picker */}
             <DropdownMenu>
@@ -221,7 +225,7 @@ function NavContent({ currentPageName, children }) {
 
         {/* Mobile menu — only shows on md down with navbar */}
         {menuOpen && (
-          <div className="hidden md:flex border-t border-gray-100 bg-white px-4 py-3 space-y-1 select-none">
+          <div className="hidden md:flex border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#13161c] px-4 py-3 space-y-1 select-none">
             {navLinks.map(link => (
               <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)} className="block px-4 py-2 min-h-[44px] flex items-center text-sm font-medium text-gray-700 hover:bg-emerald-50 rounded-lg">
                 {link.label}
@@ -251,7 +255,7 @@ function NavContent({ currentPageName, children }) {
       <VerificationBanner user={user} lang={lang} />
 
       {/* MOBILE HEADER */}
-      <header className="md:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
+      <header className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-[#13161c] border-b border-gray-100 dark:border-gray-800 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <div className="flex items-center">
           <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
           <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
@@ -300,7 +304,7 @@ function NavContent({ currentPageName, children }) {
 
       {/* MOBILE BOTTOM NAV — Floating Pill with Centered Plus Button */}
       <nav className="fixed bottom-4 left-4 right-4 md:hidden z-40 select-none">
-        <div className="bg-white border border-gray-200 rounded-3xl shadow-lg flex justify-around items-center px-2 py-3">
+        <div className="bg-white dark:bg-[#13161c] border border-gray-200 dark:border-gray-700 rounded-3xl shadow-lg dark:shadow-2xl flex justify-around items-center px-2 py-3">
           {/* Home */}
           <Link 
             to={createPageUrl("Home")} 
@@ -373,7 +377,7 @@ function NavContent({ currentPageName, children }) {
 
       {/* FOOTER — hidden on mobile for logged-in users unless on home */}
       {(!user || location.pathname === "/" || location.pathname === createPageUrl("Home")) && (
-        <footer className="bg-gray-900 text-gray-400 pt-10 pb-5">
+        <footer className="bg-gray-900 dark:bg-[#0a0c10] text-gray-400 pt-10 pb-5">
           <div className="max-w-6xl mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
               <div>
