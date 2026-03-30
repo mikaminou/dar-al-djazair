@@ -9,6 +9,7 @@ import { COMMUNES_BY_WILAYA } from "../communesData";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import SmartPriceInput from "../price/SmartPriceInput";
+import RangeFilter from "../filters/RangeFilter";
 
 const BEDROOMS_OPTIONS = ["1", "2", "3", "4", "5+"];
 const FURNISHED_OPTIONS = [
@@ -173,21 +174,18 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           )
         )}
 
-        <SmartPriceInput
-          listingType={filters.listing_type || "sale"}
-          value={filters.min_price || ""}
-          onChange={v => update("min_price", v)}
-          lang={lang}
-          placeholder={t.minPrice}
-        />
-
-        <SmartPriceInput
-          listingType={filters.listing_type || "sale"}
-          value={filters.max_price || ""}
-          onChange={v => update("max_price", v)}
-          lang={lang}
-          placeholder={t.maxPrice}
-        />
+        <div className="col-span-2 md:col-span-2">
+          <RangeFilter
+            mode="numeric"
+            minValue={filters.min_price || ""}
+            maxValue={filters.max_price || ""}
+            onMinChange={v => update("min_price", v)}
+            onMaxChange={v => update("max_price", v)}
+            minPlaceholder={t.minPrice}
+            maxPlaceholder={t.maxPrice}
+            unit="DZD"
+          />
+        </div>
 
         <Button onClick={onSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 select-none">
           <Search className="w-4 h-4" />
@@ -211,52 +209,36 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* Advanced panel */}
       {showAdvanced && (
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {/* Min bedrooms */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RangeFilter
+              mode="discrete"
+              label={lang === "ar" ? "غرف النوم (الحد الأدنى)" : lang === "fr" ? "Chambres (min)" : "Min. bedrooms"}
+              options={BEDROOMS_OPTIONS.map(n => ({ value: n, label: n }))}
+              selectedMin={filters.min_bedrooms || ""}
+              onSelectMin={v => update("min_bedrooms", v)}
+              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
+            />
+            <RangeFilter
+              mode="discrete"
+              label={lang === "ar" ? "الحمامات (الحد الأدنى)" : lang === "fr" ? "Salles de bain (min)" : "Min. bathrooms"}
+              options={["1","2","3","4+"].map(n => ({ value: n, label: n }))}
+              selectedMin={filters.min_bathrooms || ""}
+              onSelectMin={v => update("min_bathrooms", v)}
+              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
+            />
+            <RangeFilter
+              mode="numeric"
+              label={lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}
+              minValue={filters.min_area || ""}
+              onMinChange={v => update("min_area", v)}
+              minPlaceholder={lang === "ar" ? "الحد الأدنى" : lang === "fr" ? "Min" : "Min"}
+              maxPlaceholder={lang === "ar" ? "الحد الأقصى" : lang === "fr" ? "Max" : "Max"}
+              unit="m²"
+            />
             <div>
-              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "غرف النوم (الحد الأدنى)" : lang === "fr" ? "Chambres (min)" : "Min. bedrooms"}</label>
-              <Select value={filters.min_bedrooms || "any"} onValueChange={v => update("min_bedrooms", v === "any" ? "" : v)}>
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue placeholder="Any" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">{lang === "ar" ? "أي عدد" : lang === "fr" ? "N'importe" : "Any"}</SelectItem>
-                  {BEDROOMS_OPTIONS.map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Min bathrooms */}
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "الحمامات (الحد الأدنى)" : lang === "fr" ? "Salles de bain (min)" : "Min. bathrooms"}</label>
-              <Select value={filters.min_bathrooms || "any"} onValueChange={v => update("min_bathrooms", v === "any" ? "" : v)}>
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue placeholder="Any" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">{lang === "ar" ? "أي عدد" : lang === "fr" ? "N'importe" : "Any"}</SelectItem>
-                  {["1","2","3","4+"].map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Min area */}
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "المساحة الدنيا (م²)" : lang === "fr" ? "Surface min (m²)" : "Min. area (m²)"}</label>
-              <Input
-                type="number"
-                placeholder="0"
-                value={filters.min_area || ""}
-                onChange={e => update("min_area", e.target.value)}
-                className="border-gray-200"
-              />
-            </div>
-
-            {/* Furnished */}
-            <div>
-              <label className="text-xs text-gray-500 mb-1 block">{lang === "ar" ? "التأثيث" : lang === "fr" ? "Ameublement" : "Furnished"}</label>
+              <label className="text-xs text-gray-500 mb-1.5 block font-medium">{lang === "ar" ? "التأثيث" : lang === "fr" ? "Ameublement" : "Furnished"}</label>
               <Select value={filters.furnished || "any"} onValueChange={v => update("furnished", v === "any" ? "" : v)}>
-                <SelectTrigger className="border-gray-200">
+                <SelectTrigger className="border-gray-200 h-9 text-sm">
                   <SelectValue placeholder="Any" />
                 </SelectTrigger>
                 <SelectContent>
