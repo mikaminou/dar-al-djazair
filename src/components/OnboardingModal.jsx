@@ -10,8 +10,7 @@ import { User, Building2, Camera } from 'lucide-react';
  * Account type is stored as role and CANNOT be changed later via profile edit.
  */
 export default function OnboardingModal({ user, lang, onComplete }) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [fullName, setFullName] = useState('');
   const [ownerFullName, setOwnerFullName] = useState('');
   const [accountType, setAccountType] = useState(user?.role === 'professional' ? 'professional' : 'user');
   const [agencyName, setAgencyName] = useState(user?.agency_name || '');
@@ -27,8 +26,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
   const t = {
     title:            { en: 'Complete your profile', fr: 'Complétez votre profil', ar: 'أكمل ملفك الشخصي' },
     subtitle:         { en: 'Tell us a bit about yourself to get started.', fr: 'Dites-nous qui vous êtes pour commencer.', ar: 'أخبرنا قليلاً عن نفسك للبدء.' },
-    firstName:        { en: 'First Name', fr: 'Prénom', ar: 'الاسم الأول' },
-    lastName:         { en: 'Last Name', fr: 'Nom de famille', ar: 'اللقب' },
+    fullName:         { en: 'Full Name', fr: 'Nom complet', ar: 'الاسم الكامل' },
     ownerFullName:    { en: 'Owner Name', fr: 'Nom du propriétaire', ar: 'اسم المالك' },
     accountType:      { en: 'Account Type', fr: 'Type de compte', ar: 'نوع الحساب' },
     individual:       { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
@@ -64,8 +62,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
       if (!ownerFullName.trim()) errs.ownerFullName = tx('required');
       if (!agencyName.trim()) errs.agencyName = tx('required');
     } else {
-      if (!firstName.trim()) errs.firstName = tx('required');
-      if (!lastName.trim()) errs.lastName = tx('required');
+      if (!fullName.trim()) errs.fullName = tx('required');
     }
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
 
@@ -81,8 +78,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
       if (professionalType) updates.professional_type = professionalType;
       if (yearsOfExperience) updates.years_of_experience = Number(yearsOfExperience);
     } else {
-      updates.first_name = firstName.trim();
-      updates.last_name = lastName.trim();
+      updates.first_name = fullName.trim();
     }
     if (avatarUrl) updates.avatar_url = avatarUrl;
 
@@ -133,17 +129,10 @@ export default function OnboardingModal({ user, lang, onComplete }) {
               {errors.ownerFullName && <p className="text-xs text-red-500 mt-1">{errors.ownerFullName}</p>}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('firstName')} *</label>
-                <Input value={firstName} onChange={e => setFirstName(e.target.value)} placeholder={tx('firstName')} className={errors.firstName ? 'border-red-400' : ''} />
-                {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName}</p>}
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('lastName')} *</label>
-                <Input value={lastName} onChange={e => setLastName(e.target.value)} placeholder={tx('lastName')} className={errors.lastName ? 'border-red-400' : ''} />
-                {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName}</p>}
-              </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('fullName')} *</label>
+              <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder={tx('fullName')} className={errors.fullName ? 'border-red-400' : ''} />
+              {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
             </div>
           )}
 
