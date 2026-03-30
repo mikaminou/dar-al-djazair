@@ -23,16 +23,19 @@ function applyClientFilters(data, filters) {
   return data.filter(l => {
     if (filters.min_price && l.price < Number(filters.min_price)) return false;
     if (filters.max_price && l.price > Number(filters.max_price)) return false;
-    if (filters.min_area  && l.area < Number(filters.min_area))   return false;
-    if (filters.furnished && l.furnished !== filters.furnished)    return false;
-    if (filters.min_bedrooms) {
-      const min = filters.min_bedrooms === "5+" ? 5 : Number(filters.min_bedrooms);
-      if ((l.bedrooms || 0) < min) return false;
+    if (filters.min_area  && l.area  < Number(filters.min_area))  return false;
+    if (filters.max_area  && l.area  > Number(filters.max_area))  return false;
+    if (filters.bedrooms) {
+      const n = parseInt(filters.bedrooms);
+      const isPlus = filters.bedrooms.endsWith("+");
+      if (isPlus ? (l.bedrooms || 0) < n : (l.bedrooms || 0) !== n) return false;
     }
-    if (filters.min_bathrooms) {
-      const min = filters.min_bathrooms === "4+" ? 4 : Number(filters.min_bathrooms);
-      if ((l.bathrooms || 0) < min) return false;
+    if (filters.bathrooms) {
+      const n = parseInt(filters.bathrooms);
+      const isPlus = filters.bathrooms.endsWith("+");
+      if (isPlus ? (l.bathrooms || 0) < n : (l.bathrooms || 0) !== n) return false;
     }
+    if (filters.furnished && l.furnished !== filters.furnished) return false;
     if (filters.features?.length) {
       if (!filters.features.every(f => (l.features || []).includes(f))) return false;
     }
@@ -65,8 +68,9 @@ export default function ListingsPage() {
       min_price:      params.get("min_price") || "",
       max_price:      params.get("max_price") || "",
       min_area:       "",
-      min_bedrooms:   "",
-      min_bathrooms:  "",
+      max_area:       "",
+      bedrooms:       "",
+      bathrooms:      "",
       furnished:      "",
       features:       [],
     };
@@ -90,7 +94,7 @@ export default function ListingsPage() {
   }
 
   function filtersMatch(savedFilters, currentFilters) {
-    const keys = ["listing_type", "property_type", "wilaya", "min_price", "max_price", "min_area", "min_bedrooms", "min_bathrooms", "furnished"];
+    const keys = ["listing_type", "property_type", "wilaya", "min_price", "max_price", "min_area", "max_area", "bedrooms", "bathrooms", "furnished"];
     for (const k of keys) {
       const a = savedFilters?.[k] || "";
       const b = currentFilters?.[k] || "";
@@ -167,9 +171,8 @@ export default function ListingsPage() {
 
   function generateSearchName(f, fs, l) {
     const parts = [];
-    if (f.min_bedrooms) {
-      const n = f.min_bedrooms === "5+" ? "5+" : f.min_bedrooms;
-      parts.push(l === "ar" ? `${n} غرف` : l === "fr" ? `${n} ch.` : `${n}-bedroom`);
+    if (f.bedrooms) {
+      parts.push(l === "ar" ? `${f.bedrooms} غرف` : l === "fr" ? `${f.bedrooms} ch.` : `${f.bedrooms}-bedroom`);
     }
     if (f.property_type) {
       const pt = { apartment: { en: "apartment", fr: "appartement", ar: "شقة" }, house: { en: "house", fr: "maison", ar: "منزل" }, villa: { en: "villa", fr: "villa", ar: "فيلا" }, land: { en: "land", fr: "terrain", ar: "أرض" }, commercial: { en: "commercial", fr: "commercial", ar: "تجاري" }, office: { en: "office", fr: "bureau", ar: "مكتب" }, farm: { en: "farm", fr: "ferme", ar: "مزرعة" } };

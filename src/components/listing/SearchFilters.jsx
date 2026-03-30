@@ -35,7 +35,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
   };
 
   const activeAdvancedCount = [
-    filters.min_bedrooms, filters.min_bathrooms, filters.min_area,
+    filters.bedrooms, filters.bathrooms, filters.min_area,
     filters.furnished, ...(filters.features || [])
   ].filter(Boolean).length;
 
@@ -210,29 +210,22 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* Advanced panel */}
       {showAdvanced && (
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-5">
             <RangeFilter
-              min={1}
-              max={10}
-              step={1}
+              mode="discrete"
               label={lang === "ar" ? "غرف النوم" : lang === "fr" ? "Chambres" : "Bedrooms"}
-              minValue={filters.min_bedrooms || ""}
-              maxValue={filters.max_bedrooms || ""}
-              onMinChange={v => update("min_bedrooms", v)}
-              onMaxChange={v => update("max_bedrooms", v)}
-              unit=""
-              formatter={v => `${v}${v >= 10 ? "+" : ""}`}
+              options={["1","2","3","4","5","6+"].map(n => ({ value: n, label: n }))}
+              selectedValue={filters.bedrooms || ""}
+              onSelect={v => update("bedrooms", v)}
+              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
             />
             <RangeFilter
-              min={1}
-              max={6}
-              step={1}
+              mode="discrete"
               label={lang === "ar" ? "الحمامات" : lang === "fr" ? "Salles de bain" : "Bathrooms"}
-              minValue={filters.min_bathrooms || ""}
-              maxValue={filters.max_bathrooms || ""}
-              onMinChange={v => update("min_bathrooms", v)}
-              onMaxChange={v => update("max_bathrooms", v)}
-              unit=""
+              options={["1","2","3","4+"].map(n => ({ value: n, label: n }))}
+              selectedValue={filters.bathrooms || ""}
+              onSelect={v => update("bathrooms", v)}
+              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
             />
             <RangeFilter
               min={0}
@@ -287,7 +280,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           {/* Clear advanced */}
           {activeAdvancedCount > 0 && (
             <button
-              onClick={() => onChange({ ...filters, min_bedrooms: "", max_bedrooms: "", min_bathrooms: "", max_bathrooms: "", min_area: "", max_area: "", furnished: "", features: [] })}
+              onClick={() => onChange({ ...filters, bedrooms: "", bathrooms: "", min_area: "", max_area: "", furnished: "", features: [] })}
               className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
             >
               <X className="w-3 h-3" /> {lang === "ar" ? "مسح الفلاتر المتقدمة" : lang === "fr" ? "Effacer les filtres avancés" : "Clear advanced filters"}

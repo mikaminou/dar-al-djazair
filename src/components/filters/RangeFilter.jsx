@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useState } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 
 function clamp(val, min, max) {
   return Math.min(max, Math.max(min, val));
@@ -19,21 +19,19 @@ function formatLabel(val, unit, formatter) {
 }
 
 /**
- * RangeFilter — dual-handle drag slider for min/max range selection.
+ * RangeFilter — two modes:
  *
- * Props:
- *   label        — string label shown above the slider
- *   min, max     — absolute bounds (numbers)
- *   step         — snap increment (default 1)
- *   minValue     — current min selection (number or "")
- *   maxValue     — current max selection (number or "")
- *   onMinChange  — (value: number|"") => void
- *   onMaxChange  — (value: number|"") => void
- *   unit         — display unit string ("m²", "DZD", etc.)
- *   formatter    — optional (value) => string for custom label formatting
+ * mode="slider"   (default) — dual-handle drag slider for min/max range.
+ *   Props: min, max, step, minValue, maxValue, onMinChange, onMaxChange, unit, formatter
+ *
+ * mode="discrete" — pill buttons for exact single-value selection.
+ *   Props: options ([{ value, label }]), selectedValue, onSelect, anyLabel
  */
 export default function RangeFilter({
   label,
+  mode = "slider",
+
+  // slider mode
   min = 0,
   max = 100,
   step = 1,
@@ -43,9 +41,16 @@ export default function RangeFilter({
   onMaxChange,
   unit = "",
   formatter,
+
+  // discrete mode
+  options = [],
+  selectedValue = "",
+  onSelect,
+  anyLabel = "Any",
 }) {
+  /* ── Slider logic ── */
   const trackRef = useRef(null);
-  const dragging = useRef(null); // "min" | "max" | null
+  const dragging = useRef(null);
 
   const resolvedMin = minValue === "" ? min : Number(minValue);
   const resolvedMax = maxValue === "" ? max : Number(maxValue);
@@ -77,6 +82,7 @@ export default function RangeFilter({
   const stopDrag = useCallback(() => { dragging.current = null; }, []);
 
   useEffect(() => {
+    if (mode !== "slider") return;
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", stopDrag);
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
@@ -87,12 +93,46 @@ export default function RangeFilter({
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", stopDrag);
     };
-  }, [handleMouseMove, handleTouchMove, stopDrag]);
+  }, [mode, handleMouseMove, handleTouchMove, stopDrag]);
 
+  /* ── Render ── */
+  if (mode === "discrete") {
+    return (
+      <div className="select-none">
+        {label && <label className="text-xs text-gray-500 font-medium mb-2 block">{label}</label>}
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            onClick={() => onSelect?.("")}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              !selectedValue
+                ? "bg-emerald-600 text-white border-emerald-600"
+                : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-700"
+            }`}
+          >
+            {anyLabel}
+          </button>
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => onSelect?.(opt.value === selectedValue ? "" : opt.value)}
+              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                selectedValue === opt.value
+                  ? "bg-emerald-600 text-white border-emerald-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-700"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // slider mode
+  const isDefault = minValue === "" && maxValue === "";
   const minPct = getPct(resolvedMin);
   const maxPct = getPct(resolvedMax);
-
-  const isDefault = minValue === "" && maxValue === "";
 
   return (
     <div className="select-none">
@@ -108,12 +148,10 @@ export default function RangeFilter({
         </div>
       )}
 
-      {/* Track */}
       <div
         ref={trackRef}
         className="relative h-1.5 bg-gray-200 rounded-full mx-2 cursor-pointer"
         onClick={(e) => {
-          // Click on track → snap nearest handle
           const val = valueFromClientX(e.clientX);
           const distMin = Math.abs(val - resolvedMin);
           const distMax = Math.abs(val - resolvedMax);
@@ -126,21 +164,16 @@ export default function RangeFilter({
           }
         }}
       >
-        {/* Active range highlight */}
         <div
           className="absolute top-0 h-full bg-emerald-500 rounded-full"
           style={{ left: `${minPct}%`, width: `${maxPct - minPct}%` }}
         />
-
-        {/* Min thumb */}
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-white border-2 border-emerald-500 rounded-full shadow cursor-grab active:cursor-grabbing hover:scale-110 transition-transform z-10"
           style={{ left: `${minPct}%` }}
           onMouseDown={(e) => { e.preventDefault(); dragging.current = "min"; }}
           onTouchStart={() => { dragging.current = "min"; }}
         />
-
-        {/* Max thumb */}
         <div
           className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 bg-white border-2 border-emerald-500 rounded-full shadow cursor-grab active:cursor-grabbing hover:scale-110 transition-transform z-10"
           style={{ left: `${maxPct}%` }}
@@ -149,7 +182,6 @@ export default function RangeFilter({
         />
       </div>
 
-      {/* Min/max labels */}
       <div className="flex justify-between mt-2 text-[10px] text-gray-400">
         <span>{formatLabel(min, unit, formatter)}</span>
         <span>{formatLabel(max, unit, formatter)}</span>
