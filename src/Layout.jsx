@@ -292,28 +292,65 @@ function NavContent({ currentPageName, children }) {
               <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 select-none">
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
-            </DropdownMenuItem>
-            {isPro && (<>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-              <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
-            </DropdownMenuItem>
-            </>)}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
-              {t.signOut}
-            </DropdownMenuItem>
+          <DropdownMenuContent align="end" className="w-56 select-none">
+            {user ? (
+              <>
+                <div className="px-3 py-2 text-xs text-gray-500 truncate">{user.email}</div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Profile")}>{lang === "ar" ? "ملفي الشخصي" : lang === "fr" ? "Mon profil" : "My Profile"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Messages")}>{t.messages}</Link>
+                </DropdownMenuItem>
+                {isPro && (<>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("OwnerDashboard")}>{lang === "ar" ? "لوحة التحليلات" : lang === "fr" ? "Tableau de bord" : "Analytics Dashboard"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("Availability")}>{lang === "ar" ? "مواعيد الزيارة" : lang === "fr" ? "Mes Disponibilités" : "My Availability"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("TenantManagement")}>{lang === "ar" ? "إدارة المستأجرين" : lang === "fr" ? "Gestion des locataires" : "Tenant Management"}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to={createPageUrl("RentalIncomeDashboard")}>{lang === "ar" ? "لوحة دخل الإيجار" : lang === "fr" ? "Revenu Locatif" : "Rental Income"}</Link>
+                </DropdownMenuItem>
+                </>)}
+                {user?.role === "admin" && (
+                  <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                    <Link to={createPageUrl("AdminVerification")}>{lang === "ar" ? "التحقق من الحسابات" : lang === "fr" ? "Vérifications" : "Verifications"}</Link>
+                  </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
+                  {t.signOut}
+                </DropdownMenuItem>
+              </>
+            ) : (
+              <DropdownMenuItem onClick={() => base44.auth.redirectToLogin()} className="min-h-[44px] flex items-center select-none">
+                {t.signIn}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
           </DropdownMenu>
         </div>
