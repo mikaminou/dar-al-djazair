@@ -122,7 +122,7 @@ export default function HomePage() {
                 <SelectContent>
                   <SelectItem value="all">{t.allWilayas}</SelectItem>
                   {WILAYAS.map(w => (
-                    <SelectItem key={w} value={w}>{w}</SelectItem>
+                    <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
