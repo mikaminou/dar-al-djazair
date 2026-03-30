@@ -21,16 +21,17 @@ export default function HomePage() {
 
   async function loadData() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
-    const [listingsData, favsData] = await Promise.all([
-      base44.entities.Listing.filter({ status: "active" }, "-created_date", 8),
-      me
-        ? base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
-        : Promise.resolve([])
-    ]);
+    const listingsData = await base44.entities.Listing.filter({ status: "active" }, "-created_date", 8).catch(() => []);
     setListings(listingsData);
-    setFavorites(favsData.map(f => f.listing_id));
     setLoading(false);
+    // Fetch favorites separately after a small delay to avoid rate-limiting me() calls
+    setTimeout(async () => {
+      const me = await base44.auth.me().catch(() => null);
+      if (me) {
+        const favsData = await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => []);
+        setFavorites(favsData.map(f => f.listing_id));
+      }
+    }, 500);
   }
 
   async function toggleFavorite(listing) {

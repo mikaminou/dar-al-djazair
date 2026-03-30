@@ -23,12 +23,15 @@ function NavContent({ currentPageName, children }) {
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      if (u) {
-        setUser(u);
-        if (!u.full_name) setShowOnboarding(true);
-      }
-    }).catch(() => {});
+    const timer = setTimeout(() => {
+      base44.auth.me().then(u => {
+        if (u) {
+          setUser(u);
+          if (!u.full_name) setShowOnboarding(true);
+        }
+      }).catch(() => {});
+    }, 200);
+    return () => clearTimeout(timer);
   }, []);
 
   // Global presence heartbeat — runs on every page so online status is accurate
