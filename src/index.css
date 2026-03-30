@@ -40,21 +40,20 @@
   }
 
   .dark {
-    /* Deep gray base — no pure black */
     --background: 222 18% 7%;
-    --foreground: 0 0% 95%;
+    --foreground: 0 0% 96%;
     --card: 222 14% 10%;
-    --card-foreground: 0 0% 95%;
+    --card-foreground: 0 0% 96%;
     --popover: 222 14% 10%;
-    --popover-foreground: 0 0% 95%;
-    --primary: 0 0% 95%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 0% 96%;
     --primary-foreground: 222 18% 7%;
-    --secondary: 222 12% 15%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 222 12% 15%;
-    --muted-foreground: 160 8% 65%;
-    --accent: 222 12% 15%;
-    --accent-foreground: 0 0% 92%;
+    --secondary: 222 12% 16%;
+    --secondary-foreground: 0 0% 92%;
+    --muted: 222 12% 16%;
+    --muted-foreground: 0 0% 72%;
+    --accent: 222 12% 16%;
+    --accent-foreground: 0 0% 96%;
     --destructive: 0 55% 42%;
     --destructive-foreground: 214 16% 93%;
     --border: 222 12% 19%;
@@ -103,13 +102,13 @@
   .dark textarea,
   .dark select {
     background-color: #1a1d24;
-    color: #f0fdf4;
+    color: #f3f4f6;
     border-color: #2e3240;
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: #8ba89e;
+    color: #9ca3af;
   }
 
   .dark input:focus,
@@ -122,7 +121,7 @@
 
   /* Dark mode: form labels */
   .dark label {
-    color: #d1fae5;
+    color: #e5e7eb;
   }
 
   /* Dark mode: cards and panels */
