@@ -20,6 +20,7 @@ import MobileHeader from "../components/MobileHeader";
 
 const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block";
+const selectCls = "w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1d24] text-gray-900 dark:text-gray-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500";
 
 export default function ProfilePage() {
   const { t, lang } = useLang();
@@ -283,7 +284,7 @@ export default function ProfilePage() {
                       <select
                         value={form.professional_type}
                         onChange={e => setForm(p => ({ ...p, professional_type: e.target.value }))}
-                        className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1d24] text-gray-900 dark:text-gray-100 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className={selectCls}
                       >
                         <option value="">—</option>
                         <option value="agence_immobiliere">{lang === "ar" ? "وكالة عقارية" : lang === "fr" ? "Agence immobilière" : "Real Estate Agency"}</option>
@@ -309,7 +310,7 @@ export default function ProfilePage() {
                     {lang === "ar" ? "الولاية" : lang === "fr" ? "Wilaya" : "Wilaya"}
                   </label>
                   <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
-                    <SelectTrigger className="dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
+                    <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
                       <SelectValue placeholder="..." />
                     </SelectTrigger>
                     <SelectContent>
