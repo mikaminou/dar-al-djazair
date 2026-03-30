@@ -387,19 +387,19 @@ export default function PostListingPage() {
                   <Label className="text-sm font-medium text-gray-700 mb-3 block">{t.features}</Label>
                   <div className="flex flex-wrap gap-2">
                     {FEATURES_LIST.map(feat => {
-                      const active = form.features.includes(feat);
+                      const active = form.features.includes(feat.value);
                       return (
                         <button
-                          key={feat}
+                          key={feat.value}
                           type="button"
-                          onClick={() => toggleFeature(feat)}
+                          onClick={() => toggleFeature(feat.value)}
                           className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
                             active
                               ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
                               : "bg-white text-gray-600 border-gray-300 hover:border-emerald-400 hover:text-emerald-600"
                           }`}
                         >
-                          {feat}
+                          {feat.label[lang] || feat.label.fr}
                         </button>
                       );
                     })}
@@ -431,7 +431,7 @@ export default function PostListingPage() {
                       <SelectValue placeholder={lang === "ar" ? "اختر الولاية" : lang === "fr" ? "Sélectionner la wilaya" : "Select a wilaya"} />
                     </SelectTrigger>
                     <SelectContent className="max-h-64">
-                      {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                      {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

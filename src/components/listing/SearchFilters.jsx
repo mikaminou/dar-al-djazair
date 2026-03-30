@@ -44,7 +44,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     { value: "rent", label: t.forRent },
   ];
   const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
-  const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w, label: w }))];
+  const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w.value, label: w.label[lang] || w.label.fr }))];
   const communeOptions = filters.wilaya && filters.wilaya !== "all"
     ? [{ value: "all", label: lang === "ar" ? "كل البلديات" : lang === "fr" ? "Toutes les communes" : "All communes" }, ...(COMMUNES_BY_WILAYA[filters.wilaya] || []).map(c => ({ value: c, label: c }))]
     : [];
@@ -132,7 +132,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
               <SelectContent>
                 <SelectItem value="all">{t.allWilayas}</SelectItem>
                 {WILAYAS.map(w => (
-                  <SelectItem key={w} value={w}>{w}</SelectItem>
+                  <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -274,18 +274,18 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
             <label className="text-xs text-gray-500 mb-2 block">{t.features}</label>
             <div className="flex flex-wrap gap-2">
               {FEATURES_LIST.map(feat => {
-                const active = (filters.features || []).includes(feat);
+                const active = (filters.features || []).includes(feat.value);
                 return (
                   <button
-                    key={feat}
-                    onClick={() => toggleFeature(feat)}
+                    key={feat.value}
+                    onClick={() => toggleFeature(feat.value)}
                     className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
                       active
                         ? "bg-emerald-600 text-white border-emerald-600"
                         : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400 hover:text-emerald-700"
                     }`}
                   >
-                    {feat}
+                    {feat.label[lang] || feat.label.fr}
                   </button>
                 );
               })}
