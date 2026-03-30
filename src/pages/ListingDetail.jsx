@@ -192,71 +192,63 @@ export default function ListingDetailPage() {
         </div>
       )}
 
-      <div className="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* MAIN CONTENT */}
-        <div className="lg:col-span-2 space-y-5">
-          {/* Image Gallery — ImmobilienScout-style grid */}
-          <div className="rounded-2xl overflow-hidden">
-            {images.length === 1 ? (
+      {/* Full-width Image Gallery */}
+      <div className="max-w-6xl mx-auto px-4 pt-6">
+        <div className="rounded-2xl overflow-hidden">
+          {images.length === 1 ? (
+            <div
+              className="relative bg-black h-[320px] md:h-[460px] cursor-zoom-in"
+              onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
+            >
+              <img src={images[0]} alt={listing.title} className="w-full h-full object-cover" />
+              <div className="absolute top-4 left-4 flex gap-2">
+                <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
+                {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
+              </div>
+            </div>
+          ) : (
+            <div className="flex gap-1 h-[320px] md:h-[400px]">
               <div
-                className="relative bg-black h-[320px] md:h-[460px] cursor-zoom-in"
+                className="relative flex-[2] cursor-zoom-in overflow-hidden"
                 onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
               >
-                <img src={images[0]} alt={listing.title} className="w-full h-full object-cover" />
+                <img src={images[0]} alt={listing.title} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
                 <div className="absolute top-4 left-4 flex gap-2">
                   <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
                   {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
                 </div>
-              </div>
-            ) : (
-              <div className="flex gap-1 h-[320px] md:h-[400px]">
-                {/* Large main image */}
-                <div
-                  className="relative flex-[2] cursor-zoom-in overflow-hidden"
-                  onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
-                >
-                  <img src={images[0]} alt={listing.title} className="w-full h-full object-cover hover:scale-[1.02] transition-transform duration-300" />
-                  <div className="absolute top-4 left-4 flex gap-2">
-                    <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
-                    {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
-                  </div>
-                  <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
-                    1 / {images.length}
-                  </div>
-                </div>
-                {/* Right column of 4 thumbnails */}
-                <div className="flex flex-col gap-1 flex-1">
-                  {[1,2,3,4].map(i => (
-                    images[i] ? (
-                      <div
-                        key={i}
-                        className="relative flex-1 cursor-zoom-in overflow-hidden"
-                        onClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}
-                      >
-                        <img src={images[i]} alt="" className="w-full h-full object-cover hover:scale-[1.05] transition-transform duration-300" />
-                        {i === 4 && images.length > 5 && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                            <span className="text-white font-semibold text-sm">+{images.length - 5}</span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div key={i} className="flex-1 bg-gray-100" />
-                    )
-                  ))}
+                <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
+                  1 / {images.length}
                 </div>
               </div>
-            )}
-          </div>
-
-          {galleryOpen && (
-            <FullscreenGallery
-              images={images}
-              initialIndex={galleryIndex}
-              onClose={() => setGalleryOpen(false)}
-            />
+              <div className="flex flex-col gap-1 flex-1">
+                {[1,2,3,4].map(i => (
+                  images[i] ? (
+                    <div key={i} className="relative flex-1 cursor-zoom-in overflow-hidden" onClick={() => { setGalleryIndex(i); setGalleryOpen(true); }}>
+                      <img src={images[i]} alt="" className="w-full h-full object-cover hover:scale-[1.05] transition-transform duration-300" />
+                      {i === 4 && images.length > 5 && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <span className="text-white font-semibold text-sm">+{images.length - 5}</span>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div key={i} className="flex-1 bg-gray-100" />
+                  )
+                ))}
+              </div>
+            </div>
           )}
+        </div>
+        {galleryOpen && (
+          <FullscreenGallery images={images} initialIndex={galleryIndex} onClose={() => setGalleryOpen(false)} />
+        )}
+      </div>
 
+      {/* Content + Sidebar grid */}
+      <div className="max-w-6xl mx-auto px-4 py-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* MAIN CONTENT */}
+        <div className="lg:col-span-2 space-y-5">
           {/* Title & Price */}
           <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
             <div className="flex items-start justify-between gap-3">
