@@ -228,18 +228,23 @@ export default function MessagesPage() {
     return () => clearInterval(interval);
   }, [user]);
 
-  // ---- other user's presence ----
+  // ---- other user's presence — poll + subscribe ----
   useEffect(() => {
     if (!activeThread?.other) { setOtherPresence(null); return; }
     base44.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
       setOtherPresence(r[0] || null);
     }).catch(() => {});
+    const poll = setInterval(() => {
+      base44.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
+        setOtherPresence(r[0] || null);
+      }).catch(() => {});
+    }, 15000);
     const unsub = base44.entities.UserPresence.subscribe(event => {
-      if ((event.data?.user_email || event.data?.user_email) === activeThread.other) {
+      if (event.data?.user_email === activeThread.other) {
         setOtherPresence(event.data);
       }
     });
-    return unsub;
+    return () => { clearInterval(poll); unsub(); };
   }, [activeThread?.other]);
 
   // ---- real-time message subscription ----
@@ -256,7 +261,6 @@ export default function MessagesPage() {
             if (prev.find(p => p.id === m.id)) return prev;
             return [...prev, m];
           });
-          // Fetch listing title/status if not already known
           if (m.listing_id) {
             setListingsMap(prev => {
               if (prev[m.listing_id]) return prev;
@@ -270,13 +274,11 @@ export default function MessagesPage() {
               return prev;
             });
           }
-          // If this message is addressed to me
           if (m.recipient_email === user.email) {
             const tid = m.thread_id || getThreadId(m.listing_id, m.sender_email, m.recipient_email);
             if (activeThreadRef.current?.thread_id === tid) {
               markThreadRead([m]);
             } else {
-              // App not focused or different thread → push notification
               showBrowserNotification(m.sender_email, m.content);
             }
           }
@@ -284,7 +286,6 @@ export default function MessagesPage() {
       }
       if (event.type === "update") {
         const updated = event.data || {};
-        // If this message was hidden for me, remove it from local state
         if ((updated.hidden_for || []).includes(user.email)) {
           setMessages(prev => prev.filter(p => p.id !== event.id));
         } else {
@@ -611,12 +612,33 @@ export default function MessagesPage() {
     if (diffMs < 10 * 60 * 1000) return "away";
     return "offline";
   }
+  function getLastSeenLabel(presence, lang) {
+    if (!presence?.last_seen) return null;
+    const diffMs = Date.now() - new Date(presence.last_seen).getTime();
+    const mins = Math.floor(diffMs / 60000);
+    const hrs = Math.floor(mins / 60);
+    const days = Math.floor(hrs / 24);
+    if (diffMs < 2 * 60 * 1000) return null; // online, no last seen needed
+    if (lang === "ar") {
+      if (mins < 60) return `آخر ظهور منذ ${mins} دقيقة`;
+      if (hrs < 24) return `آخر ظهور منذ ${hrs} ساعة`;
+      return `آخر ظهور منذ ${days} يوم`;
+    }
+    if (lang === "fr") {
+      if (mins < 60) return `Vu il y a ${mins} min`;
+      if (hrs < 24) return `Vu il y a ${hrs}h`;
+      return `Vu il y a ${days}j`;
+    }
+    if (mins < 60) return `Last seen ${mins}m ago`;
+    if (hrs < 24) return `Last seen ${hrs}h ago`;
+    return `Last seen ${days}d ago`;
+  }
   const presenceStatus = activeThread ? getPresenceStatus(otherPresence) : null;
-  const presenceDot = { online: "bg-emerald-500", away: "bg-amber-400", offline: "bg-gray-300" };
+  const presenceDot = { online: "bg-emerald-500", away: "bg-amber-400", offline: "bg-gray-300 dark:bg-gray-600" };
   const presenceLabel = {
-    online: { en: "Online", fr: "En ligne", ar: "متصل" },
-    away:   { en: "Away", fr: "Absent", ar: "بعيد" },
-    offline:{ en: "Offline", fr: "Hors ligne", ar: "غير متصل" },
+    online:  { en: "Online", fr: "En ligne", ar: "متصل الآن" },
+    away:    { en: "Away", fr: "Absent", ar: "بعيد" },
+    offline: null, // replaced by last seen text
   };
 
   function getUnavailableNoticeText() {
@@ -762,11 +784,15 @@ export default function MessagesPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                    <div className="flex items-center gap-2">
-                     <p className="font-semibold text-sm text-gray-800">{usersMap[activeThread.other] || activeThread.other?.split("@")[0]}</p>
+                     <p className="font-semibold text-sm text-gray-800 dark:text-gray-100">{usersMap[activeThread.other] || activeThread.other?.split("@")[0]}</p>
                      {presenceStatus && (
                        <span className="flex items-center gap-1 text-[10px] text-gray-400">
                          <span className={`w-2 h-2 rounded-full inline-block ${presenceDot[presenceStatus]}`} />
-                         {presenceLabel[presenceStatus]?.[lang] || presenceLabel[presenceStatus]?.en}
+                         {presenceStatus === "online"
+                           ? (presenceLabel.online[lang] || presenceLabel.online.en)
+                           : presenceStatus === "away"
+                           ? (presenceLabel.away[lang] || presenceLabel.away.en)
+                           : (getLastSeenLabel(otherPresence, lang) || (lang === "ar" ? "غير متصل" : lang === "fr" ? "Hors ligne" : "Offline"))}
                        </span>
                      )}
                    </div>

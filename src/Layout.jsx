@@ -18,17 +18,24 @@ import {
 function NavContent({ currentPageName, children }) {
   const { t, lang, changeLang } = useLang();
   const [user, setUser] = useState(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [createMenuOpen, setCreateMenuOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const location = useLocation();
 
+  // Global presence heartbeat — runs on every page so online status is accurate
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u && !u.first_name) setShowOnboarding(true);
-    }).catch(() => {});
-  }, []);
+    if (!user) return;
+    async function ping() {
+      const { base44: b44 } = await import('@/api/base44Client');
+      const now = new Date().toISOString();
+      const existing = await b44.entities.UserPresence.filter({ user_email: user.email }).catch(() => []);
+      if (existing.length > 0) {
+        b44.entities.UserPresence.update(existing[0].id, { last_seen: now }).catch(() => {});
+      } else {
+        b44.entities.UserPresence.create({ user_email: user.email, last_seen: now }).catch(() => {});
+      }
+    }
+    ping();
+    const interval = setInterval(ping, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const isPro = user?.role === "professional" || user?.role === "admin";
 
