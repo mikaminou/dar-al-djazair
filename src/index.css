@@ -97,4 +97,42 @@
   [class*="bg-"] {
     transition: background-color 0.2s ease, border-color 0.15s ease, color 0.15s ease, box-shadow 0.2s ease;
   }
+
+  /* Dark mode: native form elements */
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: #1a1d24;
+    color: #e5e7eb;
+    border-color: #2e3240;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #6b7280;
+  }
+
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    outline: none;
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3);
+  }
+
+  /* Dark mode: form labels */
+  .dark label {
+    color: #9ca3af;
+  }
+
+  /* Dark mode: cards and panels */
+  .dark [class*="bg-white"] {
+    background-color: #13161c;
+  }
+
+  /* Ensure select option text is readable in dark mode */
+  .dark select option {
+    background-color: #1a1d24;
+    color: #e5e7eb;
+  }
 }
