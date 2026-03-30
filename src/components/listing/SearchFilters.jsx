@@ -176,14 +176,15 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
 
         <div className="col-span-2 md:col-span-2">
           <RangeFilter
-            mode="numeric"
+            min={0}
+            max={200_000_000}
+            step={500_000}
             minValue={filters.min_price || ""}
             maxValue={filters.max_price || ""}
             onMinChange={v => update("min_price", v)}
             onMaxChange={v => update("max_price", v)}
-            minPlaceholder={t.minPrice}
-            maxPlaceholder={t.maxPrice}
             unit="DZD"
+            label={lang === "ar" ? "السعر" : lang === "fr" ? "Prix" : "Price"}
           />
         </div>
 
@@ -209,30 +210,39 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* Advanced panel */}
       {showAdvanced && (
         <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <RangeFilter
-              mode="discrete"
-              label={lang === "ar" ? "غرف النوم (الحد الأدنى)" : lang === "fr" ? "Chambres (min)" : "Min. bedrooms"}
-              options={BEDROOMS_OPTIONS.map(n => ({ value: n, label: n }))}
-              selectedMin={filters.min_bedrooms || ""}
-              onSelectMin={v => update("min_bedrooms", v)}
-              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
+              min={1}
+              max={10}
+              step={1}
+              label={lang === "ar" ? "غرف النوم" : lang === "fr" ? "Chambres" : "Bedrooms"}
+              minValue={filters.min_bedrooms || ""}
+              maxValue={filters.max_bedrooms || ""}
+              onMinChange={v => update("min_bedrooms", v)}
+              onMaxChange={v => update("max_bedrooms", v)}
+              unit=""
+              formatter={v => `${v}${v >= 10 ? "+" : ""}`}
             />
             <RangeFilter
-              mode="discrete"
-              label={lang === "ar" ? "الحمامات (الحد الأدنى)" : lang === "fr" ? "Salles de bain (min)" : "Min. bathrooms"}
-              options={["1","2","3","4+"].map(n => ({ value: n, label: n }))}
-              selectedMin={filters.min_bathrooms || ""}
-              onSelectMin={v => update("min_bathrooms", v)}
-              anyLabel={lang === "ar" ? "أي" : lang === "fr" ? "N'importe" : "Any"}
+              min={1}
+              max={6}
+              step={1}
+              label={lang === "ar" ? "الحمامات" : lang === "fr" ? "Salles de bain" : "Bathrooms"}
+              minValue={filters.min_bathrooms || ""}
+              maxValue={filters.max_bathrooms || ""}
+              onMinChange={v => update("min_bathrooms", v)}
+              onMaxChange={v => update("max_bathrooms", v)}
+              unit=""
             />
             <RangeFilter
-              mode="numeric"
+              min={0}
+              max={2000}
+              step={10}
               label={lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}
               minValue={filters.min_area || ""}
+              maxValue={filters.max_area || ""}
               onMinChange={v => update("min_area", v)}
-              minPlaceholder={lang === "ar" ? "الحد الأدنى" : lang === "fr" ? "Min" : "Min"}
-              maxPlaceholder={lang === "ar" ? "الحد الأقصى" : lang === "fr" ? "Max" : "Max"}
+              onMaxChange={v => update("max_area", v)}
               unit="m²"
             />
             <div>
@@ -277,7 +287,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           {/* Clear advanced */}
           {activeAdvancedCount > 0 && (
             <button
-              onClick={() => onChange({ ...filters, min_bedrooms: "", min_bathrooms: "", min_area: "", furnished: "", features: [] })}
+              onClick={() => onChange({ ...filters, min_bedrooms: "", max_bedrooms: "", min_bathrooms: "", max_bathrooms: "", min_area: "", max_area: "", furnished: "", features: [] })}
               className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
             >
               <X className="w-3 h-3" /> {lang === "ar" ? "مسح الفلاتر المتقدمة" : lang === "fr" ? "Effacer les filtres avancés" : "Clear advanced filters"}
