@@ -22,6 +22,15 @@ function NavContent({ currentPageName, children }) {
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
+  useEffect(() => {
+    base44.auth.me().then(u => {
+      if (u) {
+        setUser(u);
+        if (!u.full_name) setShowOnboarding(true);
+      }
+    }).catch(() => {});
+  }, []);
+
   // Global presence heartbeat — runs on every page so online status is accurate
   useEffect(() => {
     if (!user) return;
