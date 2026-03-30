@@ -264,9 +264,8 @@ export default function ListingDetailPage() {
                 <h1 className="text-xl font-bold text-gray-900 mb-1">{listing.title}</h1>
                 <div className="flex items-center gap-1 text-gray-500 text-sm">
                   <MapPin className="w-4 h-4" />
-                  {showLocation
-                    ? (listing.commune ? `${listing.commune}, ` : "") + listing.wilaya
-                    : listing.wilaya}
+                  {listing.commune ? `${listing.commune}, ` : ""}{listing.wilaya}
+                  {showLocation && listing.address && <span className="text-gray-400"> — {listing.address}</span>}
                 </div>
               </div>
               <div className="text-right">

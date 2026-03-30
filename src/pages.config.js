@@ -66,6 +66,7 @@ import Profile from './pages/Profile';
 import RentalIncomeDashboard from './pages/RentalIncomeDashboard';
 import SavedSearches from './pages/SavedSearches';
 import TenantManagement from './pages/TenantManagement';
+import RentalContract from './pages/RentalContract';
 import __Layout from './Layout.jsx';
 
 
@@ -89,6 +90,7 @@ export const PAGES = {
     "RentalIncomeDashboard": RentalIncomeDashboard,
     "SavedSearches": SavedSearches,
     "TenantManagement": TenantManagement,
+    "RentalContract": RentalContract,
 }
 
 export const pagesConfig = {

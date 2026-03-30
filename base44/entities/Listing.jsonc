@@ -79,7 +79,7 @@
     "hide_location": {
       "type": "boolean",
       "default": true,
-      "description": "If true, commune, address, and map are hidden from public. Only wilaya is shown."
+      "description": "If true, address and map pin are hidden from public. Wilaya and commune are always visible."
     },
     "latitude": {
       "type": "number"
@@ -106,6 +106,7 @@
         "reserved",
         "sold",
         "rented",
+        "archived",
         "deleted"
       ],
       "default": "active"
