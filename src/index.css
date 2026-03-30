@@ -42,17 +42,17 @@
   .dark {
     /* Deep gray base — no pure black */
     --background: 222 18% 7%;
-    --foreground: 214 16% 90%;
+    --foreground: 160 20% 93%;
     --card: 222 14% 10%;
-    --card-foreground: 214 16% 90%;
+    --card-foreground: 160 20% 93%;
     --popover: 222 14% 10%;
-    --popover-foreground: 214 16% 90%;
-    --primary: 214 16% 93%;
+    --popover-foreground: 160 20% 93%;
+    --primary: 160 20% 95%;
     --primary-foreground: 222 18% 7%;
     --secondary: 222 12% 15%;
-    --secondary-foreground: 214 16% 90%;
+    --secondary-foreground: 160 20% 90%;
     --muted: 222 12% 15%;
-    --muted-foreground: 215 10% 55%;
+    --muted-foreground: 160 12% 68%;
     --accent: 222 12% 15%;
     --accent-foreground: 214 16% 90%;
     --destructive: 0 55% 42%;
@@ -103,13 +103,13 @@
   .dark textarea,
   .dark select {
     background-color: #1a1d24;
-    color: #e5e7eb;
+    color: #f0fdf4;
     border-color: #2e3240;
   }
 
   .dark input::placeholder,
   .dark textarea::placeholder {
-    color: #6b7280;
+    color: #8ba89e;
   }
 
   .dark input:focus,
@@ -122,7 +122,7 @@
 
   /* Dark mode: form labels */
   .dark label {
-    color: #9ca3af;
+    color: #d1fae5;
   }
 
   /* Dark mode: cards and panels */
