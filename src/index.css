@@ -42,19 +42,19 @@
   .dark {
     /* Deep gray base — no pure black */
     --background: 222 18% 7%;
-    --foreground: 160 20% 93%;
+    --foreground: 0 0% 95%;
     --card: 222 14% 10%;
-    --card-foreground: 160 20% 93%;
+    --card-foreground: 0 0% 95%;
     --popover: 222 14% 10%;
-    --popover-foreground: 160 20% 93%;
-    --primary: 160 20% 95%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 0 0% 95%;
     --primary-foreground: 222 18% 7%;
     --secondary: 222 12% 15%;
-    --secondary-foreground: 160 20% 90%;
+    --secondary-foreground: 0 0% 90%;
     --muted: 222 12% 15%;
-    --muted-foreground: 160 12% 68%;
+    --muted-foreground: 160 8% 65%;
     --accent: 222 12% 15%;
-    --accent-foreground: 214 16% 90%;
+    --accent-foreground: 0 0% 92%;
     --destructive: 0 55% 42%;
     --destructive-foreground: 214 16% 93%;
     --border: 222 12% 19%;
