@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../components/constants";
-import { LISTING_CONFIG } from "../components/listing.config";
+import { LISTING_CONFIG } from "../components/listing";
 import { COMMUNES_BY_WILAYA } from "../components/communesData";
 import MobileHeader from "../components/MobileHeader";
 
