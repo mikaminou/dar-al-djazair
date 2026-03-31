@@ -383,30 +383,40 @@ export default function PostListingPage() {
 
             {/* STEP 1: Details */}
             {step === 1 && (
-              <div className="space-y-5">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.titleLabel}</Label>
+              <div className="space-y-6">
+                {/* Title Section */}
+                <div className="bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-100 rounded-2xl p-5">
+                  <Label className="text-sm font-bold text-emerald-900 mb-2.5 block flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✎</span>
+                    {t.titleLabel}
+                  </Label>
                   <Input
                     value={form.title}
                     onChange={e => set("title", e.target.value)}
                     placeholder={lang === "ar" ? "مثال: شقة 3 غرف في وهران" : lang === "fr" ? "Ex: Appartement 3 pièces à Oran" : "Ex: 3-room apartment in Oran"}
-                    className="border-gray-200 focus:border-emerald-400"
+                    className="border-emerald-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200"
                   />
                 </div>
+
+                {/* Description */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.description}</Label>
+                  <Label className="text-sm font-bold text-gray-900 mb-2.5 block flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs">≡</span>
+                    {t.description}
+                  </Label>
                   <Textarea
                     value={form.description}
                     onChange={e => set("description", e.target.value)}
-                    rows={4}
-                    className="border-gray-200 focus:border-emerald-400 resize-none"
+                    rows={3}
+                    className="border-gray-200 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 resize-none"
                     placeholder={lang === "ar" ? "صف العقار بالتفصيل..." : lang === "fr" ? "Décrivez le bien en détail..." : "Describe the property in detail..."}
                   />
                 </div>
 
+                {/* Price & Area */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.priceLabel}</Label>
+                  <div className="border border-purple-100 rounded-xl p-4 bg-purple-50/50">
+                    <Label className="text-xs font-bold text-purple-900 mb-2.5 block">{t.priceLabel}</Label>
                     <SmartPriceInput
                         listingType={form.listing_type}
                         value={form.price}
@@ -414,41 +424,36 @@ export default function PostListingPage() {
                         lang={lang}
                       />
                     {LISTING_CONFIG.ALLOW_HIDE_PRICE && (
-                      <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
-                        <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-emerald-600" />
-                        <span className="text-xs text-gray-500">{lang === "ar" ? "إخفاء السعر (اتصل لمعرفة السعر)" : lang === "fr" ? "Masquer le prix (Prix sur demande)" : "Hide price (Contact for price)"}</span>
+                      <label className="flex items-center gap-2 mt-3 cursor-pointer select-none">
+                        <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-purple-600 w-4 h-4" />
+                        <span className="text-xs text-purple-700 font-medium">{lang === "ar" ? "إخفاء السعر" : lang === "fr" ? "Masquer le prix" : "Hide price"}</span>
                       </label>
                     )}
                   </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}</Label>
-                    <Input type="number" value={form.area} onChange={e => set("area", e.target.value)} placeholder="m²" className="border-gray-200 focus:border-emerald-400" />
+                  <div className="border border-orange-100 rounded-xl p-4 bg-orange-50/50">
+                    <Label className="text-xs font-bold text-orange-900 mb-2.5 block">{lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}</Label>
+                    <Input type="number" value={form.area} onChange={e => set("area", e.target.value)} placeholder="0" className="border-orange-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100" />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "الغرف" : lang === "fr" ? "Pièces" : "Rooms"}</Label>
-                    <Input type="number" min="0" value={form.rooms} onChange={e => set("rooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres" : "Bedrooms"}</Label>
-                    <Input type="number" min="0" value={form.bedrooms} onChange={e => set("bedrooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "حمامات" : lang === "fr" ? "SDB" : "Baths"}</Label>
-                    <Input type="number" min="0" value={form.bathrooms} onChange={e => set("bathrooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "الطابق" : lang === "fr" ? "Étage" : "Floor"}</Label>
-                    <Input type="number" min="0" value={form.floor} onChange={e => set("floor", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
+                {/* Rooms Grid */}
+                <div>
+                  <Label className="text-xs font-bold text-gray-700 mb-3 block uppercase tracking-wider">Property Layout</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[{label: lang === "ar" ? "الغرف" : lang === "fr" ? "Pièces" : "Rooms", key: "rooms", color: "emerald"}, {label: lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres" : "Bedrooms", key: "bedrooms", color: "blue"}, {label: lang === "ar" ? "حمامات" : lang === "fr" ? "SDB" : "Baths", key: "bathrooms", color: "cyan"}, {label: lang === "ar" ? "الطابق" : lang === "fr" ? "Étage" : "Floor", key: "floor", color: "indigo"}].map(field => (
+                      <div key={field.key} className={`border border-${field.color}-100 rounded-lg p-3 bg-${field.color}-50/40`}>
+                        <p className={`text-xs font-bold text-${field.color}-900 mb-2`}>{field.label}</p>
+                        <Input type="number" min="0" value={form[field.key]} onChange={e => set(field.key, e.target.value)} placeholder="0" className={`border-${field.color}-200 focus:border-${field.color}-400 focus:ring-2 focus:ring-${field.color}-100 text-center text-lg font-bold`} />
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                  <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.furnished}</Label>
+                {/* Furnished Status */}
+                <div className="border border-amber-100 rounded-xl p-4 bg-amber-50/50">
+                  <Label className="text-xs font-bold text-amber-900 mb-2.5 block">{t.furnished}</Label>
                   <Select value={form.furnished} onValueChange={v => set("furnished", v)}>
-                    <SelectTrigger className="border-gray-200">
+                    <SelectTrigger className="border-amber-200 focus:ring-2 focus:ring-amber-100">
                       <SelectValue placeholder={lang === "ar" ? "اختر..." : lang === "fr" ? "Choisir..." : "Select..."} />
                     </SelectTrigger>
                     <SelectContent>
@@ -459,9 +464,12 @@ export default function PostListingPage() {
                   </Select>
                 </div>
 
+                {/* Features/Amenities */}
                 <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-3 block">{t.features}</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <Label className="text-xs font-bold text-gray-700 mb-3.5 block uppercase tracking-wider">
+                    {lang === "ar" ? "✦ المميزات" : lang === "fr" ? "✦ Caractéristiques" : "✦ Amenities"}
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                     {FEATURES_LIST.map(feat => {
                       const active = form.features.includes(feat.value);
                       return (
@@ -469,10 +477,10 @@ export default function PostListingPage() {
                           key={feat.value}
                           type="button"
                           onClick={() => toggleFeature(feat.value)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          className={`px-4 py-3 rounded-lg text-sm font-semibold border-2 transition-all transform hover:scale-105 ${
                             active
-                              ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
-                              : "bg-white text-gray-600 border-gray-300 hover:border-emerald-400 hover:text-emerald-600"
+                              ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-600 shadow-md"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"
                           }`}
                         >
                           {feat.label[lang] || feat.label.fr}
