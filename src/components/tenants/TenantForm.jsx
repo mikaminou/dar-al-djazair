@@ -89,6 +89,7 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
 
   async function handleGeneratePDF() {
     if (!form.tenant_name || !form.period_start_date || !form.rent_amount) return;
+    if (!contractExtras.tenant_id_number || !contractExtras.tenant_address) return;
     setGeneratingPdf(true);
 
     const { jsPDF } = await import("jspdf");
@@ -113,12 +114,48 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     const T = i18n[contractLang] || i18n.fr;
 
     // ── Emerald palette ──
-    const EMERALD = [5, 150, 105];   // #059669
-    const DARK    = [4, 120, 87];    // #047857
-    const GOLD    = [180, 140, 20];  // warm gold for Arabic subtitle
-    const LIGHT   = [209, 250, 229]; // #d1fae5
+    const EMERALD = [5, 150, 105];
+    const DARK    = [4, 120, 87];
+    const GOLD    = [180, 140, 20];
+    const LIGHT   = [209, 250, 229];
     const GRAY    = [107, 114, 128];
     const BLACK   = [17, 24, 39];
+
+    // ── Canvas-based Unicode text renderer (handles Arabic, accented chars, etc.) ──
+    const unicodeImg = (text, { fontSize = 12, color = '#111', bold = false, italic = false, maxWidthPx = 500 } = {}) => {
+      const scale = 3;
+      const h = (fontSize + 12) * scale;
+      const w = maxWidthPx * scale;
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+      const style = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize * scale}px Arial, 'Segoe UI', sans-serif`;
+      ctx.font = style;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, w / 2, h / 2);
+      const measuredW = Math.min(ctx.measureText(text).width + 16 * scale, w);
+      return {
+        dataUrl: canvas.toDataURL('image/png'),
+        widthMm: (measuredW / scale) * 0.35,
+        heightMm: (h / scale) * 0.35
+      };
+    };
+
+    // Helper to add centered unicode text as image
+    const addUnicodeText = (text, yCur, opts = {}) => {
+      const img = unicodeImg(text, opts);
+      doc.addImage(img.dataUrl, 'PNG', W / 2 - img.widthMm / 2, yCur, img.widthMm, img.heightMm, undefined, 'FAST');
+      return yCur + img.heightMm;
+    };
+
+    // Helper for left-aligned unicode text in rows
+    const addUnicodeLeft = (text, xPos, yCur, opts = {}) => {
+      const img = unicodeImg(text, opts);
+      doc.addImage(img.dataUrl, 'PNG', xPos, yCur - img.heightMm * 0.75, img.widthMm, img.heightMm, undefined, 'FAST');
+    };
 
     // ── Try to embed logo ──
     let logoDataUrl = null;
@@ -157,52 +194,55 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.setDrawColor(...EMERALD); doc.setLineWidth(0.8);
     doc.line(MARGIN, 18, W - MARGIN, 18);
 
-    // ── APP BRAND — always "DAR EL DJAZAIR" ──
-    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(36);
-    doc.text("DAR EL DJAZAIR", W / 2, 58, { align: "center" });
+    // ── COVER — all text via canvas for correct Unicode/Arabic rendering ──
+    let cy = 22;
+
+    // "DAR EL DJAZAIR" — app brand (dark green, bold)
+    cy = addUnicodeText("DAR EL DJAZAIR", cy, { fontSize: 34, color: '#047857', bold: true });
+    cy += 1;
 
     // Arabic brand subtitle (gold)
-    doc.setTextColor(...GOLD); doc.setFont("helvetica", "normal"); doc.setFontSize(16);
-    doc.text("دار الجزائر", W / 2, 70, { align: "center" });
+    cy = addUnicodeText("\u062f\u0627\u0631 \u0627\u0644\u062c\u0632\u0627\u0626\u0631", cy, { fontSize: 16, color: '#b48c14' });
+    cy += 3;
 
     // Horizontal rule
     doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
-    doc.line(MARGIN + 20, 78, W - MARGIN - 20, 78);
+    doc.line(MARGIN + 20, cy, W - MARGIN - 20, cy);
+    cy += 6;
 
-    // Contract title in 3 languages
-    doc.setTextColor(...BLACK); doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-    doc.text("CONTRAT DE LOCATION", W / 2, 91, { align: "center" });
-    doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(...GRAY);
-    doc.text("Bail à usage d'habitation", W / 2, 100, { align: "center" });
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
-    doc.text("عقد إيجار سكني  —  Rental Agreement", W / 2, 109, { align: "center" });
+    // Contract title — 3 lines
+    cy = addUnicodeText("CONTRAT DE LOCATION", cy, { fontSize: 13, color: '#111827', bold: true });
+    cy = addUnicodeText("Bail \u00e0 usage d'habitation", cy, { fontSize: 10, color: '#6b7280', italic: true });
+    cy = addUnicodeText("\u0639\u0642\u062f \u0625\u064a\u062c\u0627\u0631 \u0633\u0643\u0646\u064a  \u2014  Rental Agreement", cy, { fontSize: 9, color: '#6b7280' });
+    cy += 3;
 
     // Gold accent line
     doc.setDrawColor(...GOLD); doc.setLineWidth(2);
-    doc.line(MARGIN + 10, 116, W - MARGIN - 10, 116);
+    doc.line(MARGIN + 10, cy, W - MARGIN - 10, cy);
+    cy += 5;
 
     // Agency logo (centered large)
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, 123, 36, 36, undefined, "FAST");
+      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, cy, 36, 36, undefined, "FAST");
+      cy += 40;
     } else {
       doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
-      doc.circle(W / 2, 141, 18, "S");
-      doc.setTextColor(...EMERALD); doc.setFont("helvetica", "bold"); doc.setFontSize(22);
-      doc.text((agencyName[0] || "D").toUpperCase(), W / 2, 146, { align: "center" });
+      doc.circle(W / 2, cy + 18, 18, "S");
+      cy = addUnicodeText((agencyName[0] || "D").toUpperCase(), cy + 14, { fontSize: 22, color: '#059669', bold: true });
+      cy += 8;
     }
 
-    // Ref + date
+    // Ref + date box
     doc.setFillColor(...LIGHT);
-    doc.roundedRect(MARGIN + 20, 168, W - MARGIN * 2 - 40, 18, 2, 2, "F");
-    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-    doc.text(`${T.ref}: ${Date.now().toString(36).toUpperCase()}`, W / 2, 175, { align: "center" });
-    doc.setFont("helvetica", "normal"); doc.setTextColor(...GRAY); doc.setFontSize(8);
-    doc.text(today, W / 2, 181, { align: "center" });
+    doc.roundedRect(MARGIN + 20, cy, W - MARGIN * 2 - 40, 18, 2, 2, "F");
+    const refText = `${T.ref}: ${Date.now().toString(36).toUpperCase()}`;
+    cy = addUnicodeText(refText, cy + 1, { fontSize: 8, color: '#047857', bold: true });
+    cy = addUnicodeText(today, cy - 1, { fontSize: 8, color: '#6b7280' });
+    cy += 2;
 
     // Wilaya
     if (selectedListing?.wilaya) {
-      doc.setTextColor(...GRAY); doc.setFontSize(8);
-      doc.text(selectedListing.wilaya, W / 2, 192, { align: "center" });
+      cy = addUnicodeText(selectedListing.wilaya, cy, { fontSize: 8, color: '#6b7280' });
     }
 
     // ── FOOTER on cover ──
@@ -240,59 +280,49 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     const row = (label, value, highlight = false) => {
       if (!value) return;
       if (y > 270) { doc.addPage(); y = 20; }
+      // Label (Latin — helvetica ok)
       doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
       doc.setTextColor(...GRAY);
       doc.text(label, MARGIN + 4, y);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
-      doc.setTextColor(highlight ? EMERALD[0] : BLACK[0], highlight ? EMERALD[1] : BLACK[1], highlight ? EMERALD[2] : BLACK[2]);
-      if (highlight) doc.setFont("helvetica", "bold");
-      doc.text(String(value), MARGIN + 60, y);
-      doc.setTextColor(...BLACK); doc.setFont("helvetica", "normal");
-      // Subtle rule
+      // Value — canvas for Unicode safety
+      const valColor = highlight ? '#059669' : '#111827';
+      addUnicodeLeft(String(value), MARGIN + 60, y + 1, { fontSize: 9, color: valColor, bold: highlight });
       doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.2);
       doc.line(MARGIN + 4, y + 2, W - MARGIN - 4, y + 2);
       y += 8;
     };
 
-    // ── PARTIES CARDS (with logo in Bailleur card) ──
-    const cardH = 40;
+    // ── PARTIES CARDS (with logo in Bailleur card, Unicode-safe) ──
+    const cardH = 44;
     // Bailleur card
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(MARGIN, y, 82, cardH, 2, 2, "F");
     doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
     doc.roundedRect(MARGIN, y, 82, cardH, 2, 2, "S");
-    // Label tag
     doc.setFillColor(...EMERALD);
     doc.roundedRect(MARGIN, y, 82, 9, 2, 2, "F");
-    doc.rect(MARGIN, y + 5, 82, 4, "F"); // square bottom corners
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-    doc.text(T.bailleur, MARGIN + 4, y + 6.5);
-    // Logo thumbnail inside card
+    doc.rect(MARGIN, y + 5, 82, 4, "F");
+    addUnicodeLeft(T.bailleur, MARGIN + 3, y + 7.5, { fontSize: 7, color: '#ffffff', bold: true });
     if (logoDataUrl) {
       doc.addImage(logoDataUrl, "JPEG", MARGIN + 60, y + 12, 16, 16, undefined, "FAST");
     }
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(...DARK);
-    doc.text(agencyName || "—", MARGIN + 4, y + 18);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
-    if (landlordPhone) doc.text(landlordPhone, MARGIN + 4, y + 25);
-    if (currentUser?.email) doc.text(currentUser.email, MARGIN + 4, y + 32);
+    addUnicodeLeft(agencyName || "-", MARGIN + 3, y + 19, { fontSize: 9, color: '#047857', bold: true });
+    if (landlordPhone) addUnicodeLeft(landlordPhone, MARGIN + 3, y + 27, { fontSize: 7.5, color: '#6b7280' });
+    if (currentUser?.email) addUnicodeLeft(currentUser.email, MARGIN + 3, y + 34, { fontSize: 7, color: '#6b7280' });
 
     // Locataire card
-    const cx = W - MARGIN - 82;
+    const cx2 = W - MARGIN - 82;
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(cx, y, 82, cardH, 2, 2, "F");
+    doc.roundedRect(cx2, y, 82, cardH, 2, 2, "F");
     doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
-    doc.roundedRect(cx, y, 82, cardH, 2, 2, "S");
+    doc.roundedRect(cx2, y, 82, cardH, 2, 2, "S");
     doc.setFillColor(...DARK);
-    doc.roundedRect(cx, y, 82, 9, 2, 2, "F");
-    doc.rect(cx, y + 5, 82, 4, "F");
-    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-    doc.text(T.locataire, cx + 4, y + 6.5);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(...DARK);
-    doc.text(form.tenant_name, cx + 4, y + 18);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
-    if (form.tenant_phone) doc.text(form.tenant_phone, cx + 4, y + 25);
-    if (contractExtras.tenant_id_number) doc.text(`${T.cin}: ${contractExtras.tenant_id_number}`, cx + 4, y + 32);
+    doc.roundedRect(cx2, y, 82, 9, 2, 2, "F");
+    doc.rect(cx2, y + 5, 82, 4, "F");
+    addUnicodeLeft(T.locataire, cx2 + 3, y + 7.5, { fontSize: 7, color: '#ffffff', bold: true });
+    addUnicodeLeft(form.tenant_name, cx2 + 3, y + 19, { fontSize: 9, color: '#111827', bold: true });
+    if (form.tenant_phone) addUnicodeLeft(form.tenant_phone, cx2 + 3, y + 27, { fontSize: 7.5, color: '#6b7280' });
+    if (contractExtras.tenant_id_number) addUnicodeLeft(`${T.cin}: ${contractExtras.tenant_id_number}`, cx2 + 3, y + 34, { fontSize: 7, color: '#6b7280' });
     y += cardH + 10;
 
     // ── ARTICLE 2: BIEN LOUÉ ──
@@ -539,9 +569,9 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">
-                  {lang === "ar" ? "رقم الهوية" : lang === "fr" ? "N° CIN / Passeport" : "ID Number"}
+                  {lang === "ar" ? "رقم جواز السفر / الهوية" : lang === "fr" ? "N° Passeport / CIN" : "Passport / ID Number"} <span className="text-red-400">*</span>
                 </label>
-                <Input value={contractExtras.tenant_id_number} onChange={e => setContractExtras(p => ({ ...p, tenant_id_number: e.target.value }))} className="border-gray-200 text-sm" />
+                <Input value={contractExtras.tenant_id_number} onChange={e => setContractExtras(p => ({ ...p, tenant_id_number: e.target.value }))} className={`border-gray-200 text-sm ${!contractExtras.tenant_id_number ? "border-orange-300" : ""}`} />
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">
@@ -552,9 +582,9 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
             </div>
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">
-                {lang === "ar" ? "عنوان المستأجر الحالي" : lang === "fr" ? "Adresse actuelle du locataire" : "Tenant's Current Address"}
+                {lang === "ar" ? "عنوان المستأجر الحالي" : lang === "fr" ? "Adresse actuelle du locataire" : "Tenant's Current Address"} <span className="text-red-400">*</span>
               </label>
-              <Input value={contractExtras.tenant_address} onChange={e => setContractExtras(p => ({ ...p, tenant_address: e.target.value }))} className="border-gray-200 text-sm" />
+              <Input value={contractExtras.tenant_address} onChange={e => setContractExtras(p => ({ ...p, tenant_address: e.target.value }))} className={`border-gray-200 text-sm ${!contractExtras.tenant_address ? "border-orange-300" : ""}`} />
             </div>
             <div className="flex gap-2 items-center">
               {/* Language selector */}
@@ -570,7 +600,7 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
                   </button>
                 ))}
               </div>
-              <Button type="button" variant="outline" onClick={handleGeneratePDF} disabled={generatingPdf || !form.tenant_name || !form.period_start_date || !form.rent_amount}
+              <Button type="button" variant="outline" onClick={handleGeneratePDF} disabled={generatingPdf || !form.tenant_name || !form.period_start_date || !form.rent_amount || !contractExtras.tenant_id_number || !contractExtras.tenant_address}
                 className="flex-1 gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
                 {generatingPdf
                   ? <><div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" /> {contractLang === "fr" ? "Génération..." : contractLang === "ar" ? "جاري الإنشاء..." : "Generating..."}</>
