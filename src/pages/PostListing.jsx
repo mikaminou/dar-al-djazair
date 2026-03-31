@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../components/constants";
-import SmartPriceInput from "../components/price/SmartPriceInput";
 import { LISTING_CONFIG } from "../components/listing.config";
 import { COMMUNES_BY_WILAYA } from "../components/communesData";
 import MobileHeader from "../components/MobileHeader";
@@ -417,12 +416,7 @@ export default function PostListingPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="border border-purple-100 rounded-xl p-4 bg-purple-50/50">
                     <Label className="text-xs font-bold text-purple-900 mb-2.5 block">{t.priceLabel}</Label>
-                    <SmartPriceInput
-                        listingType={form.listing_type}
-                        value={form.price}
-                        onChange={v => set("price", v)}
-                        lang={lang}
-                      />
+                    <Input type="number" value={form.price} onChange={e => set("price", e.target.value)} placeholder="0" className="border-purple-200 focus:border-purple-400 focus:ring-2 focus:ring-purple-100" />
                     {LISTING_CONFIG.ALLOW_HIDE_PRICE && (
                       <label className="flex items-center gap-2 mt-3 cursor-pointer select-none">
                         <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-purple-600 w-4 h-4" />
