@@ -489,14 +489,13 @@ export default function PostListingPage() {
                     {t.commune}
                     {!form.wilaya && <span className="text-xs text-gray-400 font-normal">({lang === "ar" ? "اختر الولاية أولاً" : lang === "fr" ? "Choisissez la wilaya d'abord" : "Select wilaya first"})</span>}
                   </Label>
-                  <Select value={form.commune} onValueChange={v => { set("commune", v); set("address", ""); }} disabled={!form.wilaya}>
-                    <SelectTrigger className="border-gray-200">
-                      <SelectValue placeholder={lang === "ar" ? "اختر البلدية" : lang === "fr" ? "Sélectionner la commune" : "Select a commune"} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-64">
-                      {communes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  <Input
+                    value={form.commune}
+                    onChange={e => { set("commune", e.target.value); set("address", ""); }}
+                    disabled={!form.wilaya}
+                    placeholder={lang === "ar" ? "اكتب البلدية..." : lang === "fr" ? "Saisir la commune..." : "Enter commune..."}
+                    className="border-gray-200 focus:border-emerald-400"
+                  />
                 </div>
 
                 {/* Address — unlocks after commune */}
