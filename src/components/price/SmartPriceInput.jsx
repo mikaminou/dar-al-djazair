@@ -53,37 +53,25 @@ export default function SmartPriceInput({ listingType = 'sale', value, onChange,
     const raw = e.target.value;
     setRawInput(raw);
     const n = Number(raw);
-    if (isNaN(n) || raw === '') { onChange && onChange(''); return; }
-
-    if (!isSale) {
-      // Rent: store exactly what was typed
-      onChange && onChange(n);
-      return;
-    }
-
-    const result = interpretSaleInput(raw);
-    if (result && !result.isAmbiguous && result.storedValue) {
-      onChange && onChange(result.storedValue);
-    }
-    // Ambiguous: wait for user to pick from options
-  }, [isSale, onChange]);
+    // Always accept user input as-is, regardless of format
+    if (raw === '') { onChange && onChange(''); return; }
+    if (isNaN(n)) return; // Don't call onChange for non-numeric input
+    onChange && onChange(n); // Store the raw number the user entered
+  }, [onChange]);
 
   const handlePickOption = useCallback((option) => {
     onChange && onChange(option.value);
-    // Replace the input with the shorthand for the chosen value
-    setRawInput(storedValueToTyped(option.value));
+    setRawInput(String(option.value));
   }, [onChange]);
 
-  // Compute display preview
+  // Compute display preview (for reference only, not a binding interpretation)
   const displayPreview = (() => {
     if (!rawInput) return null;
     const n = Number(rawInput);
     if (isNaN(n) || n <= 0) return null;
+    // Display the formatted version for reference
     if (!isSale) return formatRentalDisplay(n, lang);
-    if (interpretation && !interpretation.isAmbiguous && interpretation.storedValue) {
-      return formatSaleDisplay(interpretation.storedValue, lang);
-    }
-    return null;
+    return formatSaleDisplay(n, lang); // Format the raw user input
   })();
 
   const salePlaceholder = placeholder || (
@@ -94,7 +82,7 @@ export default function SmartPriceInput({ listingType = 'sale', value, onChange,
   );
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       <Input
         type="number"
         value={rawInput}
@@ -104,34 +92,10 @@ export default function SmartPriceInput({ listingType = 'sale', value, onChange,
         inputMode="numeric"
       />
 
-      {/* Unambiguous suggestion */}
-      {displayPreview && !interpretation?.isAmbiguous && (
-        <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5">
-          <Check className="w-3 h-3 flex-shrink-0" />
-          <span className="font-medium">{t(isSale ? 'willDisplay' : 'rentPreview', lang)}</span>
-          <span className="font-bold">{displayPreview}</span>
-        </div>
-      )}
-
-      {/* Ambiguous picker */}
-      {isSale && interpretation?.isAmbiguous && ambiguousOptions.length > 0 && (
-        <div className="border border-amber-200 bg-amber-50 rounded-xl p-3">
-          <p className="text-xs font-semibold text-amber-800 mb-2 flex items-center gap-1">
-            <ChevronDown className="w-3 h-3" />
-            {t('chooseValue', lang)}
-          </p>
-          <div className="grid grid-cols-2 gap-1.5">
-            {ambiguousOptions.map(opt => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => handlePickOption(opt)}
-                className="text-left text-xs px-3 py-2 bg-white border border-amber-200 rounded-lg hover:bg-emerald-50 hover:border-emerald-400 hover:text-emerald-700 transition-colors font-medium text-gray-800"
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+      {/* Display format as reference (minimal) */}
+      {displayPreview && (
+        <div className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 italic">
+          {lang === 'ar' ? 'سيظهر كـ' : lang === 'fr' ? 'Affichage: ' : 'Display: '} <span className="font-medium text-gray-800">{displayPreview}</span>
         </div>
       )}
     </div>
