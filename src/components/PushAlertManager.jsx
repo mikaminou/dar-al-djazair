@@ -3,18 +3,24 @@ import { base44 } from '@/api/base44Client';
 
 export default function PushAlertManager() {
   useEffect(() => {
+    let retryCount = 0;
+    const maxRetries = 5;
+    
     const initializePushAlert = async () => {
       try {
-        const user = await base44.auth.me();
-        if (!user) return;
-
         // Check if PushAlert is available
         if (!window.PushAlert) {
-          console.log('PushAlert not yet loaded');
-          // Retry in 1 second
-          setTimeout(initializePushAlert, 1000);
+          if (retryCount < maxRetries) {
+            retryCount++;
+            console.log('PushAlert not yet loaded, retry', retryCount);
+            setTimeout(initializePushAlert, 1000);
+          }
           return;
         }
+        
+        // Only call auth.me() once PushAlert is loaded
+        const user = await base44.auth.me();
+        if (!user) return;
 
         // Subscribe user to PushAlert
         window.PushAlert.push([
