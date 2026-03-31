@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, FileText, Share2 } from "lucide-react";
+import { Plus, FileText, Share2, Pencil, Trash2, Check, X } from "lucide-react";
 import DatePicker from "@/components/ui/DatePicker";
 
 export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, lang, currentUser }) {
   const [showAddPayment, setShowAddPayment] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [deleting, setDeleting] = useState(null);
   const [form, setForm] = useState({
     amount: "",
     payment_date: new Date().toISOString().split("T")[0],
@@ -77,6 +80,22 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
     return response.data;
   }
 
+  async function handleEditSave(payment) {
+    await base44.entities.TenantPayment.update(payment.id, {
+      amount: parseFloat(editForm.amount),
+      payment_date: editForm.payment_date,
+    });
+    setEditingId(null);
+    onPaymentAdded();
+  }
+
+  async function handleDelete(payment) {
+    setDeleting(payment.id);
+    await base44.entities.TenantPayment.delete(payment.id);
+    setDeleting(null);
+    onPaymentAdded();
+  }
+
   const period = calculatePeriod();
 
   return (
@@ -139,48 +158,86 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
           </h4>
           {payments.map(payment => (
             <div key={payment.id} className="bg-gray-50 rounded p-3">
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <p className="font-semibold text-gray-900">{payment.amount.toLocaleString()} DA</p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(payment.payment_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {lang === "ar" ? "من" : lang === "fr" ? "Du" : "From"} {new Date(payment.period_start_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")} {lang === "ar" ? "إلى" : lang === "fr" ? "au" : "to"} {new Date(payment.period_end_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")}
-                  </p>
+              {editingId === payment.id ? (
+                <div className="space-y-2">
+                  <Input type="number" value={editForm.amount} onChange={e => setEditForm(p => ({ ...p, amount: e.target.value }))} placeholder="Amount" />
+                  <DatePicker value={editForm.payment_date} onChange={v => setEditForm(p => ({ ...p, payment_date: v }))} lang={lang} />
+                  <div className="flex gap-2">
+                    <Button size="sm" onClick={() => handleEditSave(payment)} className="bg-emerald-600 hover:bg-emerald-700 gap-1 flex-1">
+                      <Check className="w-3 h-3" />
+                      {lang === "ar" ? "حفظ" : lang === "fr" ? "Enregistrer" : "Save"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="gap-1 flex-1">
+                      <X className="w-3 h-3" />
+                      {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={async () => {
-                      const result = await generateReceipt(payment);
-                      const link = document.createElement('a');
-                      link.href = result.pdf_base64;
-                      link.download = `receipt-${payment.reference_number}.pdf`;
-                      link.click();
-                    }}
-                    className="text-blue-600 hover:text-blue-700"
-                    title={lang === "ar" ? "تحميل الوصل" : lang === "fr" ? "Télécharger" : "Download Receipt"}
-                  >
-                    <FileText className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost"
-                    onClick={async () => {
-                      const result = await generateReceipt(payment);
-                      const text = encodeURIComponent(`وصل دفع إيجار - Receipt Ref: ${payment.reference_number} | ${payment.amount.toLocaleString()} DA`);
-                      window.open(`https://wa.me/?text=${text}`, '_blank');
-                    }}
-                    className="text-green-600 hover:text-green-700"
-                    title={lang === "ar" ? "مشاركة على واتس آب" : lang === "fr" ? "Partager sur WhatsApp" : "Share on WhatsApp"}
-                  >
-                    <Share2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-              <p className="text-xs text-gray-400">{lang === "ar" ? "الرقم" : lang === "fr" ? "Référence" : "Ref"}: {payment.reference_number}</p>
+              ) : (
+                <>
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <p className="font-semibold text-gray-900">{payment.amount.toLocaleString()} DA</p>
+                      <p className="text-xs text-gray-500">
+                        {new Date(payment.payment_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {lang === "ar" ? "من" : lang === "fr" ? "Du" : "From"} {new Date(payment.period_start_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")} {lang === "ar" ? "إلى" : lang === "fr" ? "au" : "to"} {new Date(payment.period_end_date).toLocaleDateString(lang === "ar" ? "ar-SA" : lang === "fr" ? "fr-FR" : "en-US")}
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={async () => {
+                          const result = await generateReceipt(payment);
+                          const link = document.createElement('a');
+                          link.href = result.pdf_base64;
+                          link.download = `receipt-${payment.reference_number}.pdf`;
+                          link.click();
+                        }}
+                        className="text-blue-600 hover:text-blue-700"
+                        title={lang === "ar" ? "تحميل الوصل" : lang === "fr" ? "Télécharger" : "Download Receipt"}
+                      >
+                        <FileText className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={async () => {
+                          const result = await generateReceipt(payment);
+                          const text = encodeURIComponent(`Receipt Ref: ${payment.reference_number} | ${payment.amount.toLocaleString()} DA`);
+                          window.open(`https://wa.me/?text=${text}`, '_blank');
+                        }}
+                        className="text-green-600 hover:text-green-700"
+                        title={lang === "ar" ? "مشاركة على واتس آب" : lang === "fr" ? "Partager sur WhatsApp" : "Share on WhatsApp"}
+                      >
+                        <Share2 className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => { setEditingId(payment.id); setEditForm({ amount: payment.amount, payment_date: payment.payment_date }); }}
+                        className="text-orange-500 hover:text-orange-600"
+                        title={lang === "ar" ? "تعديل" : lang === "fr" ? "Modifier" : "Edit"}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => handleDelete(payment)}
+                        disabled={deleting === payment.id}
+                        className="text-red-500 hover:text-red-600"
+                        title={lang === "ar" ? "حذف" : lang === "fr" ? "Supprimer" : "Delete"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400">{lang === "ar" ? "الرقم" : lang === "fr" ? "Référence" : "Ref"}: {payment.reference_number}</p>
+                </>
+              )}
             </div>
           ))}
         </div>
