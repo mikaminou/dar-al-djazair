@@ -214,9 +214,13 @@ export default function PostListingPage() {
   };
 
   async function uploadImages(files, inputRef) {
+    console.log("uploadImages called with", files?.length || 0, "files, current images:", form.images.length);
     setUploadError("");
     const fileList = Array.from(files);
-    if (fileList.length === 0) return;
+    if (fileList.length === 0) {
+      console.warn("No files in list");
+      return;
+    }
 
     const remaining = LISTING_CONFIG.MAX_IMAGES - form.images.length;
     if (remaining <= 0) {
@@ -251,19 +255,28 @@ export default function PostListingPage() {
       }
       if (urls.length > 0) {
         setForm(f => ({ ...f, images: [...f.images, ...urls] }));
-        if (inputRef) inputRef.value = "";
       } else {
+        console.warn('No URLs extracted from upload responses');
         const errorMsg = lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed";
         setUploadError(errorMsg);
         setTimeout(() => setUploadError(""), 3000);
       }
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error('Upload batch error:', err);
       const errorMsg = lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images";
       setUploadError(errorMsg);
       setTimeout(() => setUploadError(""), 3000);
     } finally {
       setUploadingImages(false);
+      const inputElement = inputRef?.current ?? inputRef;
+      if (inputElement) {
+        try {
+          inputElement.value = "";
+          console.log('Input cleared successfully');
+        } catch (e) {
+          console.warn('Could not clear input:', e);
+        }
+      }
     }
   }
 
