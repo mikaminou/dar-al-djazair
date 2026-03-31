@@ -130,13 +130,13 @@ export default function OnboardingModal({ user, lang, onComplete }) {
           {accountType === 'professional' ? (
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('ownerFullName')} *</label>
-              <Input value={ownerFullName} onChange={e => setOwnerFullName(e.target.value)} placeholder={tx('ownerFullName')} className={errors.ownerFullName ? 'border-red-400' : ''} />
+              <Input value={ownerFullName} onChange={e => { setOwnerFullName(e.target.value); setErrors(prev => ({ ...prev, ownerFullName: undefined })); }} placeholder={tx('ownerFullName')} className={errors.ownerFullName ? 'border-red-400' : ''} />
               {errors.ownerFullName && <p className="text-xs text-red-500 mt-1">{errors.ownerFullName}</p>}
             </div>
           ) : (
             <div>
               <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('fullName')} *</label>
-              <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder={tx('fullName')} className={errors.fullName ? 'border-red-400' : ''} />
+              <Input value={fullName} onChange={e => { setFullName(e.target.value); setErrors(prev => ({ ...prev, fullName: undefined })); }} placeholder={tx('fullName')} className={errors.fullName ? 'border-red-400' : ''} />
               {errors.fullName && <p className="text-xs text-red-500 mt-1">{errors.fullName}</p>}
             </div>
           )}
@@ -169,13 +169,13 @@ export default function OnboardingModal({ user, lang, onComplete }) {
             <>
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('agencyName')} *</label>
-                <Input value={agencyName} onChange={e => setAgencyName(e.target.value)} placeholder={tx('agencyName')} className={errors.agencyName ? 'border-red-400' : ''} />
+                <Input value={agencyName} onChange={e => { setAgencyName(e.target.value); setErrors(prev => ({ ...prev, agencyName: undefined })); }} placeholder={tx('agencyName')} className={errors.agencyName ? 'border-red-400' : ''} />
                 {errors.agencyName && <p className="text-xs text-red-500 mt-1">{errors.agencyName}</p>}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-medium text-gray-600 mb-1 block">{tx('professionalType')}</label>
-                  <select value={professionalType} onChange={e => setProfessionalType(e.target.value)} className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.professionalType ? 'border-red-400' : 'border-gray-200'}`}>
+                  <select value={professionalType} onChange={e => { setProfessionalType(e.target.value); setErrors(prev => ({ ...prev, professionalType: undefined })); }} className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${errors.professionalType ? 'border-red-400' : 'border-gray-200'}`}>
                     <option value="">—</option>
                     <option value="agence_immobiliere">{tx('agenceImmobiliere')}</option>
                     <option value="promoteur">{tx('promoteur')}</option>
