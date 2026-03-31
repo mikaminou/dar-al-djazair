@@ -584,7 +584,7 @@ export default function PostListingPage() {
                   <p className="text-xs text-gray-400 mt-1">
                     JPG, PNG, WEBP — max {LISTING_CONFIG.MAX_IMAGE_SIZE_MB} MB — {form.images.length}/{LISTING_CONFIG.MAX_IMAGES} {lang === "ar" ? "صور" : lang === "fr" ? "photos" : "images"}
                   </p>
-                  <input ref={fileInputRef} type="file" multiple accept={(LISTING_CONFIG.ACCEPTED_IMAGE_TYPES || ["image/jpeg", "image/png", "image/webp"]).join(",")} className="hidden" onChange={e => uploadImages(e.target.files, fileInputRef.current)} />
+                  <input ref={fileInputRef} type="file" multiple accept={(LISTING_CONFIG.ACCEPTED_IMAGE_TYPES || ["image/jpeg", "image/png", "image/webp"]).join(",")} className="hidden" onChange={e => { console.log('Files selected:', e.target.files); uploadImages(e.target.files, fileInputRef.current); }} />
                 </label>
                 {uploadError && (
                   <p className="text-sm text-red-500 text-center">{uploadError}</p>
