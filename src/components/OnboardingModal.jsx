@@ -30,7 +30,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     ownerFullName:    { en: 'Owner Name', fr: 'Nom du propriétaire', ar: 'اسم المالك' },
     accountType:      { en: 'Account Type', fr: 'Type de compte', ar: 'نوع الحساب' },
     individual:       { en: 'Individual', fr: 'Particulier', ar: 'فرد' },
-    professional:     { en: 'Professional / Agency', fr: 'Professionnel / Agence', ar: 'محترف / وكالة' },
+    professional:     { en: 'Promoteur / Agence', fr: 'Promoteur / Agence', ar: 'مرقي / وكالة' },
     agencyName:       { en: 'Business Name', fr: "Nom de l'entreprise", ar: 'اسم النشاط التجاري' },
     professionalType: { en: 'Professional Type', fr: 'Type de professionnel', ar: 'نوع المحترف' },
     agenceImmobiliere:{ en: 'Real Estate Agency', fr: 'Agence immobilière', ar: 'وكالة عقارية' },
@@ -69,10 +69,7 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     if (Object.keys(errs).length > 0) return;
 
     setSaving(true);
-    const updates = {
-      role: accountType,
-      plan: accountType === 'professional' ? 'premium' : 'free',
-    };
+    const updates = {};
     if (accountType === 'professional') {
       updates.owner_full_name = ownerFullName.trim();
       updates.first_name = ownerFullName.trim();
