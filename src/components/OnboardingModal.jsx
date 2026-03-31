@@ -82,9 +82,12 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     }
     if (avatarUrl) updates.avatar_url = avatarUrl;
 
-    await base44.auth.updateMe(updates);
-    setSaving(false);
-    onComplete({ ...user, ...updates });
+    try {
+      await base44.auth.updateMe(updates);
+      onComplete({ ...user, ...updates });
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
