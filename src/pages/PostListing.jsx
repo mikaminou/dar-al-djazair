@@ -125,12 +125,25 @@ export default function PostListingPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
-          <div className="text-5xl mb-4">🏢</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            {lang === 'ar' ? 'حساب محترف مطلوب' : lang === 'fr' ? 'Compte professionnel requis' : 'Professional Account Required'}
+          <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <span className="text-3xl">🏢</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold px-3 py-1 rounded-full mb-4">
+            <span>✦</span>
+            {lang === 'ar' ? 'منصة للمحترفين الموثوقين فقط' : lang === 'fr' ? 'Réservé aux professionnels vérifiés' : 'Trusted Professionals Only'}
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            {lang === 'ar' ? 'حساب محترف موثق مطلوب' : lang === 'fr' ? 'Compte professionnel vérifié requis' : 'A Verified Professional Account is Required'}
           </h2>
-          <p className="text-gray-500 mb-6 text-sm">
-            {lang === 'ar' ? 'نشر الإعلانات متاح فقط للمحترفين العقاريين الموثقين. يرجى التسجيل كمحترف وإتمام التحقق من هويتك.' : lang === 'fr' ? 'La publication d\'annonces est réservée aux professionnels immobiliers vérifiés. Inscrivez-vous en tant que professionnel et faites vérifier votre compte.' : 'Listing properties is available to verified real estate professionals only. Register as a professional and complete identity verification.'}
+          <p className="text-gray-500 mb-2 text-sm leading-relaxed">
+            {lang === 'ar'
+              ? 'دار الجزائر مخصصة حصرياً للوكالات العقارية والمهنيين الموثقين. هذا ما يجعل منصتنا موثوقة من قِبل آلاف المشترين والمستأجرين.'
+              : lang === 'fr'
+              ? "Dar Al Djazair est exclusivement réservée aux agences et professionnels immobiliers vérifiés — c'est ce qui garantit la confiance de nos milliers d'acheteurs et locataires."
+              : "Dar Al Djazair is exclusively for verified real estate agencies and professionals. This is what makes our platform trusted by thousands of buyers and renters across Algeria."}
+          </p>
+          <p className="text-gray-400 text-xs mb-6">
+            {lang === 'ar' ? 'سجّل كمحترف وارفع مستنداتك للحصول على التحقق خلال يوم عمل واحد.' : lang === 'fr' ? 'Inscrivez-vous comme professionnel et soumettez vos documents — vérification sous 1 jour ouvrable.' : 'Register as a professional and submit your documents — verification within 1 business day.'}
           </p>
           <button onClick={() => window.location.href = createPageUrl('Profile')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition-colors">
             {lang === 'ar' ? 'اذهب إلى ملفي الشخصي' : lang === 'fr' ? 'Mon profil' : 'Go to My Profile'}
@@ -141,19 +154,52 @@ export default function PostListingPage() {
   }
 
   if (currentUser && currentUser.role === 'professional' && !currentUser.is_verified) {
+    const isPending = currentUser.verification_status === 'pending';
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-10 text-center max-w-md shadow-sm border">
-          <div className="text-5xl mb-4">🔒</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            {lang === 'ar' ? 'في انتظار التحقق' : lang === 'fr' ? 'Vérification en attente' : 'Verification Required'}
+          <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5 ${isPending ? 'bg-amber-50' : 'bg-emerald-50'}`}>
+            <span className="text-3xl">{isPending ? '⏳' : '🔐'}</span>
+          </div>
+          <div className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full mb-4 ${isPending ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}`}>
+            <span>✦</span>
+            {lang === 'ar' ? 'منصة للمحترفين الموثوقين فقط' : lang === 'fr' ? 'Réservé aux professionnels vérifiés' : 'Trusted Professionals Only'}
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-3">
+            {isPending
+              ? (lang === 'ar' ? 'طلبك قيد المراجعة' : lang === 'fr' ? 'Votre dossier est en cours de vérification' : 'Your Documents Are Under Review')
+              : (lang === 'ar' ? 'التحقق مطلوب للنشر' : lang === 'fr' ? 'Vérification requise pour publier' : 'Verification Required to Post')}
           </h2>
-          <p className="text-gray-500 mb-6 text-sm">
-            {lang === 'ar' ? 'يجب التحقق من حسابك قبل نشر الإعلانات. يرجى رفع وثيقتك في ملفك الشخصي.' : lang === 'fr' ? 'Votre compte doit être vérifié avant de publier des annonces. Téléversez votre document dans votre profil.' : 'Your account must be verified before posting listings. Please upload your verification document in your profile.'}
+          <p className="text-gray-500 mb-2 text-sm leading-relaxed">
+            {isPending
+              ? (lang === 'ar'
+                  ? 'فريقنا يراجع مستنداتك حالياً. ستتلقى إشعاراً وبريداً إلكترونياً فور الانتهاء — في غضون يوم عمل واحد.'
+                  : lang === 'fr'
+                  ? "Notre équipe examine actuellement vos documents. Vous recevrez une notification et un e-mail dès que la vérification sera terminée — sous 1 jour ouvrable."
+                  : "Our team is currently reviewing your documents. You'll receive a notification and email as soon as the verification is complete — within 1 business day.")
+              : (lang === 'ar'
+                  ? 'نشر الإعلانات حصري للمهنيين الموثقين. هذا ما يضمن ثقة آلاف المشترين والمستأجرين في منصتنا.'
+                  : lang === 'fr'
+                  ? "La publication est réservée aux professionnels vérifiés — c'est ce qui garantit la confiance de nos acheteurs et locataires."
+                  : "Posting is exclusive to verified professionals — this is what ensures the trust of our buyers and renters.")}
           </p>
-          <button onClick={() => window.location.href = createPageUrl('Profile')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition-colors">
-            {lang === 'ar' ? 'أكمل التحقق' : lang === 'fr' ? 'Compléter la vérification' : 'Complete Verification'}
-          </button>
+          {!isPending && (
+            <p className="text-gray-400 text-xs mb-6">
+              {lang === 'ar' ? 'ارفع مستنداتك من ملفك الشخصي وسنراجعها خلال يوم عمل واحد.' : lang === 'fr' ? 'Téléversez vos documents depuis votre profil — vérification sous 1 jour ouvrable.' : 'Upload your documents from your profile — we review within 1 business day.'}
+            </p>
+          )}
+          {isPending && <div className="mb-6" />}
+          {!isPending && (
+            <button onClick={() => window.location.href = createPageUrl('Profile')} className="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2.5 rounded-xl transition-colors">
+              {lang === 'ar' ? 'ارفع مستنداتي' : lang === 'fr' ? 'Téléverser mes documents' : 'Upload My Documents'}
+            </button>
+          )}
+          {isPending && (
+            <div className="flex items-center justify-center gap-2 text-sm text-amber-600 font-medium">
+              <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+              {lang === 'ar' ? 'في انتظار نتيجة المراجعة...' : lang === 'fr' ? 'En attente de vérification...' : 'Awaiting verification result...'}
+            </div>
+          )}
         </div>
       </div>
     );
