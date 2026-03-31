@@ -214,63 +214,38 @@ export default function PostListingPage() {
   };
 
   async function uploadImages(files, inputRef) {
-    console.log('uploadImages called with files:', files);
     setUploadError("");
     const fileList = Array.from(files);
-    console.log('fileList:', fileList.length);
-    if (fileList.length === 0) {
-      console.log('No files in list');
-      return;
-    }
+    if (fileList.length === 0) return;
+
     const remaining = LISTING_CONFIG.MAX_IMAGES - form.images.length;
     if (remaining <= 0) {
       setUploadError(lang === "ar" ? `الحد الأقصى ${LISTING_CONFIG.MAX_IMAGES} صور` : lang === "fr" ? `Maximum ${LISTING_CONFIG.MAX_IMAGES} photos autorisées` : `Maximum ${LISTING_CONFIG.MAX_IMAGES} images allowed`);
       return;
     }
+
     const toUpload = fileList.slice(0, remaining);
     const oversized = toUpload.filter(f => f.size > LISTING_CONFIG.MAX_IMAGE_SIZE_MB * 1024 * 1024);
     if (oversized.length > 0) {
       setUploadError(lang === "ar" ? `حجم الصورة يجب أن يكون أقل من ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} ميغابايت` : lang === "fr" ? `Taille max par photo : ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} Mo` : `Each image must be under ${LISTING_CONFIG.MAX_IMAGE_SIZE_MB} MB`);
       return;
     }
+
     setUploadingImages(true);
     try {
       const urls = [];
       for (const file of toUpload) {
-       try {
-         console.log('Starting upload for:', file.name, file.type, file.size);
-         const startTime = Date.now();
-         const res = await base44.integrations.Core.UploadFile({ file });
-         console.log('Upload completed in', Date.now() - startTime, 'ms');
-         console.log('Full upload response:', JSON.stringify(res, null, 2));
-         console.log('res keys:', Object.keys(res || {}));
-         console.log('res.data:', res?.data);
-         console.log('res.data keys:', Object.keys(res?.data || {}));
-         const fileUrl = res?.file_url || res?.data?.file_url;
-         if (fileUrl) {
-           console.log('Got file URL:', fileUrl);
-           urls.push(fileUrl);
-         } else {
-           console.error('No file_url in response:', JSON.stringify(res));
-         }
-       } catch (fileErr) {
-         console.error('UPLOAD FAILED - file:', file.name);
-         console.error('Error type:', fileErr?.constructor?.name);
-         console.error('Error message:', fileErr?.message);
-         console.error('Full error:', fileErr);
-         throw fileErr;
-       }
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        if (file_url) urls.push(file_url);
       }
       if (urls.length > 0) {
         setForm(f => ({ ...f, images: [...f.images, ...urls] }));
-        console.log('Images added:', urls);
+        if (inputRef) inputRef.value = "";
       } else {
         setUploadError(lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed");
       }
-      if (inputRef) inputRef.value = "";
     } catch (err) {
-      console.error('Upload error:', err);
-      setUploadError(lang === "ar" ? "خطأ في رفع الصور: " + err.message : lang === "fr" ? "Erreur lors du téléchargement: " + err.message : "Error uploading images: " + err.message);
+      setUploadError(lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images");
     } finally {
       setUploadingImages(false);
     }
