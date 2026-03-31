@@ -25,6 +25,7 @@ export default function PostListingPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [editingId, setEditingId] = useState(null); // null = create, string = edit mode
+  const fileInputRef = useRef(null);
 
   const initialForm = {
     listing_type: "sale",
@@ -212,7 +213,7 @@ export default function PostListingPage() {
     );
   };
 
-  async function uploadImages(files) {
+  async function uploadImages(files, inputRef) {
     setUploadError("");
     const fileList = Array.from(files);
     if (fileList.length === 0) return;
@@ -231,15 +232,19 @@ export default function PostListingPage() {
     try {
       const urls = [];
       for (const file of toUpload) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        urls.push(file_url);
+        const res = await base44.integrations.Core.UploadFile({ file });
+        if (res && res.file_url) {
+          urls.push(res.file_url);
+        }
       }
-      set("images", [...form.images, ...urls]);
+      if (urls.length > 0) {
+        setForm(f => ({ ...f, images: [...f.images, ...urls] }));
+      }
+      if (inputRef) inputRef.value = "";
+    } catch (err) {
+      setUploadError(lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images");
     } finally {
       setUploadingImages(false);
-      // Reset input so same files can be selected again
-      const inputEl = document.querySelector('input[type="file"][accept*="image"]');
-      if (inputEl) inputEl.value = "";
     }
   }
 
@@ -569,7 +574,7 @@ export default function PostListingPage() {
                   <p className="text-xs text-gray-400 mt-1">
                     JPG, PNG, WEBP — max {LISTING_CONFIG.MAX_IMAGE_SIZE_MB} MB — {form.images.length}/{LISTING_CONFIG.MAX_IMAGES} {lang === "ar" ? "صور" : lang === "fr" ? "photos" : "images"}
                   </p>
-                  <input type="file" multiple accept={(LISTING_CONFIG.ACCEPTED_IMAGE_TYPES || ["image/jpeg", "image/png", "image/webp"]).join(",")} className="hidden" onChange={e => uploadImages(e.target.files)} />
+                  <input ref={fileInputRef} type="file" multiple accept={(LISTING_CONFIG.ACCEPTED_IMAGE_TYPES || ["image/jpeg", "image/png", "image/webp"]).join(",")} className="hidden" onChange={e => uploadImages(e.target.files, fileInputRef.current)} />
                 </label>
                 {uploadError && (
                   <p className="text-sm text-red-500 text-center">{uploadError}</p>
