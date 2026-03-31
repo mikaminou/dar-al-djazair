@@ -237,12 +237,14 @@ export default function PostListingPage() {
     try {
       const urls = [];
       for (const file of toUpload) {
-        try {
-          console.log('Uploading file:', file.name, file.type, file.size);
-          const res = await base44.integrations.Core.UploadFile({ file });
-          console.log('Upload response:', res);
-          console.log('Response data:', res?.data);
-          const fileUrl = res?.file_url || res?.data?.file_url;
+       try {
+         console.log('Uploading file:', file.name, file.type, file.size);
+         const res = await base44.integrations.Core.UploadFile({ file });
+         console.log('Full upload response:', JSON.stringify(res, null, 2));
+         console.log('res keys:', Object.keys(res || {}));
+         console.log('res.data:', res?.data);
+         console.log('res.data keys:', Object.keys(res?.data || {}));
+         const fileUrl = res?.file_url || res?.data?.file_url;
           if (fileUrl) {
             console.log('Got file URL:', fileUrl);
             urls.push(fileUrl);
