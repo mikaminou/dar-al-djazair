@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, FileText, Share2, Pencil, Trash2, Check, X } from "lucide-react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import DatePicker from "@/components/ui/DatePicker";
 
 export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, lang, currentUser }) {
@@ -223,16 +224,18 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(payment)}
-                        disabled={deleting === payment.id}
-                        className="text-red-500 hover:text-red-600"
-                        title={lang === "ar" ? "حذف" : lang === "fr" ? "Supprimer" : "Delete"}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <ConfirmDialog
+                        trigger={
+                          <Button size="sm" variant="ghost" disabled={deleting === payment.id} className="text-red-500 hover:text-red-600" title={lang === "ar" ? "حذف" : lang === "fr" ? "Supprimer" : "Delete"}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        }
+                        title={lang === "ar" ? "حذف الدفعة" : lang === "fr" ? "Supprimer le paiement" : "Delete Payment"}
+                        description={lang === "ar" ? `هل أنت متأكد من حذف دفعة ${payment.amount.toLocaleString()} DA؟ لا يمكن التراجع عن هذا الإجراء.` : lang === "fr" ? `Supprimer le paiement de ${payment.amount.toLocaleString()} DA ? Cette action est irréversible.` : `Delete payment of ${payment.amount.toLocaleString()} DA? This cannot be undone.`}
+                        confirmLabel={lang === "ar" ? "حذف" : lang === "fr" ? "Supprimer" : "Delete"}
+                        cancelLabel={lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
+                        onConfirm={() => handleDelete(payment)}
+                      />
                     </div>
                   </div>
                   <p className="text-xs text-gray-400">{lang === "ar" ? "الرقم" : lang === "fr" ? "Référence" : "Ref"}: {payment.reference_number}</p>
