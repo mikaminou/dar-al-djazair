@@ -235,9 +235,19 @@ export default function PostListingPage() {
     try {
       const urls = [];
       for (const file of toUpload) {
-        const res = await base44.integrations.Core.UploadFile({ file });
-        const fileUrl = res?.file_url || res?.data?.file_url;
-        if (fileUrl) urls.push(fileUrl);
+        try {
+          const res = await base44.integrations.Core.UploadFile({ file });
+          console.log('Upload response for', file.name, ':', res);
+          const fileUrl = res?.file_url || res?.data?.file_url || res?.url;
+          if (fileUrl) {
+            urls.push(fileUrl);
+            console.log('Successfully uploaded:', fileUrl);
+          } else {
+            console.warn('No file_url in response:', res);
+          }
+        } catch (singleErr) {
+          console.error('Single file error:', singleErr);
+        }
       }
       if (urls.length > 0) {
         setForm(f => ({ ...f, images: [...f.images, ...urls] }));
