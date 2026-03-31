@@ -102,10 +102,10 @@ export default function PostListingPage() {
           setAuthChecked(true);
         });
       } else {
-        // Pre-fill contact from profile
+        // Pre-fill contact from profile — agency name first, then full name
         setForm(f => ({
           ...f,
-          contact_name: me.full_name || "",
+          contact_name: me.agency_name || me.full_name || "",
           contact_phone: me.phone || "",
           contact_email: me.email || "",
         }));
