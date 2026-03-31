@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, FileText, Share2 } from "lucide-react";
+import DatePicker from "@/components/ui/DatePicker";
 
 export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, lang, currentUser }) {
   const [showAddPayment, setShowAddPayment] = useState(false);
@@ -94,7 +95,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
             <label className="text-sm font-medium text-gray-700 mb-1 block">
               {lang === "ar" ? "تاريخ الدفع" : lang === "fr" ? "Date du paiement" : "Payment Date"}
             </label>
-            <Input type="date" value={form.payment_date} onChange={e => setForm(p => ({ ...p, payment_date: e.target.value }))} required />
+            <DatePicker value={form.payment_date} onChange={v => setForm(p => ({ ...p, payment_date: v }))} lang={lang} />
           </div>
 
           <div>
