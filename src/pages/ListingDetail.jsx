@@ -67,16 +67,13 @@ export default function ListingDetailPage() {
     ]);
     if (data.length > 0) {
       setListing(data[0]);
-      // increment views only once per user (unique view tracking via localStorage)
       const viewKey = `dari_viewed_${data[0].id}_${me?.email || 'anon'}`;
       if (!localStorage.getItem(viewKey)) {
         localStorage.setItem(viewKey, '1');
         base44.entities.Listing.update(data[0].id, { views_count: (data[0].views_count || 0) + 1 });
       }
-      // load similar
       const sim = await base44.entities.Listing.filter({ property_type: data[0].property_type, status: "active" }, "-created_date", 4);
       setSimilar(sim.filter(l => l.id !== data[0].id).slice(0, 4));
-      // fetch owner's real display name
       if (data[0].created_by) {
         base44.entities.User.filter({ email: data[0].created_by }).then(users => {
           if (users.length > 0 && users[0].full_name) setOwnerName(users[0].full_name);
@@ -148,7 +145,7 @@ export default function ListingDetailPage() {
     <div className="min-h-screen flex items-center justify-center text-gray-400">{t.noResults}</div>
   );
 
-  const isUnavailable = ["reserved", "sold", "rented", "deleted"].includes(listing.status);
+  const isUnavailable = ["reserved", "sold", "rented", "deleted", "archived"].includes(listing.status);
   const isOwner = user && (user.email === listing.created_by || user.email === listing.contact_email);
 
   const images = listing.images?.length > 0
@@ -159,6 +156,21 @@ export default function ListingDetailPage() {
 
   const showPrice = !listing.hide_price;
   const showLocation = !listing.hide_location;
+
+  function unavailableMessage() {
+    if (listing.status === "sold") return lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.";
+    if (listing.status === "rented") return lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.";
+    if (listing.status === "archived") return lang === "ar" ? "هذا الإعلان مؤرشف ولم يعد متاحاً." : lang === "fr" ? "Cette annonce est archivée et n'est plus disponible." : "This listing is archived and no longer available.";
+    return lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.";
+  }
+
+  function sidebarUnavailableMessage() {
+    if (listing.status === "reserved") return lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.";
+    if (listing.status === "sold") return lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.";
+    if (listing.status === "rented") return lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.";
+    if (listing.status === "archived") return lang === "ar" ? "هذا الإعلان مؤرشف." : lang === "fr" ? "Cette annonce est archivée." : "This listing has been archived.";
+    return lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.";
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -183,11 +195,7 @@ export default function ListingDetailPage() {
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-3">
           <div className="max-w-6xl mx-auto flex items-center gap-2 text-amber-800 text-sm font-medium">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            {listing.status === "sold"
-              ? (lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.")
-              : listing.status === "rented"
-              ? (lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.")
-              : (lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.")}
+            {unavailableMessage()}
           </div>
         </div>
       )}
@@ -309,7 +317,7 @@ export default function ListingDetailPage() {
             </div>
           )}
 
-          {/* Map — only shown if location is not hidden */}
+          {/* Map */}
           {showLocation && (
             <ListingMap latitude={listing.latitude} longitude={listing.longitude} title={listing.title} />
           )}
@@ -382,13 +390,7 @@ export default function ListingDetailPage() {
               ) : isUnavailable ? (
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {listing.status === "reserved"
-                    ? (lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.")
-                    : listing.status === "sold"
-                    ? (lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.")
-                    : listing.status === "rented"
-                    ? (lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.")
-                    : (lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.")}
+                  {sidebarUnavailableMessage()}
                 </div>
               ) : msgSent ? (
                 <div className="text-center py-5 text-emerald-600 font-medium">
@@ -429,7 +431,6 @@ export default function ListingDetailPage() {
                   user={user}
                 />
               )}
-              {/* Rental contract — owner only, on-demand, rent listings only */}
               {isOwner && LISTING_CONFIG.ALLOW_RENTAL_CONTRACT && listing.listing_type === "rent" && (
                 <a
                   href={`/RentalContract?listing_id=${id}`}
