@@ -82,8 +82,10 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     if (avatarUrl) updates.avatar_url = avatarUrl;
 
     try {
+      // Update role via service role function (platform restricts role changes via updateMe)
+      await base44.functions.invoke('updateMyRole', { role: accountType });
       await base44.auth.updateMe(updates);
-      onComplete({ ...user, ...updates });
+      onComplete({ ...user, ...updates, role: accountType });
     } finally {
       setSaving(false);
     }
