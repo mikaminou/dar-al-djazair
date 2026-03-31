@@ -83,7 +83,10 @@ export default function OnboardingModal({ user, lang, onComplete }) {
 
     try {
       // Update role via service role function (platform restricts role changes via updateMe)
-      await base44.functions.invoke('updateMyRole', { role: accountType });
+      // If it fails (e.g. app owner), we still proceed with profile update
+      try {
+        await base44.functions.invoke('updateMyRole', { role: accountType });
+      } catch (_) {}
       await base44.auth.updateMe(updates);
       onComplete({ ...user, ...updates, role: accountType });
     } finally {

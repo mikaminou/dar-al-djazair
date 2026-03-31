@@ -413,7 +413,30 @@ export default function PostListingPage() {
                       </label>
                     )}
                   </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}</Label>
+                    <Input type="number" value={form.area} onChange={e => set("area", e.target.value)} placeholder="m²" className="border-gray-200 focus:border-emerald-400" />
                   </div>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "الغرف" : lang === "fr" ? "Pièces" : "Rooms"}</Label>
+                    <Input type="number" min="0" value={form.rooms} onChange={e => set("rooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres" : "Bedrooms"}</Label>
+                    <Input type="number" min="0" value={form.bedrooms} onChange={e => set("bedrooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "حمامات" : lang === "fr" ? "SDB" : "Baths"}</Label>
+                    <Input type="number" min="0" value={form.bathrooms} onChange={e => set("bathrooms", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{lang === "ar" ? "الطابق" : lang === "fr" ? "Étage" : "Floor"}</Label>
+                    <Input type="number" min="0" value={form.floor} onChange={e => set("floor", e.target.value)} placeholder="0" className="border-gray-200 focus:border-emerald-400" />
+                  </div>
+                </div>
 
                   <div>
                   <Label className="text-sm font-medium text-gray-700 mb-1.5 block">{t.furnished}</Label>

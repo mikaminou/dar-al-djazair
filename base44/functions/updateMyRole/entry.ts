@@ -12,7 +12,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Invalid role' }, { status: 400 });
     }
 
-    await base44.asServiceRole.entities.User.update(user.id, { role });
+    try {
+      await base44.asServiceRole.entities.User.update(user.id, { role });
+    } catch (updateErr) {
+      // Platform may block role changes for the app owner — treat as non-fatal
+      if (updateErr.message && updateErr.message.includes('owner')) {
+        return Response.json({ success: true, skipped: 'owner' });
+      }
+      throw updateErr;
+    }
     return Response.json({ success: true });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
