@@ -121,40 +121,114 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     const GRAY    = [107, 114, 128];
     const BLACK   = [17, 24, 39];
 
-    // ── Canvas-based Unicode text renderer (handles Arabic, accented chars, etc.) ──
-    const unicodeImg = (text, { fontSize = 12, color = '#111', bold = false, italic = false, maxWidthPx = 500 } = {}) => {
-      const scale = 3;
-      const h = (fontSize + 12) * scale;
-      const w = maxWidthPx * scale;
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, w, h);
-      const style = `${italic ? 'italic ' : ''}${bold ? 'bold ' : ''}${fontSize * scale}px Arial, 'Segoe UI', sans-serif`;
-      ctx.font = style;
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
+    // ── Full-page cover canvas (browser renders all text, incl. Arabic) ──
+    const buildCoverCanvas = async () => {
+      const PX = 794; const PY = 1123; // A4 at 96dpi
+      const cv = document.createElement('canvas');
+      cv.width = PX; cv.height = PY;
+      const ctx = cv.getContext('2d');
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, PX, PY);
+
+      // Top bar
+      ctx.fillStyle = '#047857';
+      ctx.fillRect(0, 0, PX, 54);
+      ctx.font = 'bold 16px Arial';
+      ctx.fillStyle = '#d1fae5';
       ctx.textBaseline = 'middle';
-      ctx.fillText(text, w / 2, h / 2);
-      const measuredW = Math.min(ctx.measureText(text).width + 16 * scale, w);
-      return {
-        dataUrl: canvas.toDataURL('image/png'),
-        widthMm: (measuredW / scale) * 0.35,
-        heightMm: (h / scale) * 0.35
-      };
+      ctx.textAlign = 'left';
+      ctx.fillText((agencyName || 'DAR EL DJAZAIR').toUpperCase(), 30, 27);
+      ctx.font = '13px Arial';
+      ctx.fillStyle = '#a7f3d0';
+      const miniSub = '\u0639\u0642\u062f \u0625\u064a\u062c\u0627\u0631 \u0633\u0643\u0646\u064a \u2014 Contrat de Location \u2014 Rental Agreement';
+      ctx.fillText(miniSub, 30 + ctx.measureText((agencyName || 'DAR EL DJAZAIR').toUpperCase()).width + 16, 27);
+      if (logoDataUrl) {
+        await new Promise(res => { const img = new Image(); img.onload = () => { ctx.drawImage(img, PX - 60, 7, 40, 40); res(); }; img.src = logoDataUrl; });
+      }
+
+      // Thin emerald rule
+      ctx.strokeStyle = '#059669'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(60, 72); ctx.lineTo(PX - 60, 72); ctx.stroke();
+
+      // Big brand name
+      ctx.font = 'bold 64px Arial'; ctx.fillStyle = '#047857';
+      ctx.textAlign = 'center';
+      ctx.fillText('DAR EL DJAZAIR', PX / 2, 160);
+
+      // Arabic subtitle (gold)
+      ctx.font = '28px Arial'; ctx.fillStyle = '#b48c14';
+      ctx.fillText('\u062f\u0627\u0631 \u0627\u0644\u062c\u0632\u0627\u0626\u0631', PX / 2, 205);
+
+      // Horizontal rule
+      ctx.strokeStyle = '#047857'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(100, 225); ctx.lineTo(PX - 100, 225); ctx.stroke();
+
+      // Contract title block
+      ctx.font = 'bold 22px Arial'; ctx.fillStyle = '#111827';
+      ctx.fillText('CONTRAT DE LOCATION', PX / 2, 270);
+      ctx.font = 'italic 16px Arial'; ctx.fillStyle = '#6b7280';
+      ctx.fillText("Bail \u00e0 usage d'habitation", PX / 2, 298);
+      ctx.font = '14px Arial'; ctx.fillStyle = '#6b7280';
+      ctx.fillText('\u0639\u0642\u062f \u0625\u064a\u062c\u0627\u0631 \u0633\u0643\u0646\u064a  \u2014  Rental Agreement', PX / 2, 322);
+
+      // Gold thick rule
+      ctx.strokeStyle = '#b48c14'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(50, 342); ctx.lineTo(PX - 50, 342); ctx.stroke();
+
+      // Logo centered
+      if (logoDataUrl) {
+        await new Promise(res => { const img = new Image(); img.onload = () => { ctx.drawImage(img, PX / 2 - 60, 355, 120, 120); res(); }; img.src = logoDataUrl; });
+      } else {
+        ctx.strokeStyle = '#059669'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(PX / 2, 415, 55, 0, Math.PI * 2); ctx.stroke();
+        ctx.font = 'bold 48px Arial'; ctx.fillStyle = '#059669';
+        ctx.fillText((agencyName[0] || 'D').toUpperCase(), PX / 2, 432);
+      }
+
+      // Ref box
+      const refY = 500;
+      ctx.fillStyle = '#d1fae5';
+      ctx.beginPath(); ctx.roundRect(120, refY, PX - 240, 68, 8); ctx.fill();
+      const refCode = Date.now().toString(36).toUpperCase();
+      ctx.font = 'bold 15px Arial'; ctx.fillStyle = '#047857';
+      ctx.fillText(`${T.ref}: ${refCode}`, PX / 2, refY + 28);
+      ctx.font = '13px Arial'; ctx.fillStyle = '#6b7280';
+      ctx.fillText(today, PX / 2, refY + 50);
+
+      // Wilaya
+      if (selectedListing?.wilaya) {
+        ctx.font = '13px Arial'; ctx.fillStyle = '#9ca3af';
+        ctx.fillText(selectedListing.wilaya, PX / 2, 595);
+      }
+
+      // Footer
+      ctx.fillStyle = '#047857'; ctx.fillRect(0, PY - 48, PX, 48);
+      ctx.font = '13px Arial'; ctx.fillStyle = '#d1fae5'; ctx.textAlign = 'center';
+      ctx.fillText(T.footer, PX / 2, PY - 18);
+
+      return cv.toDataURL('image/png');
     };
 
-    // Helper to add centered unicode text as image
-    const addUnicodeText = (text, yCur, opts = {}) => {
-      const img = unicodeImg(text, opts);
-      doc.addImage(img.dataUrl, 'PNG', W / 2 - img.widthMm / 2, yCur, img.widthMm, img.heightMm, undefined, 'FAST');
-      return yCur + img.heightMm;
-    };
+    // coverDataUrl built after logo loads (see below)
 
-    // Helper for left-aligned unicode text in rows
+    // ── Helper for left-aligned unicode text in body pages (canvas snippet) ──
     const addUnicodeLeft = (text, xPos, yCur, opts = {}) => {
-      const img = unicodeImg(text, opts);
-      doc.addImage(img.dataUrl, 'PNG', xPos, yCur - img.heightMm * 0.75, img.widthMm, img.heightMm, undefined, 'FAST');
+      const { fontSize = 9, color = '#111', bold = false } = opts;
+      const scale = 3;
+      const h = (fontSize + 10) * scale;
+      const w = 300 * scale;
+      const cv2 = document.createElement('canvas');
+      cv2.width = w; cv2.height = h;
+      const ctx2 = cv2.getContext('2d');
+      ctx2.font = `${bold ? 'bold ' : ''}${fontSize * scale}px Arial`;
+      ctx2.fillStyle = color;
+      ctx2.textBaseline = 'middle';
+      ctx2.textAlign = 'left';
+      ctx2.fillText(text, 0, h / 2);
+      const measW = Math.min(ctx2.measureText(text).width + 4, w);
+      const wMm = (measW / scale) * 0.35;
+      const hMm = (h / scale) * 0.35;
+      doc.addImage(cv2.toDataURL('image/png'), 'PNG', xPos, yCur - hMm * 0.75, wMm, hMm, undefined, 'FAST');
     };
 
     // ── Try to embed logo ──
@@ -170,86 +244,11 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
         });
       } catch (_) {}
     }
+    // Build cover canvas now that logoDataUrl is ready
+    const coverDataUrl = await buildCoverCanvas();
 
-    // ══════════════════════════════════
-    //  PAGE 1 — COVER PAGE
-    // ══════════════════════════════════
-
-    // Top mini-header bar (like the screenshot)
-    doc.setFillColor(...DARK);
-    doc.rect(0, 0, W, 14, "F");
-    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-    doc.text((agencyName || "DAR AL DJAZAIR").toUpperCase(), MARGIN, 9);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(180, 220, 200);
-    const miniSubtitle = contractLang === "ar"
-      ? "عقد إيجار سكني — Contrat de Location — Rental Agreement"
-      : "Contrat de Location — عقد الإيجار — Rental Agreement";
-    doc.text(miniSubtitle, MARGIN + 2 + doc.getTextWidth((agencyName || "DAR AL DJAZAIR").toUpperCase()) + 6, 9);
-    // Mini logo in top-right
-    if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", W - MARGIN - 8, 1, 10, 10, undefined, "FAST");
-    }
-
-    // Thick emerald line below mini-header
-    doc.setDrawColor(...EMERALD); doc.setLineWidth(0.8);
-    doc.line(MARGIN, 18, W - MARGIN, 18);
-
-    // ── COVER — all text via canvas for correct Unicode/Arabic rendering ──
-    let cy = 22;
-
-    // "DAR EL DJAZAIR" — app brand (dark green, bold)
-    cy = addUnicodeText("DAR EL DJAZAIR", cy, { fontSize: 34, color: '#047857', bold: true });
-    cy += 1;
-
-    // Arabic brand subtitle (gold)
-    cy = addUnicodeText("\u062f\u0627\u0631 \u0627\u0644\u062c\u0632\u0627\u0626\u0631", cy, { fontSize: 16, color: '#b48c14' });
-    cy += 3;
-
-    // Horizontal rule
-    doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
-    doc.line(MARGIN + 20, cy, W - MARGIN - 20, cy);
-    cy += 6;
-
-    // Contract title — 3 lines
-    cy = addUnicodeText("CONTRAT DE LOCATION", cy, { fontSize: 13, color: '#111827', bold: true });
-    cy = addUnicodeText("Bail \u00e0 usage d'habitation", cy, { fontSize: 10, color: '#6b7280', italic: true });
-    cy = addUnicodeText("\u0639\u0642\u062f \u0625\u064a\u062c\u0627\u0631 \u0633\u0643\u0646\u064a  \u2014  Rental Agreement", cy, { fontSize: 9, color: '#6b7280' });
-    cy += 3;
-
-    // Gold accent line
-    doc.setDrawColor(...GOLD); doc.setLineWidth(2);
-    doc.line(MARGIN + 10, cy, W - MARGIN - 10, cy);
-    cy += 5;
-
-    // Agency logo (centered large)
-    if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, cy, 36, 36, undefined, "FAST");
-      cy += 40;
-    } else {
-      doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
-      doc.circle(W / 2, cy + 18, 18, "S");
-      cy = addUnicodeText((agencyName[0] || "D").toUpperCase(), cy + 14, { fontSize: 22, color: '#059669', bold: true });
-      cy += 8;
-    }
-
-    // Ref + date box
-    doc.setFillColor(...LIGHT);
-    doc.roundedRect(MARGIN + 20, cy, W - MARGIN * 2 - 40, 18, 2, 2, "F");
-    const refText = `${T.ref}: ${Date.now().toString(36).toUpperCase()}`;
-    cy = addUnicodeText(refText, cy + 1, { fontSize: 8, color: '#047857', bold: true });
-    cy = addUnicodeText(today, cy - 1, { fontSize: 8, color: '#6b7280' });
-    cy += 2;
-
-    // Wilaya
-    if (selectedListing?.wilaya) {
-      cy = addUnicodeText(selectedListing.wilaya, cy, { fontSize: 8, color: '#6b7280' });
-    }
-
-    // ── FOOTER on cover ──
-    doc.setFillColor(...DARK);
-    doc.rect(0, 285, W, 12, "F");
-    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-    doc.text(T.footer, W / 2, 292, { align: "center" });
+    // ══ PAGE 1 — COVER (full canvas, browser handles all Unicode/Arabic) ══
+    doc.addImage(coverDataUrl, 'PNG', 0, 0, W, 297, undefined, 'FAST');
 
     // ══ PAGE 2 — CONTRACT BODY ══
     doc.addPage();
