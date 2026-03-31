@@ -268,10 +268,8 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     // Slim header on body pages
     doc.setFillColor(...DARK);
     doc.rect(0, 0, W, 12, "F");
-    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
-    doc.text((agencyName || "DAR AL DJAZAIR").toUpperCase(), MARGIN, 8);
-    doc.setFont("helvetica", "normal"); doc.setTextColor(180, 220, 200);
-    doc.text(T.bail, W - MARGIN, 8, { align: "right" });
+    addUnicodeLeft((agencyName || "DAR AL DJAZAIR").toUpperCase(), MARGIN, 8, { fontSize: 7.5, color: '#d1fae5', bold: true });
+    addUnicodeLeft(T.bail, W - MARGIN - 50, 8, { fontSize: 7.5, color: '#b4dcc8' });
 
     let y = 22;
 
@@ -280,24 +278,16 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
       if (y > 255) { doc.addPage(); y = 20; }
       doc.setFillColor(...LIGHT);
       doc.roundedRect(MARGIN, y - 5, W - MARGIN * 2, 9, 1.5, 1.5, "F");
-      doc.setTextColor(...DARK);
-      doc.setFont("helvetica", "bold"); doc.setFontSize(9);
-      doc.text(`${icon}  ${title}`.trim(), MARGIN + 4, y + 1);
+      addUnicodeLeft(`${icon} ${title}`.trim(), MARGIN + 4, y + 1, { fontSize: 9, color: '#1e3a2f', bold: true });
       y += 10;
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9.5);
-      doc.setTextColor(...BLACK);
     };
 
     const row = (label, value, highlight = false) => {
       if (!value) return;
       if (y > 270) { doc.addPage(); y = 20; }
-      // Label (Latin — helvetica ok)
-      doc.setFont("helvetica", "bold"); doc.setFontSize(8.5);
-      doc.setTextColor(...GRAY);
-      doc.text(label, MARGIN + 4, y);
-      // Value — canvas for Unicode safety
+      addUnicodeLeft(label, MARGIN + 4, y, { fontSize: 8.5, color: '#6b7280', bold: true });
       const valColor = highlight ? '#059669' : '#111827';
-      addUnicodeLeft(String(value), MARGIN + 60, y + 1, { fontSize: 9, color: valColor, bold: highlight });
+      addUnicodeLeft(String(value), MARGIN + 60, y, { fontSize: 9, color: valColor, bold: highlight });
       doc.setDrawColor(230, 230, 230); doc.setLineWidth(0.2);
       doc.line(MARGIN + 4, y + 2, W - MARGIN - 4, y + 2);
       y += 8;
@@ -382,11 +372,9 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.roundedRect(MARGIN, y, sigBoxW, sigBoxH, 2, 2, "F");
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
     doc.roundedRect(MARGIN, y, sigBoxW, sigBoxH, 2, 2, "S");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...DARK);
-    doc.text(T.bailleurSig, MARGIN + 4, y + 7);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
-    doc.text(agencyName, MARGIN + 4, y + 13);
-    doc.text(T.sig, MARGIN + 4, y + 26);
+    addUnicodeLeft(T.bailleurSig, MARGIN + 4, y + 7, { fontSize: 8, color: '#111827', bold: true });
+    addUnicodeLeft(agencyName, MARGIN + 4, y + 13, { fontSize: 7.5, color: '#6b7280' });
+    addUnicodeLeft(T.sig, MARGIN + 4, y + 26, { fontSize: 7.5, color: '#6b7280' });
     doc.setDrawColor(...EMERALD); doc.line(MARGIN + 22, y + 26, MARGIN + sigBoxW - 4, y + 26);
 
     // Locataire sig box
@@ -394,11 +382,9 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.roundedRect(W - MARGIN - sigBoxW, y, sigBoxW, sigBoxH, 2, 2, "F");
     doc.setDrawColor(200, 200, 200);
     doc.roundedRect(W - MARGIN - sigBoxW, y, sigBoxW, sigBoxH, 2, 2, "S");
-    doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...DARK);
-    doc.text(T.locataireSig, W - MARGIN - sigBoxW + 4, y + 7);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
-    doc.text(form.tenant_name, W - MARGIN - sigBoxW + 4, y + 13);
-    doc.text(T.sig, W - MARGIN - sigBoxW + 4, y + 26);
+    addUnicodeLeft(T.locataireSig, W - MARGIN - sigBoxW + 4, y + 7, { fontSize: 8, color: '#111827', bold: true });
+    addUnicodeLeft(form.tenant_name, W - MARGIN - sigBoxW + 4, y + 13, { fontSize: 7.5, color: '#6b7280' });
+    addUnicodeLeft(T.sig, W - MARGIN - sigBoxW + 4, y + 26, { fontSize: 7.5, color: '#6b7280' });
     doc.setDrawColor(...EMERALD); doc.line(W - MARGIN - sigBoxW + 22, y + 26, W - MARGIN - 4, y + 26);
     y += sigBoxH + 10;
 
@@ -409,8 +395,8 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
       doc.setFillColor(...DARK);
       doc.rect(0, 285, W, 12, "F");
       doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-      doc.text(T.footer, W / 2, 292, { align: "center" });
-      doc.setTextColor(255, 255, 255);
+      addUnicodeLeft(T.footer, MARGIN, 292, { fontSize: 7.5, color: '#d1fae5' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); doc.setTextColor(255, 255, 255);
       doc.text(`Page ${i} / ${pageCount}`, W - MARGIN, 292, { align: "right" });
     }
 
