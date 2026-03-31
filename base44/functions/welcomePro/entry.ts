@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
                           <span style="display:inline-block;width:24px;height:24px;background:#059669;border-radius:50%;text-align:center;line-height:24px;color:#fff;font-size:12px;font-weight:700;">1</span>
                         </td>
                         <td style="color:#374151;font-size:14px;line-height:1.6;padding-left:12px;">
-                          <strong>Upload your documents</strong> — head to your profile and submit your professional ID or agency licence for verification.
+                                <strong>Upload your documents</strong> — head to your profile and submit your registre de commerce (PDF or image). <em style="color:#059669;">Your document is stored securely and permanently deleted from our servers once the review is complete.</em>
                         </td>
                       </tr>
                     </table>
