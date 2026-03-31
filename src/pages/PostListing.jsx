@@ -238,23 +238,28 @@ export default function PostListingPage() {
       const urls = [];
       for (const file of toUpload) {
        try {
-         console.log('Uploading file:', file.name, file.type, file.size);
+         console.log('Starting upload for:', file.name, file.type, file.size);
+         const startTime = Date.now();
          const res = await base44.integrations.Core.UploadFile({ file });
+         console.log('Upload completed in', Date.now() - startTime, 'ms');
          console.log('Full upload response:', JSON.stringify(res, null, 2));
          console.log('res keys:', Object.keys(res || {}));
          console.log('res.data:', res?.data);
          console.log('res.data keys:', Object.keys(res?.data || {}));
          const fileUrl = res?.file_url || res?.data?.file_url;
-          if (fileUrl) {
-            console.log('Got file URL:', fileUrl);
-            urls.push(fileUrl);
-          } else {
-            console.error('No file_url in response:', JSON.stringify(res));
-          }
-        } catch (fileErr) {
-          console.error('Failed to upload file:', file.name, fileErr);
-          throw fileErr;
-        }
+         if (fileUrl) {
+           console.log('Got file URL:', fileUrl);
+           urls.push(fileUrl);
+         } else {
+           console.error('No file_url in response:', JSON.stringify(res));
+         }
+       } catch (fileErr) {
+         console.error('UPLOAD FAILED - file:', file.name);
+         console.error('Error type:', fileErr?.constructor?.name);
+         console.error('Error message:', fileErr?.message);
+         console.error('Full error:', fileErr);
+         throw fileErr;
+       }
       }
       if (urls.length > 0) {
         setForm(f => ({ ...f, images: [...f.images, ...urls] }));
