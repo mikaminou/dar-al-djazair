@@ -331,9 +331,10 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.roundedRect(cx2, y, 82, 9, 2, 2, "F");
     doc.rect(cx2, y + 5, 82, 4, "F");
     addUnicodeLeft(T.locataire, cx2 + 3, y + 7.5, { fontSize: 7, color: '#ffffff', bold: true });
-    addUnicodeLeft(form.tenant_name, cx2 + 3, y + 19, { fontSize: 9, color: '#111827', bold: true });
-    if (form.tenant_phone) addUnicodeLeft(form.tenant_phone, cx2 + 3, y + 27, { fontSize: 7.5, color: '#6b7280' });
-    if (contractExtras.tenant_id_number) addUnicodeLeft(`${T.cin}: ${contractExtras.tenant_id_number}`, cx2 + 3, y + 34, { fontSize: 7, color: '#6b7280' });
+    addUnicodeLeft(form.tenant_name, cx2 + 3, y + 16, { fontSize: 9, color: '#111827', bold: true });
+    if (form.tenant_phone) addUnicodeLeft(form.tenant_phone, cx2 + 3, y + 24, { fontSize: 7.5, color: '#6b7280' });
+    if (contractExtras.tenant_id_number) addUnicodeLeft(`${T.cin}: ${contractExtras.tenant_id_number}`, cx2 + 3, y + 31, { fontSize: 7, color: '#6b7280' });
+    if (contractExtras.tenant_address) addUnicodeLeft(contractExtras.tenant_address, cx2 + 3, y + 38, { fontSize: 7, color: '#6b7280' });
     y += cardH + 10;
 
     // ── ARTICLE 2: BIEN LOUÉ ──
@@ -360,15 +361,12 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     y += 3;
 
     // ── ARTICLE 5: CONDITIONS ──
-    if (form.special_conditions || contractExtras.tenant_address) {
+    if (form.special_conditions) {
       section(T.conditions);
-      if (contractExtras.tenant_address) row(T.adresseLoc, contractExtras.tenant_address);
-      if (form.special_conditions) {
-        doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(...GRAY);
-        const lines = doc.splitTextToSize(form.special_conditions, W - MARGIN * 2 - 8);
-        doc.text(lines, MARGIN + 4, y);
-        y += lines.length * 6 + 4;
-      }
+      doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+      const lines = doc.splitTextToSize(form.special_conditions, W - MARGIN * 2 - 8);
+      doc.text(lines, MARGIN + 4, y);
+      y += lines.length * 6 + 4;
       y += 3;
     }
 
