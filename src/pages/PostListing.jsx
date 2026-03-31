@@ -235,16 +235,20 @@ export default function PostListingPage() {
     try {
       const urls = [];
       for (const file of toUpload) {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        if (file_url) urls.push(file_url);
+        const res = await base44.integrations.Core.UploadFile({ file });
+        const fileUrl = res?.file_url || res?.data?.file_url;
+        if (fileUrl) urls.push(fileUrl);
       }
       if (urls.length > 0) {
         setForm(f => ({ ...f, images: [...f.images, ...urls] }));
         if (inputRef) inputRef.value = "";
       } else {
-        setUploadError(lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed");
+        const errorMsg = lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed";
+        setUploadError(errorMsg);
+        setTimeout(() => setUploadError(""), 3000);
       }
     } catch (err) {
+      console.error('Upload error:', err);
       const errorMsg = lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images";
       setUploadError(errorMsg);
       setTimeout(() => setUploadError(""), 3000);
