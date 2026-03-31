@@ -214,9 +214,14 @@ export default function PostListingPage() {
   };
 
   async function uploadImages(files, inputRef) {
+    console.log('uploadImages called with files:', files);
     setUploadError("");
     const fileList = Array.from(files);
-    if (fileList.length === 0) return;
+    console.log('fileList:', fileList.length);
+    if (fileList.length === 0) {
+      console.log('No files in list');
+      return;
+    }
     const remaining = LISTING_CONFIG.MAX_IMAGES - form.images.length;
     if (remaining <= 0) {
       setUploadError(lang === "ar" ? `الحد الأقصى ${LISTING_CONFIG.MAX_IMAGES} صور` : lang === "fr" ? `Maximum ${LISTING_CONFIG.MAX_IMAGES} photos autorisées` : `Maximum ${LISTING_CONFIG.MAX_IMAGES} images allowed`);
