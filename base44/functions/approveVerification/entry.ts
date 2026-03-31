@@ -20,10 +20,11 @@ Deno.serve(async (req) => {
     const isApproved = action === "approve";
     const newStatus  = isApproved ? "approved" : "rejected";
 
-    // Update the verification request
+    // Update the verification request and wipe the document URI (GDPR cleanup)
     await base44.asServiceRole.entities.VerificationRequest.update(request_id, {
-      status:     newStatus,
-      admin_note: admin_note || "",
+      status:       newStatus,
+      admin_note:   admin_note || "",
+      document_uri: "",  // delete reference to uploaded doc after decision
     });
 
     // Find the request to get user_email and type
