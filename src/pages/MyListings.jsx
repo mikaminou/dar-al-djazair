@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
-import { Plus, Trash2, Eye, Users, BarChart3, CalendarDays, SlidersHorizontal, X, MapPin, ChevronDown, ChevronUp, Pencil, MoreVertical, CheckCircle2, Clock, Home, Ban } from "lucide-react";
+import { Plus, Trash2, Eye, Users, BarChart3, CalendarDays, SlidersHorizontal, X, MapPin, ChevronDown, ChevronUp, Pencil, MoreVertical, CheckCircle2, Clock, Home, Ban, Archive, ArchiveRestore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -125,15 +125,18 @@ export default function MyListingsPage() {
     reserved: "bg-amber-100 text-amber-700",
     sold:     "bg-blue-100 text-blue-700",
     rented:   "bg-purple-100 text-purple-700",
+    archived: "bg-gray-100 text-gray-500",
     deleted:  "bg-red-100 text-red-500",
   };
   const statusLabel = {
-    active:   { en: "Active", fr: "Actif", ar: "نشط" },
-    reserved: { en: "Reserved", fr: "Réservé", ar: "محجوز" },
-    sold:     { en: "Sold", fr: "Vendu", ar: "مُباع" },
-    rented:   { en: "Rented", fr: "Loué", ar: "مُؤجَّر" },
-    deleted:  { en: "Deleted", fr: "Supprimé", ar: "محذوف" },
+    active:   { en: "Active",   fr: "Actif",    ar: "نشط"     },
+    reserved: { en: "Reserved", fr: "Réservé",  ar: "محجوز"   },
+    sold:     { en: "Sold",     fr: "Vendu",    ar: "مُباع"   },
+    rented:   { en: "Rented",   fr: "Loué",     ar: "مُؤجَّر" },
+    archived: { en: "Archived", fr: "Archivé",  ar: "مؤرشف"  },
+    deleted:  { en: "Deleted",  fr: "Supprimé", ar: "محذوف"  },
   };
+
 
   const filteredListings = listings.filter(l => {
     if (filters.status !== "all" && l.status !== filters.status) return false;
@@ -160,6 +163,7 @@ export default function MyListingsPage() {
     { value: "reserved", label: { fr: "Réservés",  ar: "محجوز",   en: "Reserved" } },
     { value: "sold",     label: { fr: "Vendus",    ar: "مُباع",   en: "Sold"     } },
     { value: "rented",   label: { fr: "Loués",     ar: "مُؤجَّر", en: "Rented"  } },
+    { value: "archived", label: { fr: "Archivés",  ar: "مؤرشف",   en: "Archived" } },
     { value: "deleted",  label: { fr: "Supprimés", ar: "محذوف",   en: "Deleted"  } },
   ];
 
@@ -387,7 +391,7 @@ export default function MyListingsPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-52">
-                      {(listing.status === "reserved" || listing.status === "sold" || listing.status === "rented" || listing.status === "deleted") && (
+                      {(listing.status === "reserved" || listing.status === "sold" || listing.status === "rented" || listing.status === "archived" || listing.status === "deleted") && (
                         <DropdownMenuItem onClick={() => changeStatus(listing, "active")} className="text-green-700 gap-2">
                           <CheckCircle2 className="w-4 h-4" />
                           {lang === "ar" ? "تفعيل مجدداً" : lang === "fr" ? "Remettre actif" : "Reactivate Listing"}
@@ -409,6 +413,12 @@ export default function MyListingsPage() {
                         <DropdownMenuItem onClick={() => changeStatus(listing, "rented")} className="text-purple-700 gap-2">
                           <Home className="w-4 h-4" />
                           {lang === "ar" ? "تحديد كمؤجر" : lang === "fr" ? "Marquer loué" : "Mark as Rented"}
+                        </DropdownMenuItem>
+                      )}
+                      {listing.status === "active" && (
+                        <DropdownMenuItem onClick={() => changeStatus(listing, "archived")} className="text-gray-600 gap-2">
+                          <Archive className="w-4 h-4" />
+                          {lang === "ar" ? "أرشفة الإعلان" : lang === "fr" ? "Archiver l'annonce" : "Archive Listing"}
                         </DropdownMenuItem>
                       )}
                       {listing.status !== "deleted" && (
