@@ -465,7 +465,7 @@ function NavContent({ currentPageName, children }) {
               <div>
                 <h4 className="text-white font-semibold text-sm mb-3">{lang === "ar" ? "تواصل" : lang === "fr" ? "Contact" : "Contact"}</h4>
                 <ul className="space-y-2 text-xs">
-                  <li>contact@dari.dz</li>
+                  <li>contact@dar-el-djazair.mail</li>
                   <li>+213 555 000 000</li>
                   <li className="flex gap-2 mt-3">
                     <span className="text-lg">🇩🇿</span>
@@ -475,7 +475,7 @@ function NavContent({ currentPageName, children }) {
               </div>
             </div>
             <div className="border-t border-gray-800 pt-4 text-xs text-center text-gray-600">
-              © 2024 Dari.dz — {lang === "ar" ? "منصة العقار الجزائرية" : lang === "fr" ? "La plateforme immobilière algérienne" : "The Algerian Real Estate Platform"}
+              © 2024 Dar-el-djazair.com — {lang === "ar" ? "منصة العقار الجزائرية" : lang === "fr" ? "La plateforme immobilière algérienne" : "The Algerian Real Estate Platform"}
             </div>
           </div>
         </footer>
