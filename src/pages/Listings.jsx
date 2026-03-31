@@ -110,8 +110,8 @@ export default function ListingsPage() {
 
   async function loadListings() {
     setLoading(true);
-    // Only show active listings in the marketplace
-    const query = { status: "active" };
+    // Only show active listings from verified owners in the marketplace
+    const query = { status: "active", owner_is_verified: true };
     if (filters.listing_type)  query.listing_type  = filters.listing_type;
     if (filters.property_type) query.property_type = filters.property_type;
     if (filters.wilaya)        query.wilaya        = filters.wilaya;

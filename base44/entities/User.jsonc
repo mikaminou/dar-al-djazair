@@ -65,7 +65,8 @@
     },
     "is_verified": {
       "type": "boolean",
-      "description": "Set to true only after admin approval. Defaults to null (not verified)."
+      "default": false,
+      "description": "Set to true only after admin approval. Defaults to false."
     },
     "verification_type": {
       "type": "string",
