@@ -215,8 +215,13 @@ export default function PostListingPage() {
 
   async function uploadImages(files, inputRef) {
     console.log("uploadImages called with", files?.length || 0, "files, current images:", form.images.length);
+    console.log('LISTING_CONFIG.MAX_IMAGES:', LISTING_CONFIG.MAX_IMAGES);
+    console.log('LISTING_CONFIG.MAX_IMAGE_SIZE_MB:', LISTING_CONFIG.MAX_IMAGE_SIZE_MB);
     setUploadError("");
     const fileList = Array.from(files);
+    if (fileList.length > 0) {
+      console.log('First file:', { name: fileList[0].name, size: fileList[0].size, type: fileList[0].type });
+    }
     if (fileList.length === 0) {
       console.warn("No files in list");
       return;
