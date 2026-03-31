@@ -187,7 +187,7 @@ export default function ProfilePage() {
                       <VerifiedBadge type={profileUser.verification_type || "individual"} size="sm" lang={lang} />
                     )}
                   </div>
-                  {isProfessional && (
+                  {isProfessional && profileUser.is_verified && (
                     <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 mt-1">
                       <Building2 className="w-3 h-3 mr-1" />
                       {profileUser.professional_type === 'agence_immobiliere'
