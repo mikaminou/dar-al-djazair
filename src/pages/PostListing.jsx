@@ -245,7 +245,9 @@ export default function PostListingPage() {
         setUploadError(lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed");
       }
     } catch (err) {
-      setUploadError(lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images");
+      const errorMsg = lang === "ar" ? "خطأ في رفع الصور" : lang === "fr" ? "Erreur lors du téléchargement" : "Error uploading images";
+      setUploadError(errorMsg);
+      setTimeout(() => setUploadError(""), 3000);
     } finally {
       setUploadingImages(false);
     }
