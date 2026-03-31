@@ -216,6 +216,7 @@ export default function PostListingPage() {
   async function uploadImages(files) {
     setUploadError("");
     const fileList = Array.from(files);
+    if (fileList.length === 0) return;
     const remaining = LISTING_CONFIG.MAX_IMAGES - form.images.length;
     if (remaining <= 0) {
       setUploadError(lang === "ar" ? `الحد الأقصى ${LISTING_CONFIG.MAX_IMAGES} صور` : lang === "fr" ? `Maximum ${LISTING_CONFIG.MAX_IMAGES} photos autorisées` : `Maximum ${LISTING_CONFIG.MAX_IMAGES} images allowed`);
@@ -228,13 +229,19 @@ export default function PostListingPage() {
       return;
     }
     setUploadingImages(true);
-    const urls = [];
-    for (const file of toUpload) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      urls.push(file_url);
+    try {
+      const urls = [];
+      for (const file of toUpload) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        urls.push(file_url);
+      }
+      set("images", [...form.images, ...urls]);
+    } finally {
+      setUploadingImages(false);
+      // Reset input so same files can be selected again
+      const inputEl = document.querySelector('input[type="file"][accept*="image"]');
+      if (inputEl) inputEl.value = "";
     }
-    set("images", [...form.images, ...urls]);
-    setUploadingImages(false);
   }
 
   async function submit() {
