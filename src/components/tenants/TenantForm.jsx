@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X, Save, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { X, Save, FileText, ChevronDown, ChevronUp, Globe } from "lucide-react";
 import DatePicker from "@/components/ui/DatePicker";
 
 export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang }) {
@@ -29,6 +29,7 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     tenant_address: "",
     deposit: ""
   });
+  const [contractLang, setContractLang] = useState(lang || "fr");
 
   useEffect(() => {
     loadListings();
@@ -92,19 +93,29 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
 
     const { jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "mm", format: "a4" });
-    const W = 210; const MARGIN = 16;
+    const W = 210; const MARGIN = 20;
     const selectedListing = listings.find(l => l.id === form.listing_id);
     const propertyAddress = [selectedListing?.address, selectedListing?.commune, selectedListing?.wilaya].filter(Boolean).join(", ");
-    const today = new Date().toLocaleDateString("fr-DZ", { year: "numeric", month: "long", day: "numeric" });
+    const localeStr = contractLang === "ar" ? "ar-DZ" : contractLang === "fr" ? "fr-FR" : "en-US";
+    const today = new Date().toLocaleDateString(localeStr, { year: "numeric", month: "long", day: "numeric" });
     const agencyName = currentUser?.agency_name || currentUser?.full_name || "";
     const landlordPhone = currentUser?.phone || "";
     const endDate = calculateEndDate();
     const durationMap = { monthly: 1, trimestrial: 3, "6months": 6, yearly: 12, custom: parseInt(form.period_months) || 1 };
     const durationMonths = durationMap[form.period_type] || 1;
 
+    // i18n strings for contract
+    const i18n = {
+      fr: { bail: "CONTRAT DE LOCATION", bailSub: "Bail à usage d'habitation", bailSub2: "عقد إيجار سكني — Rental Agreement", bailleur: "BAILLEUR (PROPRIÉTAIRE)", locataire: "LOCATAIRE", bien: "BIEN LOUÉ", duree: "DURÉE DU CONTRAT", loyer: "LOYER & PAIEMENT", conditions: "CONDITIONS PARTICULIÈRES", signatures: "SIGNATURES DES PARTIES", dateDebut: "Date de début", dateFin: "Date de fin", dureeLabel: "Durée", loyerLabel: "Loyer", depot: "Dépôt de garantie", avance: "Payé d'avance", mode: "Mode de paiement", modeVal: "D'avance, avant le 5 du mois", adresse: "Adresse", type: "Type", surface: "Surface", pieces: "Pièces", adresseLoc: "Adresse locataire", cin: "CIN", sig: "Signature :", bailleurSig: "Bailleur", locataireSig: "Locataire", footer: "Dar Al Djazair · Plateforme immobilière algérienne", ref: "Réf" },
+      ar: { bail: "عقد إيجار", bailSub: "عقد إيجار للاستخدام السكني", bailSub2: "Contrat de Location — Bail résidentiel", bailleur: "المؤجر (صاحب العقار)", locataire: "المستأجر", bien: "العقار المؤجر", duree: "مدة العقد", loyer: "الإيجار والدفع", conditions: "شروط خاصة", signatures: "توقيعات الطرفين", dateDebut: "تاريخ البداية", dateFin: "تاريخ الانتهاء", dureeLabel: "المدة", loyerLabel: "الإيجار", depot: "التأمين", avance: "مدفوع مقدماً", mode: "طريقة الدفع", modeVal: "مقدماً قبل الخامس من كل شهر", adresse: "العنوان", type: "النوع", surface: "المساحة", pieces: "الغرف", adresseLoc: "عنوان المستأجر", cin: "رقم الهوية", sig: "التوقيع :", bailleurSig: "المؤجر", locataireSig: "المستأجر", footer: "دار الجزائر · منصة العقار الجزائرية", ref: "مرجع" },
+      en: { bail: "RENTAL AGREEMENT", bailSub: "Residential Lease Agreement", bailSub2: "عقد إيجار سكني — Contrat de Location", bailleur: "LANDLORD (OWNER)", locataire: "TENANT", bien: "LEASED PROPERTY", duree: "CONTRACT DURATION", loyer: "RENT & PAYMENT", conditions: "SPECIAL CONDITIONS", signatures: "PARTIES' SIGNATURES", dateDebut: "Start date", dateFin: "End date", dureeLabel: "Duration", loyerLabel: "Rent", depot: "Security deposit", avance: "Paid upfront", mode: "Payment method", modeVal: "In advance, before the 5th", adresse: "Address", type: "Type", surface: "Area", pieces: "Rooms", adresseLoc: "Tenant address", cin: "ID Number", sig: "Signature:", bailleurSig: "Landlord", locataireSig: "Tenant", footer: "Dar Al Djazair · Algerian Real Estate Platform", ref: "Ref" }
+    };
+    const T = i18n[contractLang] || i18n.fr;
+
     // ── Emerald palette ──
     const EMERALD = [5, 150, 105];   // #059669
     const DARK    = [4, 120, 87];    // #047857
+    const GOLD    = [180, 140, 20];  // warm gold for Arabic subtitle
     const LIGHT   = [209, 250, 229]; // #d1fae5
     const GRAY    = [107, 114, 128];
     const BLACK   = [17, 24, 39];
@@ -123,44 +134,97 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
       } catch (_) {}
     }
 
-    // ══ HEADER BAND ══
+    // ══════════════════════════════════
+    //  PAGE 1 — COVER PAGE
+    // ══════════════════════════════════
+
+    // Top mini-header bar (like the screenshot)
     doc.setFillColor(...DARK);
-    doc.rect(0, 0, W, 42, "F");
-    // Decorative accent strip
-    doc.setFillColor(...EMERALD);
-    doc.rect(0, 38, W, 4, "F");
-
-    // Logo circle
+    doc.rect(0, 0, W, 14, "F");
+    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+    doc.text((agencyName || "DAR AL DJAZAIR").toUpperCase(), MARGIN, 9);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(180, 220, 200);
+    const miniSubtitle = contractLang === "ar"
+      ? "عقد إيجار سكني — Contrat de Location — Rental Agreement"
+      : "Contrat de Location — عقد الإيجار — Rental Agreement";
+    doc.text(miniSubtitle, MARGIN + 2 + doc.getTextWidth((agencyName || "DAR AL DJAZAIR").toUpperCase()) + 6, 9);
+    // Mini logo in top-right
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", MARGIN, 7, 26, 26, undefined, "FAST");
+      doc.addImage(logoDataUrl, "JPEG", W - MARGIN - 8, 1, 10, 10, undefined, "FAST");
+    }
+
+    // Thick emerald line below mini-header
+    doc.setDrawColor(...EMERALD); doc.setLineWidth(0.8);
+    doc.line(MARGIN, 18, W - MARGIN, 18);
+
+    // ── BIG AGENCY NAME (centered, like DAR EL DJAZAIR in screenshot) ──
+    const bigName = (agencyName || "Dar Al Djazair").toUpperCase();
+    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(34);
+    doc.text(bigName, W / 2, 58, { align: "center" });
+
+    // Arabic subtitle (gold, like screenshot)
+    doc.setTextColor(...GOLD); doc.setFont("helvetica", "normal"); doc.setFontSize(16);
+    doc.text("دار الجزائر", W / 2, 70, { align: "center" });
+
+    // Horizontal rule
+    doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
+    doc.line(MARGIN + 20, 78, W - MARGIN - 20, 78);
+
+    // Contract type block (centered bold, like screenshot)
+    doc.setTextColor(...BLACK); doc.setFont("helvetica", "bold"); doc.setFontSize(13);
+    doc.text(T.bail, W / 2, 92, { align: "center" });
+    doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(...GRAY);
+    doc.text(T.bailSub, W / 2, 100, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
+    doc.text(T.bailSub2, W / 2, 108, { align: "center" });
+
+    // Gold accent bottom line (like the thick gold line in screenshot)
+    doc.setDrawColor(...GOLD); doc.setLineWidth(2);
+    doc.line(MARGIN + 10, 115, W - MARGIN - 10, 115);
+
+    // Logo centered (large, below the line)
+    if (logoDataUrl) {
+      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, 122, 36, 36, undefined, "FAST");
     } else {
-      doc.setFillColor(255, 255, 255, 0.15);
-      doc.setDrawColor(255, 255, 255);
-      doc.setLineWidth(0.5);
-      doc.circle(MARGIN + 13, 20, 13, "S");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(16); doc.setFont("helvetica", "bold");
-      doc.text((agencyName[0] || "A").toUpperCase(), MARGIN + 13, 24, { align: "center" });
+      // Placeholder circle
+      doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
+      doc.circle(W / 2, 140, 18, "S");
+      doc.setTextColor(...EMERALD); doc.setFont("helvetica", "bold"); doc.setFontSize(22);
+      doc.text((agencyName[0] || "D").toUpperCase(), W / 2, 145, { align: "center" });
     }
 
-    // Agency name + doc title
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(16);
-    doc.text(agencyName || "Dar Al Djazair", MARGIN + 32, 17);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-    doc.setTextColor(209, 250, 229);
-    doc.text("Contrat de Location — Bail à usage d'habitation", MARGIN + 32, 24);
-    doc.text(`Réf: ${Date.now().toString(36).toUpperCase()} · ${today}`, MARGIN + 32, 30);
+    // Ref + date at bottom of cover
+    doc.setFillColor(...LIGHT);
+    doc.roundedRect(MARGIN + 20, 168, W - MARGIN * 2 - 40, 18, 2, 2, "F");
+    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
+    doc.text(`${T.ref}: ${Date.now().toString(36).toUpperCase()}`, W / 2, 175, { align: "center" });
+    doc.setFont("helvetica", "normal"); doc.setTextColor(...GRAY); doc.setFontSize(8);
+    doc.text(today, W / 2, 181, { align: "center" });
 
-    // Wilaya badge top-right
+    // Wilaya
     if (selectedListing?.wilaya) {
-      doc.setFillColor(255, 255, 255, 50);
-      doc.setTextColor(209, 250, 229);
-      doc.setFontSize(8);
-      doc.text(selectedListing.wilaya, W - MARGIN, 30, { align: "right" });
+      doc.setTextColor(...GRAY); doc.setFontSize(8);
+      doc.text(selectedListing.wilaya, W / 2, 192, { align: "center" });
     }
 
-    let y = 52;
+    // ── FOOTER on cover ──
+    doc.setFillColor(...DARK);
+    doc.rect(0, 285, W, 12, "F");
+    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
+    doc.text(T.footer, W / 2, 292, { align: "center" });
+
+    // ══ PAGE 2 — CONTRACT BODY ══
+    doc.addPage();
+
+    // Slim header on body pages
+    doc.setFillColor(...DARK);
+    doc.rect(0, 0, W, 12, "F");
+    doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.text((agencyName || "DAR AL DJAZAIR").toUpperCase(), MARGIN, 8);
+    doc.setFont("helvetica", "normal"); doc.setTextColor(180, 220, 200);
+    doc.text(T.bail, W - MARGIN, 8, { align: "right" });
+
+    let y = 22;
 
     // ── Section helper ──
     const section = (title, icon = "") => {
@@ -192,61 +256,74 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
       y += 8;
     };
 
-    // ── TWO-COLUMN info cards ──
-    const cardH = 28;
+    // ── PARTIES CARDS (with logo in Bailleur card) ──
+    const cardH = 40;
     // Bailleur card
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(MARGIN, y, 85, cardH, 2, 2, "F");
-    doc.setDrawColor(...EMERALD); doc.setLineWidth(0.4);
-    doc.roundedRect(MARGIN, y, 85, cardH, 2, 2, "S");
-    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-    doc.text("BAILLEUR", MARGIN + 4, y + 6);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...BLACK);
-    doc.text(agencyName || "—", MARGIN + 4, y + 13);
-    doc.setFontSize(8); doc.setTextColor(...GRAY);
-    doc.text(landlordPhone || currentUser?.email || "", MARGIN + 4, y + 20);
+    doc.roundedRect(MARGIN, y, 82, cardH, 2, 2, "F");
+    doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
+    doc.roundedRect(MARGIN, y, 82, cardH, 2, 2, "S");
+    // Label tag
+    doc.setFillColor(...EMERALD);
+    doc.roundedRect(MARGIN, y, 82, 9, 2, 2, "F");
+    doc.rect(MARGIN, y + 5, 82, 4, "F"); // square bottom corners
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.text(T.bailleur, MARGIN + 4, y + 6.5);
+    // Logo thumbnail inside card
+    if (logoDataUrl) {
+      doc.addImage(logoDataUrl, "JPEG", MARGIN + 60, y + 12, 16, 16, undefined, "FAST");
+    }
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(...DARK);
+    doc.text(agencyName || "—", MARGIN + 4, y + 18);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
+    if (landlordPhone) doc.text(landlordPhone, MARGIN + 4, y + 25);
+    if (currentUser?.email) doc.text(currentUser.email, MARGIN + 4, y + 32);
 
     // Locataire card
+    const cx = W - MARGIN - 82;
     doc.setFillColor(248, 250, 252);
-    doc.roundedRect(W - MARGIN - 85, y, 85, cardH, 2, 2, "F");
-    doc.setDrawColor(...EMERALD);
-    doc.roundedRect(W - MARGIN - 85, y, 85, cardH, 2, 2, "S");
-    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
-    doc.text("LOCATAIRE", W - MARGIN - 85 + 4, y + 6);
-    doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...BLACK);
-    doc.text(form.tenant_name, W - MARGIN - 85 + 4, y + 13);
-    doc.setFontSize(8); doc.setTextColor(...GRAY);
-    if (contractExtras.tenant_id_number) doc.text(`CIN: ${contractExtras.tenant_id_number}`, W - MARGIN - 85 + 4, y + 20);
-    else if (form.tenant_phone) doc.text(form.tenant_phone, W - MARGIN - 85 + 4, y + 20);
+    doc.roundedRect(cx, y, 82, cardH, 2, 2, "F");
+    doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
+    doc.roundedRect(cx, y, 82, cardH, 2, 2, "S");
+    doc.setFillColor(...DARK);
+    doc.roundedRect(cx, y, 82, 9, 2, 2, "F");
+    doc.rect(cx, y + 5, 82, 4, "F");
+    doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(7.5);
+    doc.text(T.locataire, cx + 4, y + 6.5);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(9.5); doc.setTextColor(...DARK);
+    doc.text(form.tenant_name, cx + 4, y + 18);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...GRAY);
+    if (form.tenant_phone) doc.text(form.tenant_phone, cx + 4, y + 25);
+    if (contractExtras.tenant_id_number) doc.text(`${T.cin}: ${contractExtras.tenant_id_number}`, cx + 4, y + 32);
     y += cardH + 10;
 
     // ── ARTICLE 2: BIEN LOUÉ ──
-    section("BIEN LOUÉ");
-    row("Adresse", propertyAddress);
-    if (selectedListing?.property_type) row("Type", selectedListing.property_type);
-    if (selectedListing?.area) row("Surface", `${selectedListing.area} m²`);
-    if (selectedListing?.rooms) row("Pièces", String(selectedListing.rooms));
+    section(T.bien);
+    row(T.adresse, propertyAddress);
+    if (selectedListing?.property_type) row(T.type, selectedListing.property_type);
+    if (selectedListing?.area) row(T.surface, `${selectedListing.area} m²`);
+    if (selectedListing?.rooms) row(T.pieces, String(selectedListing.rooms));
     y += 3;
 
     // ── ARTICLE 3: DURÉE ──
-    section("DURÉE DU CONTRAT");
-    row("Date de début", form.period_start_date);
-    row("Durée", `${durationMonths} mois`);
-    row("Date de fin", endDate);
+    section(T.duree);
+    row(T.dateDebut, form.period_start_date);
+    row(T.dureeLabel, `${durationMonths} mois`);
+    row(T.dateFin, endDate);
     y += 3;
 
     // ── ARTICLE 4: LOYER ──
-    section("LOYER & PAIEMENT");
-    row("Loyer", `${Number(form.rent_amount).toLocaleString("fr-DZ")} DZD`, true);
-    if (contractExtras.deposit) row("Dépôt de garantie", `${Number(contractExtras.deposit).toLocaleString("fr-DZ")} DZD`);
-    if (form.total_paid_upfront) row("Payé d'avance", `${Number(form.total_paid_upfront).toLocaleString("fr-DZ")} DZD`);
-    row("Mode de paiement", "D'avance, avant le 5 du mois");
+    section(T.loyer);
+    row(T.loyerLabel, `${Number(form.rent_amount).toLocaleString("fr-DZ")} DZD`, true);
+    if (contractExtras.deposit) row(T.depot, `${Number(contractExtras.deposit).toLocaleString("fr-DZ")} DZD`);
+    if (form.total_paid_upfront) row(T.avance, `${Number(form.total_paid_upfront).toLocaleString("fr-DZ")} DZD`);
+    row(T.mode, T.modeVal);
     y += 3;
 
     // ── ARTICLE 5: CONDITIONS ──
     if (form.special_conditions || contractExtras.tenant_address) {
-      section("CONDITIONS PARTICULIÈRES");
-      if (contractExtras.tenant_address) row("Adresse actuelle locataire", contractExtras.tenant_address);
+      section(T.conditions);
+      if (contractExtras.tenant_address) row(T.adresseLoc, contractExtras.tenant_address);
       if (form.special_conditions) {
         doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(...GRAY);
         const lines = doc.splitTextToSize(form.special_conditions, W - MARGIN * 2 - 8);
@@ -259,7 +336,7 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     // ── SIGNATURES SECTION ──
     if (y > 220) { doc.addPage(); y = 20; }
     y += 6;
-    section("SIGNATURES DES PARTIES");
+    section(T.signatures);
     y += 4;
 
     const sigBoxW = 82; const sigBoxH = 35;
@@ -269,10 +346,10 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.setDrawColor(200, 200, 200); doc.setLineWidth(0.3);
     doc.roundedRect(MARGIN, y, sigBoxW, sigBoxH, 2, 2, "S");
     doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...DARK);
-    doc.text("Bailleur", MARGIN + 4, y + 7);
+    doc.text(T.bailleurSig, MARGIN + 4, y + 7);
     doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
     doc.text(agencyName, MARGIN + 4, y + 13);
-    doc.text("Signature :", MARGIN + 4, y + 26);
+    doc.text(T.sig, MARGIN + 4, y + 26);
     doc.setDrawColor(...EMERALD); doc.line(MARGIN + 22, y + 26, MARGIN + sigBoxW - 4, y + 26);
 
     // Locataire sig box
@@ -281,21 +358,21 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.setDrawColor(200, 200, 200);
     doc.roundedRect(W - MARGIN - sigBoxW, y, sigBoxW, sigBoxH, 2, 2, "S");
     doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.setTextColor(...DARK);
-    doc.text("Locataire", W - MARGIN - sigBoxW + 4, y + 7);
+    doc.text(T.locataireSig, W - MARGIN - sigBoxW + 4, y + 7);
     doc.setFont("helvetica", "normal"); doc.setFontSize(7.5); doc.setTextColor(...GRAY);
     doc.text(form.tenant_name, W - MARGIN - sigBoxW + 4, y + 13);
-    doc.text("Signature :", W - MARGIN - sigBoxW + 4, y + 26);
+    doc.text(T.sig, W - MARGIN - sigBoxW + 4, y + 26);
     doc.setDrawColor(...EMERALD); doc.line(W - MARGIN - sigBoxW + 22, y + 26, W - MARGIN - 4, y + 26);
     y += sigBoxH + 10;
 
-    // ── FOOTER ──
+    // ── FOOTER on all body pages ──
     const pageCount = doc.internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFillColor(...DARK);
       doc.rect(0, 285, W, 12, "F");
       doc.setTextColor(209, 250, 229); doc.setFont("helvetica", "normal"); doc.setFontSize(7.5);
-      doc.text("Dar Al Djazair · dari.dz · Plateforme immobilière algérienne", W / 2, 292, { align: "center" });
+      doc.text(T.footer, W / 2, 292, { align: "center" });
       doc.setTextColor(255, 255, 255);
       doc.text(`Page ${i} / ${pageCount}`, W - MARGIN, 292, { align: "right" });
     }
@@ -481,13 +558,28 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
               </label>
               <Input value={contractExtras.tenant_address} onChange={e => setContractExtras(p => ({ ...p, tenant_address: e.target.value }))} className="border-gray-200 text-sm" />
             </div>
-            <Button type="button" variant="outline" onClick={handleGeneratePDF} disabled={generatingPdf || !form.tenant_name || !form.period_start_date || !form.rent_amount}
-              className="w-full gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-              {generatingPdf
-                ? <><div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" /> {lang === "fr" ? "Génération..." : lang === "ar" ? "جاري الإنشاء..." : "Generating..."}</>
-                : <><FileText className="w-4 h-4" /> {lang === "ar" ? "تنزيل PDF" : lang === "fr" ? "Télécharger le PDF" : "Download PDF"}</>
-              }
-            </Button>
+            <div className="flex gap-2 items-center">
+              {/* Language selector */}
+              <div className="flex items-center gap-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-600">
+                <Globe className="w-3.5 h-3.5 text-gray-400" />
+                {["fr", "ar", "en"].map(l => (
+                  <button key={l} type="button"
+                    onClick={() => setContractLang(l)}
+                    className={`px-1.5 py-0.5 rounded transition-colors font-medium ${
+                      contractLang === l ? "bg-emerald-600 text-white" : "hover:bg-gray-100 text-gray-500"
+                    }`}>
+                    {l === "fr" ? "FR" : l === "ar" ? "عر" : "EN"}
+                  </button>
+                ))}
+              </div>
+              <Button type="button" variant="outline" onClick={handleGeneratePDF} disabled={generatingPdf || !form.tenant_name || !form.period_start_date || !form.rent_amount}
+                className="flex-1 gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+                {generatingPdf
+                  ? <><div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" /> {contractLang === "fr" ? "Génération..." : contractLang === "ar" ? "جاري الإنشاء..." : "Generating..."}</>
+                  : <><FileText className="w-4 h-4" /> {contractLang === "ar" ? "تنزيل PDF" : contractLang === "fr" ? "Télécharger le PDF" : "Download PDF"}</>
+                }
+              </Button>
+            </div>
           </div>
         )}
       </div>
