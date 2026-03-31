@@ -157,12 +157,11 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.setDrawColor(...EMERALD); doc.setLineWidth(0.8);
     doc.line(MARGIN, 18, W - MARGIN, 18);
 
-    // ── BIG AGENCY NAME (centered, like DAR EL DJAZAIR in screenshot) ──
-    const bigName = (agencyName || "Dar Al Djazair").toUpperCase();
-    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(34);
-    doc.text(bigName, W / 2, 58, { align: "center" });
+    // ── APP BRAND — always "DAR EL DJAZAIR" ──
+    doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(36);
+    doc.text("DAR EL DJAZAIR", W / 2, 58, { align: "center" });
 
-    // Arabic subtitle (gold, like screenshot)
+    // Arabic brand subtitle (gold)
     doc.setTextColor(...GOLD); doc.setFont("helvetica", "normal"); doc.setFontSize(16);
     doc.text("دار الجزائر", W / 2, 70, { align: "center" });
 
@@ -170,30 +169,29 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
     doc.setDrawColor(...DARK); doc.setLineWidth(0.5);
     doc.line(MARGIN + 20, 78, W - MARGIN - 20, 78);
 
-    // Contract type block (centered bold, like screenshot)
+    // Contract title in 3 languages
     doc.setTextColor(...BLACK); doc.setFont("helvetica", "bold"); doc.setFontSize(13);
-    doc.text(T.bail, W / 2, 92, { align: "center" });
+    doc.text("CONTRAT DE LOCATION", W / 2, 91, { align: "center" });
     doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(...GRAY);
-    doc.text(T.bailSub, W / 2, 100, { align: "center" });
+    doc.text("Bail à usage d'habitation", W / 2, 100, { align: "center" });
     doc.setFont("helvetica", "normal"); doc.setFontSize(9); doc.setTextColor(...GRAY);
-    doc.text(T.bailSub2, W / 2, 108, { align: "center" });
+    doc.text("عقد إيجار سكني  —  Rental Agreement", W / 2, 109, { align: "center" });
 
-    // Gold accent bottom line (like the thick gold line in screenshot)
+    // Gold accent line
     doc.setDrawColor(...GOLD); doc.setLineWidth(2);
-    doc.line(MARGIN + 10, 115, W - MARGIN - 10, 115);
+    doc.line(MARGIN + 10, 116, W - MARGIN - 10, 116);
 
-    // Logo centered (large, below the line)
+    // Agency logo (centered large)
     if (logoDataUrl) {
-      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, 122, 36, 36, undefined, "FAST");
+      doc.addImage(logoDataUrl, "JPEG", W / 2 - 18, 123, 36, 36, undefined, "FAST");
     } else {
-      // Placeholder circle
       doc.setDrawColor(...EMERALD); doc.setLineWidth(0.5);
-      doc.circle(W / 2, 140, 18, "S");
+      doc.circle(W / 2, 141, 18, "S");
       doc.setTextColor(...EMERALD); doc.setFont("helvetica", "bold"); doc.setFontSize(22);
-      doc.text((agencyName[0] || "D").toUpperCase(), W / 2, 145, { align: "center" });
+      doc.text((agencyName[0] || "D").toUpperCase(), W / 2, 146, { align: "center" });
     }
 
-    // Ref + date at bottom of cover
+    // Ref + date
     doc.setFillColor(...LIGHT);
     doc.roundedRect(MARGIN + 20, 168, W - MARGIN * 2 - 40, 18, 2, 2, "F");
     doc.setTextColor(...DARK); doc.setFont("helvetica", "bold"); doc.setFontSize(8);
