@@ -211,12 +211,24 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
 
     // coverDataUrl built after logo loads (see below)
 
-    // ── Helper for left-aligned unicode text in body pages (canvas snippet) ──
+    // ── Helper: detect if string contains Arabic ──
+    const hasArabic = (s) => /[\u0600-\u06FF]/.test(s);
+
+    // ── addUnicodeLeft: canvas only for Arabic, doc.text for Latin ──
     const addUnicodeLeft = (text, xPos, yCur, opts = {}) => {
       const { fontSize = 9, color = '#111', bold = false } = opts;
-      const scale = 3;
-      const h = (fontSize + 10) * scale;
-      const w = 300 * scale;
+      const [r, g, b] = color.match(/\w\w/g).map(x => parseInt(x, 16));
+      if (!hasArabic(text)) {
+        doc.setFont('helvetica', bold ? 'bold' : 'normal');
+        doc.setFontSize(fontSize);
+        doc.setTextColor(r, g, b);
+        doc.text(String(text), xPos, yCur);
+        return;
+      }
+      // Arabic: use canvas
+      const scale = 4;
+      const h = (fontSize + 8) * scale;
+      const w = 500 * scale;
       const cv2 = document.createElement('canvas');
       cv2.width = w; cv2.height = h;
       const ctx2 = cv2.getContext('2d');
@@ -224,11 +236,11 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
       ctx2.fillStyle = color;
       ctx2.textBaseline = 'middle';
       ctx2.textAlign = 'left';
-      ctx2.fillText(text, 0, h / 2);
-      const measW = Math.min(ctx2.measureText(text).width + 4, w);
-      const wMm = (measW / scale) * 0.35;
-      const hMm = (h / scale) * 0.35;
-      doc.addImage(cv2.toDataURL('image/png'), 'PNG', xPos, yCur - hMm * 0.75, wMm, hMm, undefined, 'FAST');
+      ctx2.fillText(text, 4, h / 2);
+      const measW = Math.min(ctx2.measureText(text).width + 8, w);
+      const wMm = measW / scale * 0.264;
+      const hMm = h / scale * 0.264;
+      doc.addImage(cv2.toDataURL('image/png'), 'PNG', xPos, yCur - hMm * 0.8, wMm, hMm, undefined, 'FAST');
     };
 
     // ── Try to embed logo ──
