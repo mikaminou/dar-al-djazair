@@ -2,13 +2,12 @@ import React, { useState } from "react";
 import { Search, SlidersHorizontal, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import SmartPriceInput from "../price/SmartPriceInput";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST } from "../constants";
 import { COMMUNES_BY_WILAYA } from "../communesData";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import RangeFilter from "../filters/RangeFilter";
+import SmartPriceInput from "../price/SmartPriceInput";
 
 const FURNISHED_OPTIONS = [
   { value: "furnished",      label: { en: "Furnished", fr: "Meublé", ar: "مفروش" } },
@@ -17,12 +16,6 @@ const FURNISHED_OPTIONS = [
 ];
 
 const EMPTY_ADVANCED = { bedrooms: "", bathrooms: "", min_area: "", max_area: "", furnished: "", features: [] };
-
-function formatPrice(v) {
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)}M`;
-  if (v >= 1_000) return `${Math.round(v / 1_000)}k`;
-  return `${v}`;
-}
 
 export default function SearchFilters({ filters, onChange, onSearch, compact = false }) {
   const { t, lang } = useLang();
@@ -44,15 +37,13 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     ...(filters.features || []).map(fv => FEATURES_LIST.find(f => f.value === fv)?.label[lang] || fv),
   ].filter(Boolean);
 
-  const priceLabel = (filters.min_price || filters.max_price)
-    ? `${formatPrice(Number(filters.min_price || 0))} – ${formatPrice(Number(filters.max_price || 200_000_000))} DZD`
-    : null;
-
   const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w.value, label: w.label[lang] || w.label.fr }))];
   const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
   const communeOptions = filters.wilaya
     ? [{ value: "all", label: lang === "ar" ? "كل البلديات" : lang === "fr" ? "Toutes communes" : "All communes" }, ...(COMMUNES_BY_WILAYA[filters.wilaya] || []).map(c => ({ value: c, label: c }))]
     : [];
+
+  const listingType = filters.listing_type || "sale";
 
   return (
     <div className="bg-white dark:bg-[#13161c] rounded-2xl shadow-md overflow-hidden select-none">
@@ -78,7 +69,8 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       </div>
 
       {/* ── Main search bar ── */}
-      <div className="p-3 flex flex-col gap-2">
+      <div className="p-3 flex flex-col gap-3">
+        {/* Row 1: property type + wilaya + commune + search button */}
         <div className="flex gap-2 flex-wrap">
           {/* Property type */}
           {isMobile ? (
@@ -121,7 +113,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
               <SelectDrawer open={drawerOpen === "wilaya"} onOpenChange={o => setDrawerOpen(o ? "wilaya" : null)} options={wilayaOptions} value={filters.wilaya || "all"} onValueChange={v => update("wilaya", v === "all" ? "" : v)} label={t.allWilayas} />
             </>
           ) : (
-            <Select value={filters.wilaya || "all"} onValueChange={v => { update("wilaya", v === "all" ? "" : v); onChange({ ...filters, wilaya: v === "all" ? "" : v, commune: "" }); }}>
+            <Select value={filters.wilaya || "all"} onValueChange={v => onChange({ ...filters, wilaya: v === "all" ? "" : v, commune: "" })}>
               <SelectTrigger className="flex-1 min-w-[140px] border-gray-200 rounded-xl bg-gray-50 h-10 text-sm">
                 <SelectValue />
               </SelectTrigger>
@@ -166,19 +158,34 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
           </Button>
         </div>
 
-        {/* Price slider — range, no max input */}
-        <div className="px-1 pt-1">
-        <RangeFilter
-          min={0}
-          max={200_000_000}
-          step={500_000}
-          minValue={filters.min_price || ""}
-          maxValue=""
-          onMinChange={v => update("min_price", v)}
-          onMaxChange={() => {}}
-          unit="DZD"
-          label={lang === "ar" ? "السعر" : lang === "fr" ? "Prix" : "Price"}
-        />
+        {/* Row 2: Min price + Max price inputs */}
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <label className="text-[10px] text-gray-400 font-medium mb-1 block">
+              {lang === "ar" ? "السعر الأدنى" : lang === "fr" ? "Prix min" : "Min price"}
+            </label>
+            <SmartPriceInput
+              listingType={listingType || "sale"}
+              value={filters.min_price ? Number(filters.min_price) : ""}
+              onChange={v => update("min_price", v)}
+              lang={lang}
+              placeholder={lang === "ar" ? "مثال: 50" : lang === "fr" ? "Ex: 50" : "e.g. 50"}
+              className="h-9 text-sm"
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-gray-400 font-medium mb-1 block">
+              {lang === "ar" ? "السعر الأقصى" : lang === "fr" ? "Prix max" : "Max price"}
+            </label>
+            <SmartPriceInput
+              listingType={listingType || "sale"}
+              value={filters.max_price ? Number(filters.max_price) : ""}
+              onChange={v => update("max_price", v)}
+              lang={lang}
+              placeholder={lang === "ar" ? "مثال: 500" : lang === "fr" ? "Ex: 500" : "e.g. 500"}
+              className="h-9 text-sm"
+            />
+          </div>
         </div>
       </div>
 
@@ -216,7 +223,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* ── Advanced panel ── */}
       {advOpen && (
         <div className="border-t border-gray-100 dark:border-gray-800 p-4 space-y-5 bg-gray-50 dark:bg-[#0f1115]">
-          {/* Bedrooms + Bathrooms side by side */}
+          {/* Bedrooms + Bathrooms */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <RangeFilter
               mode="discrete"
@@ -236,7 +243,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
             />
           </div>
 
-          {/* Area + Furnished side by side */}
+          {/* Area + Furnished */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 items-start">
             <RangeFilter
               min={0}
@@ -279,21 +286,6 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* Max price — using smart input */}
-          <div>
-            <label className="text-xs text-gray-500 font-medium mb-2 block">
-              {lang === "ar" ? "السعر الأقصى" : lang === "fr" ? "Prix maximum" : "Max price"}
-            </label>
-            <SmartPriceInput
-              listingType={filters.listing_type || "sale"}
-              value={filters.max_price ? Number(filters.max_price) : ""}
-              onChange={v => update("max_price", v)}
-              lang={lang}
-              placeholder={lang === "ar" ? "أدخل السعر الأقصى" : lang === "fr" ? "Entrez le prix max" : "Enter max price"}
-              className="h-10"
-            />
           </div>
 
           {/* Amenities */}
