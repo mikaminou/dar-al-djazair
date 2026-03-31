@@ -155,7 +155,10 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
                     variant="ghost"
                     onClick={async () => {
                       const result = await generateReceipt(payment);
-                      window.open(result.url, '_blank');
+                      const link = document.createElement('a');
+                      link.href = result.pdf_base64;
+                      link.download = `receipt-${payment.reference_number}.pdf`;
+                      link.click();
                     }}
                     className="text-blue-600 hover:text-blue-700"
                     title={lang === "ar" ? "تحميل الوصل" : lang === "fr" ? "Télécharger" : "Download Receipt"}
@@ -167,7 +170,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
                     variant="ghost"
                     onClick={async () => {
                       const result = await generateReceipt(payment);
-                      const text = encodeURIComponent(`I just received payment for rent. Receipt: ${result.url}`);
+                      const text = encodeURIComponent(`وصل دفع إيجار - Receipt Ref: ${payment.reference_number} | ${payment.amount.toLocaleString()} DA`);
                       window.open(`https://wa.me/?text=${text}`, '_blank');
                     }}
                     className="text-green-600 hover:text-green-700"

@@ -116,13 +116,10 @@ Deno.serve(async (req) => {
     doc.setTextColor(120, 120, 120);
     doc.text('Ceci est un reçu numérique. Pour plus d\'informations, contactez le propriétaire.', pageWidth / 2, pageHeight - 15, { align: 'center' });
 
-    // Generate PDF and upload
-    const pdfBytes = doc.output('uint8array');
-    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-
-    const uploadRes = await base44.integrations.Core.UploadFile({ file: blob });
+    // Return PDF as base64 for frontend to handle
+    const pdfBase64 = doc.output('datauristring');
     
-    return Response.json({ url: uploadRes.file_url, reference: reference_number });
+    return Response.json({ pdf_base64: pdfBase64, reference: reference_number });
   } catch (error) {
     console.error('Error generating receipt:', error);
     return Response.json({ error: error.message }, { status: 500 });
