@@ -117,14 +117,9 @@ Deno.serve(async (req) => {
     doc.text('Ceci est un reçu numérique. Pour plus d\'informations, contactez le propriétaire.', pageWidth / 2, pageHeight - 15, { align: 'center' });
 
     // Generate PDF and upload
-    const pdfBytes = doc.output('arraybuffer');
+    const pdfBytes = doc.output('uint8array');
     const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-    
-    // Create a FormData to upload
-    const formData = new FormData();
-    formData.append('file', blob, `receipt-${reference_number}.pdf`);
 
-    // Upload to private storage
     const uploadRes = await base44.integrations.Core.UploadFile({ file: blob });
     
     return Response.json({ url: uploadRes.file_url, reference: reference_number });
