@@ -42,7 +42,6 @@ export default function AdminVerification() {
   async function toggleVerified(pro) {
     const newVal = !pro.is_verified;
     await base44.entities.User.update(pro.id, { is_verified: newVal });
-    // Also update their listings
     const listings = await base44.entities.Listing.filter({ created_by: pro.email }, null, 500).catch(() => []);
     await Promise.all(listings.map(l =>
       base44.entities.Listing.update(l.id, { owner_is_verified: newVal })
@@ -67,21 +66,21 @@ export default function AdminVerification() {
   }
 
   const T = {
-    title:    { fr: "Administration",             en: "Admin Dashboard",        ar: "لوحة الإدارة"   },
-    pending:  { fr: "En attente",                en: "Pending",                ar: "قيد المراجعة"   },
-    approved: { fr: "Approuvées",               en: "Approved",               ar: "مقبولة"         },
-    rejected: { fr: "Refusées",                 en: "Rejected",               ar: "مرفوضة"         },
-    professional: { fr: "Professionnel",             en: "Professional",           ar: "محترف"          },
-    individual:{ fr: "Particulier",             en: "Individual",             ar: "فرد"            },
-    viewDoc:  { fr: "Voir le document",         en: "View document",          ar: "عرض الوثيقة"    },
-    approve:  { fr: "Approuver",                en: "Approve",                ar: "قبول"           },
-    reject:   { fr: "Refuser",                  en: "Reject",                 ar: "رفض"            },
-    notePlh:  { fr: "Note admin (optionnel)",   en: "Admin note (optional)",  ar: "ملاحظة الإدارة (اختياري)" },
-    action:   { fr: "Décider",                  en: "Decide",                 ar: "القرار"         },
-    cancel:   { fr: "Annuler",                  en: "Cancel",                 ar: "إلغاء"          },
-    noReqs:   { fr: "Aucune demande",           en: "No requests",            ar: "لا توجد طلبات"  },
-    notAdmin: { fr: "Accès réservé aux admins", en: "Admin access only",      ar: "للمدير فقط"     },
-    adminNote:{ fr: "Note admin: ",             en: "Admin note: ",           ar: "ملاحظة الإدارة: " },
+    title:       { fr: "Administration",             en: "Admin Dashboard",       ar: "لوحة الإدارة" },
+    pending:     { fr: "En attente",                 en: "Pending",               ar: "قيد المراجعة" },
+    approved:    { fr: "Approuvées",                 en: "Approved",              ar: "مقبولة" },
+    rejected:    { fr: "Refusées",                   en: "Rejected",              ar: "مرفوضة" },
+    professional:{ fr: "Professionnel",              en: "Professional",          ar: "محترف" },
+    individual:  { fr: "Particulier",                en: "Individual",            ar: "فرد" },
+    viewDoc:     { fr: "Voir le document",           en: "View document",         ar: "عرض الوثيقة" },
+    approve:     { fr: "Approuver",                  en: "Approve",               ar: "قبول" },
+    reject:      { fr: "Refuser",                    en: "Reject",                ar: "رفض" },
+    notePlh:     { fr: "Note admin (optionnel)",     en: "Admin note (optional)", ar: "ملاحظة الإدارة (اختياري)" },
+    action:      { fr: "Décider",                    en: "Decide",                ar: "القرار" },
+    cancel:      { fr: "Annuler",                    en: "Cancel",                ar: "إلغاء" },
+    noReqs:      { fr: "Aucune demande",             en: "No requests",           ar: "لا توجد طلبات" },
+    notAdmin:    { fr: "Accès réservé aux admins",   en: "Admin access only",     ar: "للمدير فقط" },
+    adminNote:   { fr: "Note admin: ",               en: "Admin note: ",          ar: "ملاحظة الإدارة: " },
   };
   const t = k => T[k]?.[lang] || T[k]?.en;
 
@@ -127,12 +126,13 @@ export default function AdminVerification() {
           >
             <Users className="w-4 h-4" />
             {lang === "ar" ? "المحترفون" : lang === "fr" ? "Professionnels" : "Professionals"}
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${ tab === "pros" ? "bg-white/20" : "bg-gray-100 text-gray-500"}`}>{pros.length}</span>
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === "pros" ? "bg-white/20" : "bg-gray-100 text-gray-500"}`}>{pros.length}</span>
           </button>
         </div>
 
+        {/* Pros tab */}
         {tab === "pros" && (
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3">
             {pros.length === 0 ? (
               <div className="bg-white rounded-xl border p-12 text-center text-gray-400">
                 {lang === "ar" ? "لا يوجد محترفون" : lang === "fr" ? "Aucun professionnel" : "No professionals found"}
@@ -168,100 +168,98 @@ export default function AdminVerification() {
           </div>
         )}
 
+        {/* Requests tab */}
         {tab === "requests" && (
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {["pending", "approved", "rejected"].map(s => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                filter === s
-                  ? "bg-emerald-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
-              }`}
-            >
-              {t(s)} ({requests.filter(r => r.status === s).length})
-            </button>
-          ))}
-        </div>
-
-        {tab === "requests" && (
-          displayed.length === 0 ? (
-            <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
-              {t("noReqs")}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {displayed.map(req => (
-                <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1.5">
-                        <Badge className={STATUS_COLORS[req.status]}>{t(req.status)}</Badge>
-                        <Badge className={req.type === "professional" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}>
-                          {t(req.type)}
-                        </Badge>
-                        {req.agency_name && (
-                          <span className="text-sm font-semibold text-gray-800">{req.agency_name}</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-700 font-medium">{req.user_email}</p>
-                      {req.user_name && req.user_name !== req.user_email && (
-                        <p className="text-xs text-gray-500">{req.user_name}</p>
-                      )}
-                      <p className="text-xs text-gray-400 mt-1">
-                        {new Date(req.created_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                      </p>
-                      {req.admin_note && (
-                        <p className="text-xs text-gray-500 mt-1 italic">{t("adminNote")}{req.admin_note}</p>
-                      )}
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="gap-1.5 text-xs flex-shrink-0"
-                      onClick={() => viewDoc(req)}
-                    >
-                      <FileText className="w-3.5 h-3.5" />
-                      {t("viewDoc")}
-                      <ExternalLink className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  {req.status === "pending" && (
-                    <div className="mt-4 pt-3 border-t border-gray-50">
-                      {expandId === req.id ? (
-                        <div className="space-y-3">
-                          <Textarea
-                            value={note}
-                            onChange={e => setNote(e.target.value)}
-                            placeholder={t("notePlh")}
-                            rows={2}
-                            className="resize-none text-sm"
-                          />
-                          <div className="flex gap-2 flex-wrap">
-                            <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={() => handleAction(req, "approve")}>
-                              <CheckCircle className="w-3.5 h-3.5" /> {t("approve")}
-                            </Button>
-                            <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={() => handleAction(req, "reject")}>
-                              <XCircle className="w-3.5 h-3.5" /> {t("reject")}
-                            </Button>
-                            <Button size="sm" variant="ghost" className="text-xs text-gray-500" onClick={() => { setExpandId(null); setNote(""); }}>
-                              {t("cancel")}
-                            </Button>
-                          </div>
-                        </div>
-                      ) : (
-                        <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setExpandId(req.id)}>
-                          <Clock className="w-3 h-3" />
-                          {t("action")}
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
+          <>
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {["pending", "approved", "rejected"].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setFilter(s)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                    filter === s
+                      ? "bg-emerald-600 text-white"
+                      : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
+                  }`}
+                >
+                  {t(s)} ({requests.filter(r => r.status === s).length})
+                </button>
               ))}
             </div>
-          )
+
+            {displayed.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
+                {t("noReqs")}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {displayed.map(req => (
+                  <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                          <Badge className={STATUS_COLORS[req.status]}>{t(req.status)}</Badge>
+                          <Badge className={req.type === "professional" ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"}>
+                            {t(req.type)}
+                          </Badge>
+                          {req.agency_name && (
+                            <span className="text-sm font-semibold text-gray-800">{req.agency_name}</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-700 font-medium">{req.user_email}</p>
+                        {req.user_name && req.user_name !== req.user_email && (
+                          <p className="text-xs text-gray-500">{req.user_name}</p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-1">
+                          {new Date(req.created_date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                        </p>
+                        {req.admin_note && (
+                          <p className="text-xs text-gray-500 mt-1 italic">{t("adminNote")}{req.admin_note}</p>
+                        )}
+                      </div>
+                      <Button variant="outline" size="sm" className="gap-1.5 text-xs flex-shrink-0" onClick={() => viewDoc(req)}>
+                        <FileText className="w-3.5 h-3.5" />
+                        {t("viewDoc")}
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                    </div>
+
+                    {req.status === "pending" && (
+                      <div className="mt-4 pt-3 border-t border-gray-50">
+                        {expandId === req.id ? (
+                          <div className="space-y-3">
+                            <Textarea
+                              value={note}
+                              onChange={e => setNote(e.target.value)}
+                              placeholder={t("notePlh")}
+                              rows={2}
+                              className="resize-none text-sm"
+                            />
+                            <div className="flex gap-2 flex-wrap">
+                              <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={() => handleAction(req, "approve")}>
+                                <CheckCircle className="w-3.5 h-3.5" /> {t("approve")}
+                              </Button>
+                              <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={() => handleAction(req, "reject")}>
+                                <XCircle className="w-3.5 h-3.5" /> {t("reject")}
+                              </Button>
+                              <Button size="sm" variant="ghost" className="text-xs text-gray-500" onClick={() => { setExpandId(null); setNote(""); }}>
+                                {t("cancel")}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" className="text-xs gap-1.5" onClick={() => setExpandId(req.id)}>
+                            <Clock className="w-3 h-3" />
+                            {t("action")}
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
