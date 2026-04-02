@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2 } from "lucide-react";
 import ExclusivityConflictView from "../components/admin/ExclusivityConflictView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,6 +21,7 @@ export default function AdminVerification() {
   const [requests, setRequests]       = useState([]);
   const [pros,     setPros]           = useState([]);
   const [pendingListings, setPendingListings] = useState([]);
+  const [pendingProjects, setPendingProjects] = useState([]);
   const [listingUsers, setListingUsers] = useState({});
   const [loading,  setLoading]        = useState(true);
   const [isAdmin,  setIsAdmin]        = useState(false);
@@ -38,14 +39,16 @@ export default function AdminVerification() {
     const me = await base44.auth.me().catch(() => null);
     if (!me || me.role !== "admin") { setLoading(false); return; }
     setIsAdmin(true);
-    const [data, allUsers, listings] = await Promise.all([
+    const [data, allUsers, listings, projects] = await Promise.all([
       base44.entities.VerificationRequest.list("-created_date", 300),
       base44.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
       base44.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
+      base44.entities.Project.filter({ status: "pending" }, "-created_date", 100).catch(() => []),
     ]);
     setRequests(data);
     setPros(allUsers);
     setPendingListings(listings);
+    setPendingProjects(projects);
 
     // Load submitter info for each listing
     const emails = [...new Set(listings.map(l => l.created_by).filter(Boolean))];
@@ -148,6 +151,20 @@ export default function AdminVerification() {
         {/* Main tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
           <button
+            onClick={() => setTab("projects")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "projects" ? "bg-emerald-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            {lang === "ar" ? "مشاريع بانتظار المراجعة" : lang === "fr" ? "Projets à approuver" : "Project Approvals"}
+            {pendingProjects.length > 0 && (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab === "projects" ? "bg-white/20" : "bg-blue-100 text-blue-700"}`}>
+                {pendingProjects.length}
+              </span>
+            )}
+          </button>
+          <button
             onClick={() => setTab("listings")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               tab === "listings" ? "bg-emerald-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
@@ -182,6 +199,61 @@ export default function AdminVerification() {
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === "pros" ? "bg-white/20" : "bg-gray-100 text-gray-500"}`}>{pros.length}</span>
           </button>
         </div>
+
+        {/* ── PROJECTS APPROVAL TAB ── */}
+        {tab === "projects" && (
+          <div className="space-y-3">
+            {pendingProjects.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
+                <Building2 className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>{lang === "ar" ? "لا توجد مشاريع بانتظار المراجعة" : lang === "fr" ? "Aucun projet en attente" : "No projects pending approval"}</p>
+              </div>
+            ) : pendingProjects.map(proj => (
+              <div key={proj.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div className="flex gap-4">
+                  {proj.photos?.[0] && <img src={proj.photos[0]} alt="" className="w-24 h-16 object-cover rounded-lg flex-shrink-0" />}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">{proj.project_name}</h3>
+                        <p className="text-sm text-gray-500">{proj.developer_name} · {proj.wilaya}{proj.commune ? `, ${proj.commune}` : ""}</p>
+                      </div>
+                      <Badge className="bg-amber-100 text-amber-700">{lang === "fr" ? "En attente" : "Pending"}</Badge>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">{proj.total_units} {lang === "fr" ? "unités" : "units"} · {proj.project_type}</p>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-3">
+                  <Textarea
+                    value={note}
+                    onChange={e => setNote(e.target.value)}
+                    placeholder={lang === "fr" ? "Message au promoteur (optionnel pour approbation)" : "Message to developer"}
+                    rows={2} className="resize-none text-sm"
+                  />
+                  <div className="flex gap-2 flex-wrap">
+                    <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={async () => {
+                      setBusy(true);
+                      await base44.entities.Project.update(proj.id, { status: "active", admin_note: note });
+                      setPendingProjects(prev => prev.filter(p => p.id !== proj.id));
+                      setNote(""); setBusy(false);
+                    }}>
+                      <CheckCircle className="w-3.5 h-3.5" />{lang === "fr" ? "Approuver & Publier" : "Approve"}
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={busy || !note.trim()} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={async () => {
+                      if (!note.trim()) return;
+                      setBusy(true);
+                      await base44.entities.Project.update(proj.id, { status: "declined", admin_note: note });
+                      setPendingProjects(prev => prev.filter(p => p.id !== proj.id));
+                      setNote(""); setBusy(false);
+                    }}>
+                      <XCircle className="w-3.5 h-3.5" />{lang === "fr" ? "Refuser" : "Decline"}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── LISTINGS APPROVAL TAB ── */}
         {tab === "listings" && (

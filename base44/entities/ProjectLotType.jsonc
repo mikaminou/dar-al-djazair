@@ -1,0 +1,60 @@
+{
+  "name": "ProjectLotType",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string"
+    },
+    "lot_type": {
+      "type": "string",
+      "enum": [
+        "F1",
+        "F2",
+        "F3",
+        "F4",
+        "F5",
+        "F6+",
+        "Duplex",
+        "Penthouse",
+        "Commercial",
+        "Parking"
+      ]
+    },
+    "total_count": {
+      "type": "number"
+    },
+    "available_count": {
+      "type": "number"
+    },
+    "area_min": {
+      "type": "number"
+    },
+    "area_max": {
+      "type": "number"
+    },
+    "price_min": {
+      "type": "number"
+    },
+    "price_max": {
+      "type": "number"
+    },
+    "floor_min": {
+      "type": "number"
+    },
+    "floor_max": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "lot_type",
+    "total_count",
+    "area_min",
+    "area_max",
+    "price_min",
+    "price_max"
+  ]
+}

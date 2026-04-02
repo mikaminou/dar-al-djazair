@@ -1,0 +1,188 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "project_name": {
+      "type": "string"
+    },
+    "developer_name": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "residential",
+        "commercial",
+        "mixed",
+        "industrial"
+      ]
+    },
+    "listing_type": {
+      "type": "string",
+      "enum": [
+        "sale",
+        "rent",
+        "both"
+      ]
+    },
+    "wilaya": {
+      "type": "string"
+    },
+    "commune": {
+      "type": "string"
+    },
+    "address": {
+      "type": "string"
+    },
+    "latitude": {
+      "type": "number"
+    },
+    "longitude": {
+      "type": "number"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "active",
+        "declined",
+        "changes_requested"
+      ],
+      "default": "pending"
+    },
+    "project_status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "under_construction",
+        "ready_to_move",
+        "sold_out"
+      ],
+      "default": "upcoming"
+    },
+    "delivery_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "total_units": {
+      "type": "number"
+    },
+    "total_floors": {
+      "type": "number"
+    },
+    "total_buildings": {
+      "type": "number"
+    },
+    "parking_spots": {
+      "type": "number"
+    },
+    "is_exclusive": {
+      "type": "boolean",
+      "default": false
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "video_url": {
+      "type": "string"
+    },
+    "virtual_tour_url": {
+      "type": "string"
+    },
+    "site_plan": {
+      "type": "string"
+    },
+    "brochure_pdf": {
+      "type": "string"
+    },
+    "floor_plans": {
+      "type": "object",
+      "description": "Map of lot_type -> image_url"
+    },
+    "amenities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tranches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tranche_name": {
+            "type": "string"
+          },
+          "expected_delivery_date": {
+            "type": "string"
+          },
+          "units_description": {
+            "type": "string"
+          },
+          "tranche_status": {
+            "type": "string",
+            "enum": [
+              "upcoming",
+              "under_construction",
+              "delivered"
+            ]
+          }
+        }
+      }
+    },
+    "contact_name": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_whatsapp": {
+      "type": "string"
+    },
+    "office_address": {
+      "type": "string"
+    },
+    "office_hours": {
+      "type": "string"
+    },
+    "show_phone": {
+      "type": "boolean",
+      "default": true
+    },
+    "show_email": {
+      "type": "boolean",
+      "default": true
+    },
+    "admin_note": {
+      "type": "string"
+    },
+    "views_count": {
+      "type": "number",
+      "default": 0
+    },
+    "published_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_name",
+    "developer_name",
+    "project_type",
+    "listing_type",
+    "wilaya",
+    "commune",
+    "description",
+    "total_units",
+    "contact_name",
+    "contact_phone"
+  ]
+}

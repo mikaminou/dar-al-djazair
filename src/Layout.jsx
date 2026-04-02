@@ -207,6 +207,9 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to="/ClientManagement">{lang === "ar" ? "إدارة العملاء" : lang === "fr" ? "Mes clients" : "Client Management"}</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to="/PostProject">{lang === "ar" ? "نشر مشروع" : lang === "fr" ? "Publier un projet" : "Post a Project"}</Link>
+                    </DropdownMenuItem>
                     </>)}
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
