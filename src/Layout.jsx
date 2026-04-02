@@ -187,6 +187,9 @@ function NavContent({ currentPageName, children }) {
                       <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to="/ClientManagement">{lang === "ar" ? "إدارة العملاء" : lang === "fr" ? "Mes clients" : "Client Management"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
@@ -200,6 +203,9 @@ function NavContent({ currentPageName, children }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("RentalIncomeDashboard")}>{lang === "ar" ? "لوحة دخل الإيجار" : lang === "fr" ? "Revenu Locatif" : "Rental Income"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to="/ClientManagement">{lang === "ar" ? "إدارة العملاء" : lang === "fr" ? "Mes clients" : "Client Management"}</Link>
                     </DropdownMenuItem>
                     </>)}
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
@@ -319,6 +325,9 @@ function NavContent({ currentPageName, children }) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                   <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                  <Link to="/ClientManagement">{lang === "ar" ? "إدارة العملاء" : lang === "fr" ? "Mes clients" : "Client Management"}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                   <Link to={createPageUrl("Leads")}>{lang === "ar" ? "العملاء المحتملون" : lang === "fr" ? "Mes Leads" : "My Leads"}</Link>

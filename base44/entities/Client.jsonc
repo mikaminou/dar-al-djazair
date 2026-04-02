@@ -1,0 +1,26 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string",
+      "description": "Email of the pro/agency who owns this client record"
+    }
+  },
+  "required": [
+    "full_name",
+    "agent_email"
+  ]
+}

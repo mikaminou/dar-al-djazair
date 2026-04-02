@@ -1,0 +1,29 @@
+{
+  "name": "ClientSearchProfile",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "client_name": {
+      "type": "string"
+    },
+    "agent_email": {
+      "type": "string",
+      "description": "Email of the pro/agency who owns this profile"
+    },
+    "name": {
+      "type": "string",
+      "description": "Label for this search profile"
+    },
+    "filters": {
+      "type": "object",
+      "description": "Same filter structure as SavedSearch: listing_type, property_type, wilaya, min_price, max_price, min_area, min_bedrooms, min_bathrooms, furnished"
+    }
+  },
+  "required": [
+    "client_id",
+    "agent_email",
+    "filters"
+  ]
+}

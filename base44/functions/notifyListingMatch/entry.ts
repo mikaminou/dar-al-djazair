@@ -89,6 +89,48 @@ Deno.serve(async (req) => {
       created++;
     }
 
+    // ── CLIENT SEARCH PROFILES (pro/agency) ──────────────────────────────
+    const clientProfiles = await base44.asServiceRole.entities.ClientSearchProfile.list(null, 1000).catch(() => []);
+    for (const profile of clientProfiles) {
+      if (!profile.agent_email || !profile.client_id) continue;
+      if (profile.agent_email === listing.created_by) continue;
+
+      const cleanFilters = Object.fromEntries(
+        Object.entries(profile.filters || {}).filter(([_, v]) =>
+          v !== "" && v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0)
+        )
+      );
+      if (!matchesSearch(listing, cleanFilters)) continue;
+
+      const refId = `client_match_${listing.id}_${profile.id}`;
+      const existing = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1);
+      if (existing.length > 0) continue;
+
+      const lang = await getRecipientLang(base44, profile.agent_email);
+      const priceStr = listing.price
+        ? listing.price.toLocaleString(lang === "fr" ? "fr-FR" : lang === "ar" ? "ar-DZ" : "en-GB") + " DZD"
+        : "";
+
+      const clientLabel = profile.client_name || profile.client_id;
+      const title = lang === "ar"
+        ? `🏠 عقار جديد يطابق بحث عميلك ${clientLabel}`
+        : lang === "fr"
+        ? `🏠 Nouveau bien pour votre client ${clientLabel}`
+        : `🏠 New listing matches client ${clientLabel}`;
+      const body = `${listing.title}${listing.wilaya ? ` · ${listing.wilaya}` : ""}${priceStr ? ` · ${priceStr}` : ""}`;
+
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: profile.agent_email,
+        type:       "listing_match",
+        title,
+        body,
+        url:        `ListingDetail?id=${listing.id}`,
+        is_read:    false,
+        ref_id:     refId,
+      });
+      created++;
+    }
+
     return Response.json({ ok: true, notifications_created: created });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });

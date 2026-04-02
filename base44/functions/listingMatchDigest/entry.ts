@@ -322,6 +322,56 @@ Deno.serve(async (req) => {
       emailsSent++;
     }
 
+    // ── CLIENT MATCH DIGEST (grouped by agent, then by client) ───────────────
+    const clientMatchNotifs = recentMatches.filter(n => n.ref_id?.startsWith("client_match_"));
+    const groupedByAgent = {};
+    clientMatchNotifs.forEach(n => {
+      if (!groupedByAgent[n.user_email]) groupedByAgent[n.user_email] = [];
+      groupedByAgent[n.user_email].push(n);
+    });
+
+    for (const [agentEmail, notifs] of Object.entries(groupedByAgent)) {
+      const agentMatches = [];
+      for (const notif of notifs) {
+        const refId = `digest_client_${agentEmail}_${notif.id}_${window}`;
+        const existingDigest = await base44.asServiceRole.entities.Notification.filter({ ref_id: refId }, null, 1).catch(() => []);
+        if (existingDigest.length > 0) continue;
+        const match = notif.url?.match(/id=([^&]+)/);
+        const listingId = match ? match[1] : null;
+        if (!listingId) continue;
+        const listing = await base44.asServiceRole.entities.Listing.filter({ id: listingId }, null, 1).then(r => r[0]).catch(() => null);
+        if (!listing) continue;
+        // Extract client name from notification title
+        const clientNameMatch = notif.title?.match(/client (.+)$|عميلك (.+)$|client (.+)$/);
+        const clientName = clientNameMatch ? (clientNameMatch[1] || clientNameMatch[2] || clientNameMatch[3] || "—") : "—";
+        agentMatches.push({ listing, search_name: clientName, notif_id: notif.id, ref_id: refId });
+      }
+      if (agentMatches.length === 0) continue;
+      const lang = await getRecipientLang(base44, agentEmail);
+      const emailHtml = buildDigestEmail(agentMatches, lang);
+      const subjects = {
+        fr: `${agentMatches.length} nouveau(x) bien(s) pour vos clients`,
+        en: `${agentMatches.length} new listing(s) match your clients`,
+        ar: `${agentMatches.length} عقار جديد يطابق بحث عملائك`,
+      };
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: agentEmail,
+        from_name: "Dar El Djazair",
+        subject: subjects[lang] || subjects.fr,
+        body: emailHtml,
+      }).catch(() => {});
+      for (const match of agentMatches) {
+        await base44.asServiceRole.entities.Notification.create({
+          user_email: agentEmail,
+          type: "listing_match_digest_sent",
+          title: `Client digest sent for ${match.listing.title}`,
+          ref_id: match.ref_id,
+          is_read: true,
+        }).catch(() => {});
+      }
+      emailsSent++;
+    }
+
     return Response.json({
       processed: recentMatches.length,
       seekers: Object.keys(groupedBySeekerEmail).length,
