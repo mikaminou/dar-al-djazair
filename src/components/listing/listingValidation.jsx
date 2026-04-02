@@ -106,6 +106,11 @@ export const VM = {
     fr: "Veuillez vérifier le nombre de chambres.",
     ar: "يرجى التحقق من عدد غرف النوم.",
   },
+  bedrooms_exceeds_rooms: {
+    en: "Number of bedrooms cannot exceed total number of rooms.",
+    fr: "Le nombre de chambres ne peut pas dépasser le nombre total de pièces.",
+    ar: "لا يمكن أن يتجاوز عدد غرف النوم العدد الإجمالي للغرف.",
+  },
   bathrooms_required: {
     en: "Number of bathrooms is required.",
     fr: "Le nombre de salles de bain est obligatoire.",
@@ -264,6 +269,9 @@ export function validateStep1(form) {
       const b = Number(form.bedrooms);
       if (b < 0 || !Number.isInteger(b)) errors.bedrooms = "bedrooms_required";
       else if (b > 20) errors.bedrooms = "bedrooms_too_many";
+      else if (form.rooms !== "" && form.rooms !== null && form.rooms !== undefined && b > Number(form.rooms)) {
+        errors.bedrooms = "bedrooms_exceeds_rooms";
+      }
     }
   }
 
