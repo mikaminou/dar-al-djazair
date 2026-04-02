@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
 import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp } from "lucide-react";
@@ -15,6 +16,7 @@ const STATUS_COLORS = {
 
 export default function AdminVerification() {
   const { lang } = useLang();
+  const { toast } = useToast();
   const [requests, setRequests]       = useState([]);
   const [pros,     setPros]           = useState([]);
   const [pendingListings, setPendingListings] = useState([]);
@@ -82,11 +84,19 @@ export default function AdminVerification() {
 
   async function handleListingAction(listing, action) {
     setBusy(true);
-    await base44.functions.invoke("approveListing", { listing_id: listing.id, action, admin_note: note });
+    const res = await base44.functions.invoke("approveListing", { listing_id: listing.id, action, admin_note: note });
     setPendingListings(prev => prev.filter(l => l.id !== listing.id));
     setExpandListingId(null);
     setNote("");
     setBusy(false);
+    if (action === "approve" && res?.data?.watermark_note) {
+      toast({
+        title: lang === "ar" ? "تحذير: العلامة المائية" : lang === "fr" ? "Avertissement : filigrane" : "Watermark Warning",
+        description: res.data.watermark_note,
+        variant: "destructive",
+        duration: 8000,
+      });
+    }
   }
 
   const T = {

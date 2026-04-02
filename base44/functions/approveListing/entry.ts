@@ -94,9 +94,20 @@ Deno.serve(async (req) => {
     if (admin_note) updatePayload.admin_note = admin_note;
     if (action === "approve") {
       updatePayload.active_since = new Date().toISOString();
-      updatePayload.admin_note = null; // clear previous notes
+      updatePayload.admin_note = null;
     }
     await base44.asServiceRole.entities.Listing.update(listing_id, updatePayload);
+
+    // Watermark photos on approval (non-blocking — failures don't stop approval)
+    let watermarkAdminNote = null;
+    if (action === "approve" && (listing.images || []).length > 0) {
+      try {
+        const wmRes = await base44.asServiceRole.functions.invoke('watermarkListingPhotos', { listing_id });
+        if (wmRes?.data?.adminNote) watermarkAdminNote = wmRes.data.adminNote;
+      } catch (wmErr) {
+        watermarkAdminNote = `Watermarking could not run: ${wmErr.message}`;
+      }
+    }
 
     // Create in-app notification
     const refId = `listing_${action}_${listing_id}_${Date.now()}`;
@@ -119,7 +130,7 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
-    return Response.json({ ok: true, new_status: newStatus });
+    return Response.json({ ok: true, new_status: newStatus, watermark_note: watermarkAdminNote });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
