@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
 import { BarChart3, Calendar } from "lucide-react";
+import ExportButton from "../components/ExportButton";
 import ActivityKPIs from "../components/analytics/ActivityKPIs";
 import FunnelChart from "../components/analytics/FunnelChart";
 import LeadsTimeline from "../components/analytics/LeadsTimeline";
@@ -80,6 +81,8 @@ export default function OwnerDashboard() {
               <p className="text-emerald-200 text-sm">{t("sub")}</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+          <ExportButton type="analytics" data={data} period={period} lang={lang} />
           <div className="flex items-center gap-1 bg-white/10 rounded-lg p-1">
             {["weekly", "monthly"].map(p => (
               <button
@@ -92,10 +95,11 @@ export default function OwnerDashboard() {
               </button>
             ))}
           </div>
+          </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div id="analytics-dashboard-content" className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <ActivityKPIs data={data} lang={lang} />
 
         <div className="grid lg:grid-cols-2 gap-6">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
 import { DollarSign } from "lucide-react";
+import ExportButton from "../components/ExportButton";
 import RentalIncomeKPIs from "../components/analytics/RentalIncomeKPIs";
 import IncomeByProperty from "../components/analytics/IncomeByProperty";
 import IncomeMonthlyChart from "../components/analytics/IncomeMonthlyChart";
@@ -188,16 +189,19 @@ export default function RentalIncomeDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-emerald-800 text-white py-8 px-4">
-        <div className="max-w-6xl mx-auto flex items-center gap-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
           <DollarSign className="w-6 h-6 text-emerald-300" />
           <div>
             <h1 className="text-2xl font-bold">{t("title")}</h1>
             <p className="text-emerald-200 text-sm">{t("subtitle")}</p>
           </div>
+          </div>
+          <ExportButton type="rental" data={data} lang={lang} />
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
+      <div id="rental-dashboard-content" className="max-w-6xl mx-auto px-4 py-8 space-y-8">
         <RentalIncomeKPIs
           totalIncome={totalRentalIncome}
           projectedAnnual={projections.total}

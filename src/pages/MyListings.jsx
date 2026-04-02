@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import { Plus, Trash2, Eye, Users, BarChart3, CalendarDays, SlidersHorizontal, X, MapPin, ChevronDown, ChevronUp, Pencil, MoreVertical, CheckCircle2, Clock, Home, Ban, Archive, ArchiveRestore } from "lucide-react";
+import ExportButton from "../components/ExportButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -204,6 +205,14 @@ export default function MyListingsPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-1">
             <h1 className="text-2xl font-bold">{t.myListings}</h1>
+            {!loading && listings.length > 0 && (
+              <ExportButton
+                type="listings"
+                listings={listings}
+                filteredListings={filteredListings}
+                lang={lang}
+              />
+            )}
           </div>
           {!loading && listings.length > 0 && (
             <p className="text-emerald-200 text-sm">
