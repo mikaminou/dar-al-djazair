@@ -57,6 +57,7 @@ function NavContent({ currentPageName, children }) {
   const navLinks = [
     { label: t.buy, href: createPageUrl("Listings") + "?listing_type=sale" },
     { label: t.rent, href: createPageUrl("Listings") + "?listing_type=rent" },
+    { label: lang === "ar" ? "المشاريع" : lang === "fr" ? "Projets" : "Projects", href: "/Projects" },
     ...(isPro ? [{ label: t.sell, href: createPageUrl("PostListing") }] : []),
   ];
 
