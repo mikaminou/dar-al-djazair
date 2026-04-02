@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ export default function AdminVerification() {
   const [expandListingId, setExpandListingId] = useState(null);
   const [note,     setNote]           = useState("");
   const [busy,     setBusy]           = useState(false);
+  const [lightbox, setLightbox]       = useState(null); // { images, index }
 
   useEffect(() => { load(); }, []);
 
@@ -253,9 +254,13 @@ export default function AdminVerification() {
                             {lang === "ar" ? "الصور" : lang === "fr" ? "Photos" : "Photos"} ({listing.images.length})
                           </p>
                           <div className="flex gap-2 flex-wrap">
-                            {listing.images.map((url, i) => (
-                              <img key={i} src={url} alt="" className="w-20 h-16 object-cover rounded-lg border" />
-                            ))}
+                             {listing.images.map((url, i) => (
+                               <img
+                                 key={i} src={url} alt=""
+                                 className="w-20 h-16 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity hover:ring-2 hover:ring-emerald-500"
+                                 onClick={() => setLightbox({ images: listing.images, index: i })}
+                               />
+                             ))}
                           </div>
                         </div>
                       )}
@@ -499,6 +504,46 @@ export default function AdminVerification() {
           </>
         )}
       </div>
+
+      {/* Lightbox */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/80"
+            onClick={() => setLightbox(null)}
+          >
+            <X className="w-5 h-5" />
+          </button>
+          {lightbox.index > 0 && (
+            <button
+              className="absolute left-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/80"
+              onClick={e => { e.stopPropagation(); setLightbox(p => ({ ...p, index: p.index - 1 })); }}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+          )}
+          <img
+            src={lightbox.images[lightbox.index]}
+            alt=""
+            className="max-h-[90vh] max-w-[90vw] object-contain rounded-lg shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+          {lightbox.index < lightbox.images.length - 1 && (
+            <button
+              className="absolute right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/80"
+              onClick={e => { e.stopPropagation(); setLightbox(p => ({ ...p, index: p.index + 1 })); }}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
+          )}
+          <div className="absolute bottom-4 text-white text-sm bg-black/50 px-3 py-1 rounded-full">
+            {lightbox.index + 1} / {lightbox.images.length}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
