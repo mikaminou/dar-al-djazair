@@ -72,6 +72,7 @@ export default function PostListingPage() {
     description:    "",
     price:          "",
     hide_price:     !LISTING_CONFIG.DEFAULT_PRICE_VISIBLE,
+    is_exclusive:   false,
     area:           "",
     rooms:          "",
     bedrooms:       "",
@@ -111,6 +112,7 @@ export default function PostListingPage() {
             description:   listing.description   || "",
             price:         listing.price         || "",
             hide_price:    listing.hide_price     ?? false,
+            is_exclusive:  listing.is_exclusive    ?? false,
             area:          listing.area     ? String(listing.area)      : "",
             rooms:         listing.rooms    ? String(listing.rooms)     : "",
             bedrooms:      listing.bedrooms ? String(listing.bedrooms)  : "",
@@ -280,7 +282,11 @@ export default function PostListingPage() {
       }
       await base44.entities.Listing.update(editingId, payload);
     } else {
-      await base44.entities.Listing.create({ ...payload, status: "pending" });
+      const created = await base44.entities.Listing.create({ ...payload, status: "pending" });
+      // Fire exclusivity conflict check in background
+      if (created?.id) {
+        base44.functions.invoke("checkExclusivityConflict", { listing_id: created.id }).catch(() => {});
+      }
     }
     setSaving(false);
     setDone(true);
@@ -478,6 +484,13 @@ export default function PostListingPage() {
                       <span className="text-xs text-purple-700 font-medium">{lang === "ar" ? "إخفاء السعر" : lang === "fr" ? "Masquer le prix" : "Hide price"}</span>
                     </label>
                   )}
+                  <label className="flex items-start gap-2 mt-3 cursor-pointer bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5">
+                    <input type="checkbox" checked={form.is_exclusive} onChange={e => set("is_exclusive", e.target.checked)} className="accent-purple-600 w-4 h-4 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-purple-800 font-semibold block">{lang === "ar" ? "إعلان حصري" : lang === "fr" ? "Annonce exclusive" : "Exclusive Listing"}</span>
+                      <span className="text-xs text-purple-600">{lang === "ar" ? "هذا العقار مسجل حصرياً معك ولا يجب نشره مع وكلاء آخرين." : lang === "fr" ? "Ce bien est listé exclusivement avec vous et ne doit pas figurer chez d'autres agences." : "This property is listed exclusively with you and should not appear with other agents."}</span>
+                    </div>
+                  </label>
                 </div>
 
                 {/* Area */}

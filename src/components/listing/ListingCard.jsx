@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Heart, MapPin, Maximize2, BedDouble, Bath, Scale } from "lucide-react";
+import { Heart, MapPin, Maximize2, BedDouble, Bath, Scale, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../LanguageContext";
 import { formatPrice } from "../price.config";
@@ -28,6 +28,9 @@ export default function ListingCard({ listing, isFavorite, onToggleFavorite, onT
           </Badge>
           {listing.is_featured && (
             <Badge className="bg-amber-500 text-white">{t.featured}</Badge>
+          )}
+          {listing.is_exclusive && (
+            <Badge className="bg-purple-600 text-white flex items-center gap-1"><Star className="w-2.5 h-2.5" />Exclusif</Badge>
           )}
         </div>
         <button

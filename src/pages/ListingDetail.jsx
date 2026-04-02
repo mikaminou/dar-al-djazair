@@ -4,7 +4,7 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   MapPin, Maximize2, BedDouble, Bath, Heart, Share2, Phone, Mail,
-  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown
+  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown, Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -213,10 +213,11 @@ export default function ListingDetailPage() {
               <div className="absolute top-4 left-4 flex gap-2">
                 <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
                 {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
-              </div>
-            </div>
-          ) : (
-            <div className="flex gap-1 h-[320px] md:h-[400px]">
+                {listing.is_exclusive && <Badge className="bg-purple-600 text-white flex items-center gap-1"><Star className="w-3 h-3" />{lang === "ar" ? "حصري" : lang === "fr" ? "Exclusif" : "Exclusive"}</Badge>}
+                </div>
+                </div>
+                ) : (
+                <div className="flex gap-1 h-[320px] md:h-[400px]">
               <div
                 className="relative flex-[2] cursor-zoom-in overflow-hidden"
                 onClick={() => { setGalleryIndex(0); setGalleryOpen(true); }}
@@ -225,6 +226,7 @@ export default function ListingDetailPage() {
                 <div className="absolute top-4 left-4 flex gap-2">
                   <Badge className={listing.listing_type === "sale" ? "bg-emerald-600 text-white" : "bg-blue-600 text-white"}>{listing.listing_type === "sale" ? t.sale : t.forRent}</Badge>
                   {listing.is_featured && <Badge className="bg-amber-500 text-white">{t.featured}</Badge>}
+                  {listing.is_exclusive && <Badge className="bg-purple-600 text-white flex items-center gap-1"><Star className="w-3 h-3" />{lang === "ar" ? "حصري" : lang === "fr" ? "Exclusif" : "Exclusive"}</Badge>}
                 </div>
                 <div className="absolute bottom-3 left-3 bg-black/50 text-white text-xs px-2 py-1 rounded-full">
                   1 / {images.length}

@@ -33,8 +33,7 @@
     },
     "hide_price": {
       "type": "boolean",
-      "default": false,
-      "description": "If true, price is hidden from public view."
+      "default": false
     },
     "price_period": {
       "type": "string",
@@ -114,8 +113,7 @@
       "default": "pending"
     },
     "admin_note": {
-      "type": "string",
-      "description": "Message from admin when declining or requesting changes on a listing"
+      "type": "string"
     },
     "is_featured": {
       "type": "boolean",
@@ -161,8 +159,28 @@
     },
     "active_since": {
       "type": "string",
-      "format": "date-time",
-      "description": "Timestamp when listing was first set to active"
+      "format": "date-time"
+    },
+    "is_exclusive": {
+      "type": "boolean",
+      "default": false,
+      "description": "This listing is listed exclusively with this agency/individual and should not appear on other platforms."
+    },
+    "exclusivity_conflict": {
+      "type": "boolean",
+      "default": false,
+      "description": "Flagged by system: this pending listing may duplicate an existing exclusive listing."
+    },
+    "conflict_listing_id": {
+      "type": "string",
+      "description": "ID of the existing exclusive listing this one potentially conflicts with."
+    },
+    "audit_log": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Chronological log of admin actions and system events on this listing."
     }
   },
   "required": [

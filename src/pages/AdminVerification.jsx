@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star } from "lucide-react";
+import ExclusivityConflictView from "../components/admin/ExclusivityConflictView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -212,6 +213,16 @@ export default function AdminVerification() {
                           <Badge className="bg-amber-100 text-amber-700 flex-shrink-0">
                             {lang === "ar" ? "بانتظار المراجعة" : lang === "fr" ? "En attente" : "Pending"}
                           </Badge>
+                          {listing.is_exclusive && (
+                            <Badge className="bg-purple-100 text-purple-700 flex items-center gap-1 flex-shrink-0">
+                              <Star className="w-3 h-3" />{lang === "ar" ? "حصري" : lang === "fr" ? "Exclusif" : "Exclusive"}
+                            </Badge>
+                          )}
+                          {listing.exclusivity_conflict && (
+                            <Badge className="bg-orange-100 text-orange-700 flex items-center gap-1 flex-shrink-0">
+                              <AlertTriangle className="w-3 h-3" />{lang === "ar" ? "تعارض حصري" : lang === "fr" ? "Conflit exclusivité" : "Exclusivity Conflict"}
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex items-center gap-3 mt-2 flex-wrap">
                           <span className="text-xs text-gray-400">
@@ -314,12 +325,26 @@ export default function AdminVerification() {
                         </div>
                       )}
 
-                      {/* Actions */}
-                      <div className="space-y-3 pt-2 border-t border-gray-100">
+                  {/* Exclusivity conflict view */}
+                  {listing.exclusivity_conflict && (
+                    <div className="border-t border-orange-100 p-5 bg-orange-50/30">
+                      <ExclusivityConflictView
+                        listing={listing}
+                        lang={lang}
+                        onResolved={(id) => {
+                          setPendingListings(prev => prev.filter(l => l.id !== id));
+                          setExpandListingId(null);
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Standard actions */}
+                  {!listing.exclusivity_conflict && <div className="space-y-3 pt-2 border-t border-gray-100">
                         <Textarea
                           value={note}
                           onChange={e => setNote(e.target.value)}
-                          placeholder={lang === "ar" ? "رسالة للمالك (مطلوبة للرفض وطلب التعديل)" : lang === "fr" ? "Message au propriétaire (requis pour refus / demande de modification)" : "Message to owner (required for decline / propose changes)"}
+                          placeholder={lang === "ar" ? "رسالة للمالك (مطلوبة للرفض وطلب التعديل)" : lang === "fr" ? "Message au propri\u00e9taire (requis pour refus / demande de modification)" : "Message to owner (required for decline / propose changes)"}
                           rows={2}
                           className="resize-none text-sm"
                         />
@@ -363,7 +388,7 @@ export default function AdminVerification() {
                             💡 {lang === "ar" ? "ملاحظة: مطلوبة للرفض وطلب التعديل، لكن اختيارية للقبول." : lang === "fr" ? "Note : requise pour refuser ou demander des modifications, optionnelle pour approuver." : "Note: required for decline/changes, optional for approval."}
                           </p>
                         )}
-                      </div>
+                      </div>}
                     </div>
                   )}
                 </div>
