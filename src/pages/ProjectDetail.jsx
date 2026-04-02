@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 const LOT_ORDER = ["F1","F2","F3","F4","F5","F6+","Duplex","Penthouse","Commercial","Parking"];
 
 const STATUS_CONFIG = {
-  upcoming:           { fr: "À venir",          en: "Upcoming",           ar: "قادم",         color: "bg-blue-100 text-blue-700 border-blue-200" },
-  under_construction: { fr: "En construction",  en: "Under Construction", ar: "قيد الإنشاء", color: "bg-amber-100 text-amber-700 border-amber-200" },
-  ready_to_move:      { fr: "Prêt à habiter",   en: "Ready to Move",      ar: "جاهز",         color: "bg-green-100 text-green-700 border-green-200" },
-  sold_out:           { fr: "Complet",          en: "Sold Out",           ar: "مكتمل",        color: "bg-gray-200 text-gray-600 border-gray-300" },
+  upcoming:           { fr: "À venir",          en: "Upcoming",           ar: "قادم",            color: "bg-blue-100 text-blue-700 border-blue-200" },
+  under_construction: { fr: "En construction",  en: "Under Construction", ar: "قيد الإنشاء",  color: "bg-amber-100 text-amber-700 border-amber-200" },
+  semi_fini:          { fr: "Semi-fini",        en: "Semi-Finished",      ar: "نصف تشطيب",     color: "bg-orange-100 text-orange-700 border-orange-200" },
+  fini:               { fr: "Fini",             en: "Finished",           ar: "تشطيب كامل",   color: "bg-teal-100 text-teal-700 border-teal-200" },
+  ready_to_move:      { fr: "Prêt à habiter",   en: "Ready to Move",      ar: "جاهز",            color: "bg-green-100 text-green-700 border-green-200" },
 };
 
 const TRANCHE_STATUS = {
@@ -313,9 +314,16 @@ export default function ProjectDetail() {
                               <td className="px-3 py-2.5">
                                 <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                                   lot.status === "available" ? "bg-green-100 text-green-700" :
-                                  lot.status === "reserved" ? "bg-orange-100 text-orange-700" : "bg-red-100 text-red-700"
+                                  lot.status === "reserved" ? "bg-orange-100 text-orange-700" :
+                                  lot.status === "semi_fini" ? "bg-orange-100 text-orange-700" :
+                                  lot.status === "fini" ? "bg-teal-100 text-teal-700" :
+                                  "bg-red-100 text-red-700"
                                 }`}>
-                                  {lot.status === "available" ? t("Disponible","Available","متاح") : lot.status === "reserved" ? t("Réservé","Reserved","محجوز") : t("Vendu","Sold","مُباع")}
+                                  {lot.status === "available" ? t("Disponible","Available","متاح") :
+                                   lot.status === "reserved" ? t("Réservé","Reserved","محجوز") :
+                                   lot.status === "semi_fini" ? t("Semi-fini","Semi-Finished","نصف تشطيب") :
+                                   lot.status === "fini" ? t("Fini","Finished","تشطيب كامل") :
+                                   t("Vendu","Sold","مُباع")}
                                 </span>
                               </td>
                             </tr>

@@ -16,7 +16,7 @@ const PROJECT_STATUS_OPTIONS = [
   { value: "under_construction",fr: "En construction",    en: "Under Construction", ar: "قيد الإنشاء" },
   { value: "semi_fini",         fr: "Semi-fini",          en: "Semi-Finished",      ar: "نصف تشطيب" },
   { value: "ready_to_move",     fr: "Prêt à habiter",     en: "Ready to Move",      ar: "جاهز" },
-  { value: "sold_out",          fr: "Complet",            en: "Sold Out",           ar: "مكتمل" },
+  { value: "fini",             fr: "Fini",              en: "Finished",           ar: "تشطيب كامل" },
 ];
 
 export default function Projects() {

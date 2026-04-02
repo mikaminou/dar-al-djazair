@@ -50,7 +50,9 @@
       "enum": [
         "available",
         "reserved",
-        "sold"
+        "sold",
+        "semi_fini",
+        "fini"
       ],
       "default": "available"
     },

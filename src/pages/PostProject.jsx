@@ -287,8 +287,9 @@ export default function PostProject() {
                     <SelectContent>
                       <SelectItem value="upcoming">{t("À venir", "Upcoming", "قادم")}</SelectItem>
                       <SelectItem value="under_construction">{t("En construction", "Under Construction", "قيد الإنشاء")}</SelectItem>
+                      <SelectItem value="semi_fini">{t("Semi-fini", "Semi-Finished", "نصف تشطيب")}</SelectItem>
+                      <SelectItem value="fini">{t("Fini", "Finished", "تشطيب كامل")}</SelectItem>
                       <SelectItem value="ready_to_move">{t("Prêt à habiter", "Ready to Move", "جاهز")}</SelectItem>
-                      <SelectItem value="sold_out">{t("Complet", "Sold Out", "مكتمل")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
