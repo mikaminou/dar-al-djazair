@@ -71,7 +71,7 @@ export default function Projects() {
     return true;
   });
 
-  const usedWilayas = WILAYAS.map(w => w.name).sort();
+  // no derived wilaya list needed — use WILAYAS constant directly
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -113,7 +113,7 @@ export default function Projects() {
                 <SelectTrigger className="h-10 text-sm"><SelectValue placeholder={t("Wilaya", "Wilaya", "الولاية")} /></SelectTrigger>
                 <SelectContent className="max-h-52">
                   <SelectItem value="all">{t("Toutes les wilayas", "All wilayas", "كل الولايات")}</SelectItem>
-                  {usedWilayas.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                  {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[L] || w.label.fr}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={filters.project_status} onValueChange={v => setFilters(f => ({ ...f, project_status: v }))}>
