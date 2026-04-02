@@ -10,11 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 const LOT_ORDER = ["F1","F2","F3","F4","F5","F6+","Duplex","Penthouse","Commercial","Parking"];
 
 const STATUS_CONFIG = {
-  upcoming:           { fr: "À venir",          en: "Upcoming",           ar: "قادم",            color: "bg-blue-100 text-blue-700 border-blue-200" },
-  under_construction: { fr: "En construction",  en: "Under Construction", ar: "قيد الإنشاء",  color: "bg-amber-100 text-amber-700 border-amber-200" },
-  semi_fini:          { fr: "Semi-fini",        en: "Semi-Finished",      ar: "نصف تشطيب",     color: "bg-orange-100 text-orange-700 border-orange-200" },
-  fini:               { fr: "Fini",             en: "Finished",           ar: "تشطيب كامل",   color: "bg-teal-100 text-teal-700 border-teal-200" },
-  ready_to_move:      { fr: "Prêt à habiter",   en: "Ready to Move",      ar: "جاهز",            color: "bg-green-100 text-green-700 border-green-200" },
+  upcoming:           { fr: "À venir",          en: "Upcoming",           ar: "قادم",           color: "bg-blue-100 text-blue-700 border-blue-200" },
+  under_construction: { fr: "En construction",  en: "Under Construction", ar: "قيد الإنشاء", color: "bg-amber-100 text-amber-700 border-amber-200" },
+  semi_fini:          { fr: "Semi-fini",        en: "Semi-Finished",      ar: "نصف تشطيب",    color: "bg-orange-100 text-orange-700 border-orange-200" },
+  fini:               { fr: "Fini",             en: "Finished",           ar: "تشطيب كامل",  color: "bg-teal-100 text-teal-700 border-teal-200" },
 };
 
 const TRANCHE_STATUS = {

@@ -59,8 +59,7 @@
         "upcoming",
         "under_construction",
         "semi_fini",
-        "fini",
-        "ready_to_move"
+        "fini"
       ],
       "default": "upcoming"
     },

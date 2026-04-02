@@ -487,8 +487,8 @@ export default function PostListingPage() {
                   <label className="flex items-start gap-2 mt-3 cursor-pointer bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5">
                     <input type="checkbox" checked={form.is_exclusive} onChange={e => set("is_exclusive", e.target.checked)} className="accent-purple-600 w-4 h-4 mt-0.5" />
                     <div>
-                      <span className="text-xs text-purple-800 font-semibold block">{lang === "ar" ? "إعلان حصري" : lang === "fr" ? "Annonce exclusive" : "Exclusive Listing"}</span>
-                      <span className="text-xs text-purple-600">{lang === "ar" ? "هذا العقار مسجل حصرياً معك ولا يجب نشره مع وكلاء آخرين." : lang === "fr" ? "Ce bien est listé exclusivement avec vous et ne doit pas figurer chez d'autres agences." : "This property is listed exclusively with you and should not appear with other agents."}</span>
+                      <span className="text-xs text-purple-800 font-semibold block">{lang === "ar" ? "تفويض حصري" : lang === "fr" ? "Mandat exclusif" : "Exclusive Mandate"}</span>
+                      <span className="text-xs text-purple-600">{lang === "ar" ? "هذا العقار مسجل حصرياً لدى وكالتك، ولا يجب تسويقه من طرف وكالات أخرى." : lang === "fr" ? "Ce bien est en mandat exclusif avec votre agence. Il ne doit pas être commercialisé par d'autres agences." : "This property is under exclusive mandate with your agency and should not be marketed by other agents."}</span>
                     </div>
                   </label>
                 </div>

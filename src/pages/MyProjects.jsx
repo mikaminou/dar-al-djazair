@@ -23,7 +23,6 @@ const PROJECT_STATUS_LABEL = {
   under_construction: { en: "Under Construction", fr: "En construction",   ar: "قيد الإنشاء" },
   semi_fini:          { en: "Semi-Finished",      fr: "Semi-fini",         ar: "نصف تشطيب" },
   fini:               { en: "Finished",           fr: "Fini",              ar: "تشطيب كامل" },
-  ready_to_move:      { en: "Ready to Move",      fr: "Prêt à habiter",    ar: "جاهز" },
   pending:            { en: "Pending Approval",   fr: "En attente",        ar: "بانتظار المراجعة" },
   active:             { en: "Active",             fr: "Actif",             ar: "نشط" },
   declined:           { en: "Declined",           fr: "Refusé",            ar: "مرفوض" },

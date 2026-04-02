@@ -8,7 +8,6 @@ const STATUS_CONFIG = {
   under_construction: { fr: "En construction",  en: "Under Construction", ar: "قيد الإنشاء",  color: "bg-amber-100 text-amber-700" },
   semi_fini:          { fr: "Semi-fini",        en: "Semi-Finished",      ar: "نصف تشطيب",    color: "bg-orange-100 text-orange-700" },
   fini:               { fr: "Fini",             en: "Finished",           ar: "تشطيب كامل",  color: "bg-teal-100 text-teal-700" },
-  ready_to_move:      { fr: "Prêt à habiter",   en: "Ready to Move",      ar: "جاهز",          color: "bg-green-100 text-green-700" },
 };
 
 function formatPriceShort(n, lang = "fr") {

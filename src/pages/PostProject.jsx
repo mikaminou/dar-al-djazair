@@ -289,7 +289,6 @@ export default function PostProject() {
                       <SelectItem value="under_construction">{t("En construction", "Under Construction", "قيد الإنشاء")}</SelectItem>
                       <SelectItem value="semi_fini">{t("Semi-fini", "Semi-Finished", "نصف تشطيب")}</SelectItem>
                       <SelectItem value="fini">{t("Fini", "Finished", "تشطيب كامل")}</SelectItem>
-                      <SelectItem value="ready_to_move">{t("Prêt à habiter", "Ready to Move", "جاهز")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -335,9 +334,14 @@ export default function PostProject() {
                   <Textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={5} className="resize-none" placeholder={t("Décrivez votre projet en détail...", "Describe your project in detail...", "صف مشروعك بالتفصيل...")} />
                   <p className={`text-xs mt-1 ${form.description.length < 100 ? "text-red-400" : "text-green-500"}`}>{form.description.length}/100</p>
                 </div>
-                <div className="col-span-2 flex items-center gap-2">
-                  <input type="checkbox" id="exclusive" checked={form.is_exclusive} onChange={e => setForm(f => ({ ...f, is_exclusive: e.target.checked }))} className="w-4 h-4 accent-emerald-600" />
-                  <label htmlFor="exclusive" className="text-sm text-gray-700">{t("Projet exclusif sur Dar El Djazair", "Exclusive project on Dar El Djazair", "مشروع حصري على دار الجزائر")}</label>
+                <div className="col-span-2">
+                  <label className="flex items-start gap-2 cursor-pointer bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5">
+                    <input type="checkbox" checked={form.is_exclusive} onChange={e => setForm(f => ({ ...f, is_exclusive: e.target.checked }))} className="w-4 h-4 accent-purple-600 mt-0.5" />
+                    <div>
+                      <span className="text-xs text-purple-800 font-semibold block">{t("Mandat exclusif", "Exclusive Mandate", "تفويض حصري")}</span>
+                      <span className="text-xs text-purple-600">{t("Ce projet est en mandat exclusif avec votre agence. Il ne doit pas être commercialisé par d'autres agences.", "This project is under exclusive mandate with your agency and should not be marketed by other agents.", "هذا المشروع حصري لوكالتك، ولا يجب تسويقه من طرف وكالات أخرى.")}</span>
+                    </div>
+                  </label>
                 </div>
               </div>
             </div>

@@ -15,7 +15,6 @@ const PROJECT_STATUS_OPTIONS = [
   { value: "upcoming",          fr: "À venir",            en: "Upcoming",           ar: "قادم" },
   { value: "under_construction",fr: "En construction",    en: "Under Construction", ar: "قيد الإنشاء" },
   { value: "semi_fini",         fr: "Semi-fini",          en: "Semi-Finished",      ar: "نصف تشطيب" },
-  { value: "ready_to_move",     fr: "Prêt à habiter",     en: "Ready to Move",      ar: "جاهز" },
   { value: "fini",             fr: "Fini",              en: "Finished",           ar: "تشطيب كامل" },
 ];
 
