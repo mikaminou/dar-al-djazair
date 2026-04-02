@@ -11,11 +11,12 @@ import { WILAYAS } from "../components/constants";
 const LOT_TYPES = ["F1","F2","F3","F4","F5","F6+","Duplex","Penthouse","Commercial","Parking"];
 
 const PROJECT_STATUS_OPTIONS = [
-  { value: "all",               fr: "Tous les statuts",   en: "All Statuses",     ar: "كل الحالات" },
-  { value: "upcoming",          fr: "À venir",            en: "Upcoming",         ar: "قادم" },
-  { value: "under_construction",fr: "En construction",    en: "Under Construction",ar: "قيد الإنشاء" },
-  { value: "ready_to_move",     fr: "Prêt à habiter",     en: "Ready to Move",    ar: "جاهز" },
-  { value: "sold_out",          fr: "Complet",            en: "Sold Out",         ar: "مكتمل" },
+  { value: "all",               fr: "Tous les statuts",   en: "All Statuses",       ar: "كل الحالات" },
+  { value: "upcoming",          fr: "À venir",            en: "Upcoming",           ar: "قادم" },
+  { value: "under_construction",fr: "En construction",    en: "Under Construction", ar: "قيد الإنشاء" },
+  { value: "semi_fini",         fr: "Semi-fini",          en: "Semi-Finished",      ar: "نصف تشطيب" },
+  { value: "ready_to_move",     fr: "Prêt à habiter",     en: "Ready to Move",      ar: "جاهز" },
+  { value: "sold_out",          fr: "Complet",            en: "Sold Out",           ar: "مكتمل" },
 ];
 
 export default function Projects() {
@@ -70,7 +71,7 @@ export default function Projects() {
     return true;
   });
 
-  const usedWilayas = [...new Set(projects.map(p => p.wilaya).filter(Boolean))].sort();
+  const usedWilayas = WILAYAS.map(w => w.name).sort();
 
   return (
     <div className="min-h-screen bg-gray-50">
