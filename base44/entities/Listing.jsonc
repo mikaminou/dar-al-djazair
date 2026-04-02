@@ -34,7 +34,7 @@
     "hide_price": {
       "type": "boolean",
       "default": false,
-      "description": "If true, price is hidden from public view. Contact agent to get price."
+      "description": "If true, price is hidden from public view."
     },
     "price_period": {
       "type": "string",
@@ -78,8 +78,7 @@
     },
     "hide_location": {
       "type": "boolean",
-      "default": true,
-      "description": "If true, address and map pin are hidden from public. Wilaya and commune are always visible."
+      "default": true
     },
     "latitude": {
       "type": "number"
@@ -102,14 +101,21 @@
     "status": {
       "type": "string",
       "enum": [
+        "pending",
         "active",
         "reserved",
         "sold",
         "rented",
         "archived",
-        "deleted"
+        "deleted",
+        "declined",
+        "changes_requested"
       ],
-      "default": "active"
+      "default": "pending"
+    },
+    "admin_note": {
+      "type": "string",
+      "description": "Message from admin when declining or requesting changes on a listing"
     },
     "is_featured": {
       "type": "boolean",
@@ -156,7 +162,7 @@
     "active_since": {
       "type": "string",
       "format": "date-time",
-      "description": "Timestamp when listing was first set to active, used for time-to-deal analytics"
+      "description": "Timestamp when listing was first set to active"
     }
   },
   "required": [

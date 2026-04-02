@@ -34,12 +34,22 @@ const t = (key, lang) => T[key][lang] || T[key].fr;
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const { event, data } = await req.json();
+    const { event, data, old_data } = await req.json();
 
-    if (event?.type !== "create") return Response.json({ ok: true, skipped: "not_create" });
-
+    // Fire on create (if active) OR on update when status just became active
     const listing = data;
-    if (listing.status !== "active") return Response.json({ ok: true, skipped: "not_active" });
+    if (event?.type === "create" && listing.status !== "active") {
+      return Response.json({ ok: true, skipped: "not_active_on_create" });
+    }
+    if (event?.type === "update") {
+      // Only fire when transitioning TO active
+      if (listing.status !== "active" || old_data?.status === "active") {
+        return Response.json({ ok: true, skipped: "no_activation_transition" });
+      }
+    }
+    if (event?.type !== "create" && event?.type !== "update") {
+      return Response.json({ ok: true, skipped: "not_relevant_event" });
+    }
 
     const savedSearches = await base44.asServiceRole.entities.SavedSearch.filter(
       { alert_enabled: true }, null, 500

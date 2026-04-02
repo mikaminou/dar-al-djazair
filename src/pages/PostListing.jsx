@@ -298,9 +298,16 @@ export default function PostListingPage() {
       year_built: form.year_built ? Number(form.year_built) : undefined,
     };
     if (editingId) {
-      await base44.entities.Listing.update(editingId, payload);
+      // If resubmitting after changes_requested, go back to pending
+      const resubmitPayload = { ...payload };
+      const existing = await base44.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);
+      if (existing[0]?.status === "changes_requested" || existing[0]?.status === "declined") {
+        resubmitPayload.status = "pending";
+        resubmitPayload.admin_note = null;
+      }
+      await base44.entities.Listing.update(editingId, resubmitPayload);
     } else {
-      await base44.entities.Listing.create({ ...payload, status: "active", active_since: new Date().toISOString() });
+      await base44.entities.Listing.create({ ...payload, status: "pending" });
     }
     setSaving(false);
     setDone(true);

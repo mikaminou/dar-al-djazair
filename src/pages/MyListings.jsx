@@ -121,20 +121,26 @@ export default function MyListingsPage() {
   }
 
   const statusColor = {
-    active:   "bg-green-100 text-green-700",
-    reserved: "bg-amber-100 text-amber-700",
-    sold:     "bg-blue-100 text-blue-700",
-    rented:   "bg-purple-100 text-purple-700",
-    archived: "bg-gray-100 text-gray-500",
-    deleted:  "bg-red-100 text-red-500",
+    pending:           "bg-amber-100 text-amber-700",
+    active:            "bg-green-100 text-green-700",
+    reserved:          "bg-amber-100 text-amber-700",
+    sold:              "bg-blue-100 text-blue-700",
+    rented:            "bg-purple-100 text-purple-700",
+    archived:          "bg-gray-100 text-gray-500",
+    deleted:           "bg-red-100 text-red-500",
+    declined:          "bg-red-100 text-red-600",
+    changes_requested: "bg-orange-100 text-orange-700",
   };
   const statusLabel = {
-    active:   { en: "Active",   fr: "Actif",    ar: "نشط"     },
-    reserved: { en: "Reserved", fr: "Réservé",  ar: "محجوز"   },
-    sold:     { en: "Sold",     fr: "Vendu",    ar: "مُباع"   },
-    rented:   { en: "Rented",   fr: "Loué",     ar: "مُؤجَّر" },
-    archived: { en: "Archived", fr: "Archivé",  ar: "مؤرشف"  },
-    deleted:  { en: "Deleted",  fr: "Supprimé", ar: "محذوف"  },
+    pending:           { en: "Pending Approval", fr: "En attente",         ar: "بانتظار المراجعة"     },
+    active:            { en: "Active",           fr: "Actif",              ar: "نشط"                  },
+    reserved:          { en: "Reserved",         fr: "Réservé",            ar: "محجوز"                },
+    sold:              { en: "Sold",             fr: "Vendu",              ar: "مُباع"                },
+    rented:            { en: "Rented",           fr: "Loué",               ar: "مُؤجَّر"              },
+    archived:          { en: "Archived",         fr: "Archivé",            ar: "مؤرشف"               },
+    deleted:           { en: "Deleted",          fr: "Supprimé",           ar: "محذوف"               },
+    declined:          { en: "Declined",         fr: "Refusée",            ar: "مرفوض"               },
+    changes_requested: { en: "Changes Requested",fr: "Modifications requises", ar: "تعديلات مطلوبة" },
   };
 
 
@@ -158,13 +164,16 @@ export default function MyListingsPage() {
   const usedWilayas = [...new Set(listings.map(l => l.wilaya).filter(Boolean))].sort();
 
   const statusOptions = [
-    { value: "all",      label: { fr: "Tous",      ar: "الكل",    en: "All"      } },
-    { value: "active",   label: { fr: "Actifs",    ar: "نشط",     en: "Active"   } },
-    { value: "reserved", label: { fr: "Réservés",  ar: "محجوز",   en: "Reserved" } },
-    { value: "sold",     label: { fr: "Vendus",    ar: "مُباع",   en: "Sold"     } },
-    { value: "rented",   label: { fr: "Loués",     ar: "مُؤجَّر", en: "Rented"  } },
-    { value: "archived", label: { fr: "Archivés",  ar: "مؤرشف",   en: "Archived" } },
-    { value: "deleted",  label: { fr: "Supprimés", ar: "محذوف",   en: "Deleted"  } },
+    { value: "all",               label: { fr: "Tous",                  ar: "الكل",               en: "All"               } },
+    { value: "pending",           label: { fr: "En attente",            ar: "بانتظار المراجعة",   en: "Pending"           } },
+    { value: "active",            label: { fr: "Actifs",                ar: "نشط",               en: "Active"            } },
+    { value: "changes_requested", label: { fr: "Modif. requises",       ar: "تعديلات مطلوبة",   en: "Changes Requested" } },
+    { value: "declined",          label: { fr: "Refusées",              ar: "مرفوض",             en: "Declined"          } },
+    { value: "reserved",          label: { fr: "Réservés",              ar: "محجوز",             en: "Reserved"          } },
+    { value: "sold",              label: { fr: "Vendus",                ar: "مُباع",             en: "Sold"              } },
+    { value: "rented",            label: { fr: "Loués",                 ar: "مُؤجَّر",           en: "Rented"            } },
+    { value: "archived",          label: { fr: "Archivés",              ar: "مؤرشف",             en: "Archived"          } },
+    { value: "deleted",           label: { fr: "Supprimés",             ar: "محذوف",             en: "Deleted"           } },
   ];
 
   if (!loading && currentUser && currentUser.role !== "professional" && currentUser.role !== "admin") {
@@ -354,6 +363,21 @@ export default function MyListingsPage() {
                     <Badge className={statusColor[listing.status] || "bg-gray-100"}>{statusLabel[listing.status]?.[lang] || listing.status}</Badge>
                   </div>
                   <p className="text-xs text-gray-500 mt-0.5">{listing.wilaya} • {formatPrice(listing.price, lang)}</p>
+                  {listing.status === "changes_requested" && listing.admin_note && (
+                    <p className="text-xs text-orange-700 bg-orange-50 rounded px-2 py-1 mt-1 border border-orange-100">
+                      ✏️ {lang === "ar" ? "ملاحظة المشرف" : lang === "fr" ? "Note admin" : "Admin note"}: {listing.admin_note}
+                    </p>
+                  )}
+                  {listing.status === "declined" && listing.admin_note && (
+                    <p className="text-xs text-red-700 bg-red-50 rounded px-2 py-1 mt-1 border border-red-100">
+                      ❌ {lang === "ar" ? "سبب الرفض" : lang === "fr" ? "Motif de refus" : "Decline reason"}: {listing.admin_note}
+                    </p>
+                  )}
+                  {listing.status === "pending" && (
+                    <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1 border border-amber-100">
+                      ⏳ {lang === "ar" ? "بانتظار مراجعة المشرف" : lang === "fr" ? "En attente de validation admin" : "Awaiting admin review"}
+                    </p>
+                  )}
                   <div className="flex items-center gap-3 mt-0.5">
                     <p className="text-xs text-gray-400 flex items-center gap-1">
                       <Eye className="w-3 h-3" /> {listing.views_count || 0} {lang === "ar" ? "مشاهدة" : lang === "fr" ? "vues" : "views"}
@@ -373,7 +397,7 @@ export default function MyListingsPage() {
                   </Link>
                   {listing.status !== "deleted" && (
                     <Link to={createPageUrl(`PostListing?edit=${listing.id}`)}>
-                      <Button variant="ghost" size="icon" className="text-gray-400 hover:text-amber-600" title={t.editListing}>
+                      <Button variant="ghost" size="icon" className={`hover:text-amber-600 ${listing.status === "changes_requested" ? "text-orange-500" : "text-gray-400"}`} title={t.editListing}>
                         <Pencil className="w-4 h-4" />
                       </Button>
                     </Link>

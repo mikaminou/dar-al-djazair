@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { formatPrice } from "../components/constants";
 
 const STATUS_COLORS = {
   pending:  "bg-amber-100 text-amber-700",
@@ -14,15 +15,18 @@ const STATUS_COLORS = {
 
 export default function AdminVerification() {
   const { lang } = useLang();
-  const [requests, setRequests] = useState([]);
-  const [pros,     setPros]     = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [isAdmin,  setIsAdmin]  = useState(false);
-  const [filter,   setFilter]   = useState("pending");
-  const [tab,      setTab]      = useState("requests");
-  const [expandId, setExpandId] = useState(null);
-  const [note,     setNote]     = useState("");
-  const [busy,     setBusy]     = useState(false);
+  const [requests, setRequests]       = useState([]);
+  const [pros,     setPros]           = useState([]);
+  const [pendingListings, setPendingListings] = useState([]);
+  const [listingUsers, setListingUsers] = useState({});
+  const [loading,  setLoading]        = useState(true);
+  const [isAdmin,  setIsAdmin]        = useState(false);
+  const [filter,   setFilter]         = useState("pending");
+  const [tab,      setTab]            = useState("listings");
+  const [expandId, setExpandId]       = useState(null);
+  const [expandListingId, setExpandListingId] = useState(null);
+  const [note,     setNote]           = useState("");
+  const [busy,     setBusy]           = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -30,12 +34,23 @@ export default function AdminVerification() {
     const me = await base44.auth.me().catch(() => null);
     if (!me || me.role !== "admin") { setLoading(false); return; }
     setIsAdmin(true);
-    const [data, allUsers] = await Promise.all([
+    const [data, allUsers, listings] = await Promise.all([
       base44.entities.VerificationRequest.list("-created_date", 300),
       base44.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
+      base44.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
     ]);
     setRequests(data);
     setPros(allUsers);
+    setPendingListings(listings);
+
+    // Load submitter info for each listing
+    const emails = [...new Set(listings.map(l => l.created_by).filter(Boolean))];
+    const userMap = {};
+    await Promise.all(emails.map(async email => {
+      const users = await base44.entities.User.filter({ email }, null, 1).catch(() => []);
+      if (users[0]) userMap[email] = users[0];
+    }));
+    setListingUsers(userMap);
     setLoading(false);
   }
 
@@ -55,12 +70,21 @@ export default function AdminVerification() {
     if (url) window.open(url, "_blank");
   }
 
-  async function handleAction(req, action) {
+  async function handleVerificationAction(req, action) {
     setBusy(true);
     await base44.functions.invoke("approveVerification", { request_id: req.id, action, admin_note: note });
     const newStatus = action === "approve" ? "approved" : "rejected";
     setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: newStatus, admin_note: note } : r));
     setExpandId(null);
+    setNote("");
+    setBusy(false);
+  }
+
+  async function handleListingAction(listing, action) {
+    setBusy(true);
+    await base44.functions.invoke("approveListing", { listing_id: listing.id, action, admin_note: note });
+    setPendingListings(prev => prev.filter(l => l.id !== listing.id));
+    setExpandListingId(null);
     setNote("");
     setBusy(false);
   }
@@ -81,6 +105,9 @@ export default function AdminVerification() {
     noReqs:      { fr: "Aucune demande",             en: "No requests",           ar: "لا توجد طلبات" },
     notAdmin:    { fr: "Accès réservé aux admins",   en: "Admin access only",     ar: "للمدير فقط" },
     adminNote:   { fr: "Note admin: ",               en: "Admin note: ",          ar: "ملاحظة الإدارة: " },
+    proposeChanges: { fr: "Demander modifications", en: "Request Changes",       ar: "طلب تعديلات" },
+    decline:     { fr: "Refuser l'annonce",          en: "Decline Listing",       ar: "رفض الإعلان" },
+    notePlhRequired: { fr: "Message requis",         en: "Message required",      ar: "الرسالة مطلوبة" },
   };
   const t = k => T[k]?.[lang] || T[k]?.en;
 
@@ -94,7 +121,7 @@ export default function AdminVerification() {
     <div className="min-h-screen flex items-center justify-center text-gray-400">{t("notAdmin")}</div>
   );
 
-  const displayed = requests.filter(r => r.status === filter);
+  const displayedRequests = requests.filter(r => r.status === filter);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -107,7 +134,21 @@ export default function AdminVerification() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Main tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
+          <button
+            onClick={() => setTab("listings")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "listings" ? "bg-emerald-600 text-white" : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-400"
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            {lang === "ar" ? "إعلانات بانتظار المراجعة" : lang === "fr" ? "Annonces à approuver" : "Listing Approvals"}
+            {pendingListings.length > 0 && (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab === "listings" ? "bg-white/20" : "bg-amber-100 text-amber-700"}`}>
+                {pendingListings.length}
+              </span>
+            )}
+          </button>
           <button
             onClick={() => setTab("requests")}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -130,7 +171,193 @@ export default function AdminVerification() {
           </button>
         </div>
 
-        {/* Pros tab */}
+        {/* ── LISTINGS APPROVAL TAB ── */}
+        {tab === "listings" && (
+          <div className="space-y-3">
+            {pendingListings.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
+                <Home className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>{lang === "ar" ? "لا توجد إعلانات بانتظار المراجعة" : lang === "fr" ? "Aucune annonce en attente" : "No listings pending approval"}</p>
+              </div>
+            ) : pendingListings.map(listing => {
+              const owner = listingUsers[listing.created_by];
+              const isExpanded = expandListingId === listing.id;
+              return (
+                <div key={listing.id} className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                  {/* Summary row */}
+                  <div className="p-5">
+                    <div className="flex gap-4">
+                      {listing.images?.[0] && (
+                        <img src={listing.images[0]} alt="" className="w-24 h-18 object-cover rounded-lg flex-shrink-0 h-16" />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 flex-wrap">
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{listing.title}</h3>
+                            <p className="text-sm text-gray-500 mt-0.5">
+                              {listing.wilaya}{listing.commune ? ` · ${listing.commune}` : ""} · {formatPrice(listing.price, lang)}
+                            </p>
+                          </div>
+                          <Badge className="bg-amber-100 text-amber-700 flex-shrink-0">
+                            {lang === "ar" ? "بانتظار المراجعة" : lang === "fr" ? "En attente" : "Pending"}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          <span className="text-xs text-gray-400">
+                            {new Date(listing.created_date).toLocaleDateString(lang === "ar" ? "ar-DZ" : lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                          </span>
+                          {owner && (
+                            <span className="flex items-center gap-1 text-xs text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
+                              {owner.agency_name || owner.full_name || owner.email}
+                              {owner.is_verified && <BadgeCheck className="w-3 h-3 text-emerald-600" />}
+                            </span>
+                          )}
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${listing.listing_type === "sale" ? "bg-blue-50 text-blue-700" : "bg-purple-50 text-purple-700"}`}>
+                            {listing.listing_type === "sale" ? (lang === "ar" ? "بيع" : lang === "fr" ? "Vente" : "Sale") : (lang === "ar" ? "إيجار" : lang === "fr" ? "Location" : "Rent")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mt-3">
+                      <button
+                        onClick={() => { setExpandListingId(isExpanded ? null : listing.id); setNote(""); }}
+                        className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-emerald-700 font-medium"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        {isExpanded
+                          ? (lang === "ar" ? "إخفاء التفاصيل" : lang === "fr" ? "Masquer" : "Hide details")
+                          : (lang === "ar" ? "عرض التفاصيل والقرار" : lang === "fr" ? "Voir les détails & décider" : "View details & decide")}
+                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded detail + actions */}
+                  {isExpanded && (
+                    <div className="border-t border-gray-50 p-5 space-y-4 bg-gray-50/50">
+                      {/* Photos */}
+                      {listing.images?.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                            {lang === "ar" ? "الصور" : lang === "fr" ? "Photos" : "Photos"} ({listing.images.length})
+                          </p>
+                          <div className="flex gap-2 flex-wrap">
+                            {listing.images.map((url, i) => (
+                              <img key={i} src={url} alt="" className="w-20 h-16 object-cover rounded-lg border" />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      {listing.description && (
+                        <div>
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                            {lang === "ar" ? "الوصف" : lang === "fr" ? "Description" : "Description"}
+                          </p>
+                          <p className="text-sm text-gray-700 leading-relaxed">{listing.description}</p>
+                        </div>
+                      )}
+
+                      {/* Details grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {listing.area && <div className="bg-white rounded-lg p-3 border text-center"><p className="text-xs text-gray-400">{lang === "ar" ? "المساحة" : lang === "fr" ? "Surface" : "Area"}</p><p className="font-semibold text-sm">{listing.area} m²</p></div>}
+                        {listing.rooms && <div className="bg-white rounded-lg p-3 border text-center"><p className="text-xs text-gray-400">{lang === "ar" ? "الغرف" : lang === "fr" ? "Pièces" : "Rooms"}</p><p className="font-semibold text-sm">{listing.rooms}</p></div>}
+                        {listing.bedrooms && <div className="bg-white rounded-lg p-3 border text-center"><p className="text-xs text-gray-400">{lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres" : "Bedrooms"}</p><p className="font-semibold text-sm">{listing.bedrooms}</p></div>}
+                        {listing.bathrooms && <div className="bg-white rounded-lg p-3 border text-center"><p className="text-xs text-gray-400">{lang === "ar" ? "حمامات" : lang === "fr" ? "SDB" : "Baths"}</p><p className="font-semibold text-sm">{listing.bathrooms}</p></div>}
+                      </div>
+
+                      {/* Contact */}
+                      <div className="bg-white rounded-lg p-3 border">
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                          {lang === "ar" ? "معلومات الاتصال" : lang === "fr" ? "Contact" : "Contact Info"}
+                        </p>
+                        <div className="flex gap-4 flex-wrap text-sm text-gray-700">
+                          {listing.contact_name  && <span>👤 {listing.contact_name}</span>}
+                          {listing.contact_phone && <span>📞 {listing.contact_phone}</span>}
+                          {listing.contact_email && <span>✉️ {listing.contact_email}</span>}
+                        </div>
+                      </div>
+
+                      {/* Owner info */}
+                      {owner && (
+                        <div className="bg-white rounded-lg p-3 border">
+                          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                            {lang === "ar" ? "صاحب الإعلان" : lang === "fr" ? "Propriétaire de l'annonce" : "Listing Owner"}
+                          </p>
+                          <div className="flex items-center gap-3 flex-wrap">
+                            <span className="text-sm font-medium text-gray-800">{owner.full_name || owner.email}</span>
+                            {owner.agency_name && <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">{owner.agency_name}</span>}
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${owner.is_verified ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                              {owner.is_verified
+                                ? (lang === "ar" ? "موثق" : lang === "fr" ? "Vérifié" : "Verified")
+                                : (lang === "ar" ? "غير موثق" : lang === "fr" ? "Non vérifié" : "Not verified")}
+                            </span>
+                            <span className="text-xs text-gray-400">{owner.email}</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Actions */}
+                      <div className="space-y-3 pt-2 border-t border-gray-100">
+                        <Textarea
+                          value={note}
+                          onChange={e => setNote(e.target.value)}
+                          placeholder={lang === "ar" ? "رسالة للمالك (مطلوبة للرفض وطلب التعديل)" : lang === "fr" ? "Message au propriétaire (requis pour refus / demande de modification)" : "Message to owner (required for decline / propose changes)"}
+                          rows={2}
+                          className="resize-none text-sm"
+                        />
+                        <div className="flex gap-2 flex-wrap">
+                          <Button
+                            size="sm"
+                            disabled={busy}
+                            className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs"
+                            onClick={() => handleListingAction(listing, "approve")}
+                          >
+                            <CheckCircle className="w-3.5 h-3.5" />
+                            {lang === "ar" ? "نشر الإعلان" : lang === "fr" ? "Approuver & Publier" : "Approve & Publish"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy || !note.trim()}
+                            className="text-orange-600 border-orange-200 hover:bg-orange-50 gap-1.5 text-xs"
+                            onClick={() => handleListingAction(listing, "propose_changes")}
+                            title={!note.trim() ? (lang === "ar" ? "أدخل رسالة" : "Enter a message first") : ""}
+                          >
+                            ✏️ {lang === "ar" ? "طلب تعديلات" : lang === "fr" ? "Demander modifications" : "Request Changes"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={busy || !note.trim()}
+                            className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs"
+                            onClick={() => handleListingAction(listing, "decline")}
+                            title={!note.trim() ? (lang === "ar" ? "أدخل سبب الرفض" : "Enter decline reason first") : ""}
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            {lang === "ar" ? "رفض الإعلان" : lang === "fr" ? "Refuser" : "Decline"}
+                          </Button>
+                          <Button size="sm" variant="ghost" className="text-xs text-gray-500" onClick={() => { setExpandListingId(null); setNote(""); }}>
+                            {t("cancel")}
+                          </Button>
+                        </div>
+                        {(note.trim() === "" && expandListingId === listing.id) && (
+                          <p className="text-xs text-gray-400">
+                            💡 {lang === "ar" ? "ملاحظة: مطلوبة للرفض وطلب التعديل، لكن اختيارية للقبول." : lang === "fr" ? "Note : requise pour refuser ou demander des modifications, optionnelle pour approuver." : "Note: required for decline/changes, optional for approval."}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── PROS TAB ── */}
         {tab === "pros" && (
           <div className="space-y-3">
             {pros.length === 0 ? (
@@ -168,7 +395,7 @@ export default function AdminVerification() {
           </div>
         )}
 
-        {/* Requests tab */}
+        {/* ── VERIFICATION REQUESTS TAB ── */}
         {tab === "requests" && (
           <>
             <div className="flex gap-2 mb-6 flex-wrap">
@@ -187,13 +414,13 @@ export default function AdminVerification() {
               ))}
             </div>
 
-            {displayed.length === 0 ? (
+            {displayedRequests.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
                 {t("noReqs")}
               </div>
             ) : (
               <div className="space-y-3">
-                {displayed.map(req => (
+                {displayedRequests.map(req => (
                   <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
                     <div className="flex items-start justify-between gap-4 flex-wrap">
                       <div className="min-w-0">
@@ -236,10 +463,10 @@ export default function AdminVerification() {
                               className="resize-none text-sm"
                             />
                             <div className="flex gap-2 flex-wrap">
-                              <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={() => handleAction(req, "approve")}>
+                              <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={() => handleVerificationAction(req, "approve")}>
                                 <CheckCircle className="w-3.5 h-3.5" /> {t("approve")}
                               </Button>
-                              <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={() => handleAction(req, "reject")}>
+                              <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={() => handleVerificationAction(req, "reject")}>
                                 <XCircle className="w-3.5 h-3.5" /> {t("reject")}
                               </Button>
                               <Button size="sm" variant="ghost" className="text-xs text-gray-500" onClick={() => { setExpandId(null); setNote(""); }}>
