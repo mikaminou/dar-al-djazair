@@ -1,0 +1,53 @@
+{
+  "name": "Waitlist",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "listing_title": {
+      "type": "string"
+    },
+    "listing_wilaya": {
+      "type": "string"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email of the listing owner"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the seeker"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "position": {
+      "type": "number",
+      "description": "Auto-incremented join position (1 = first)"
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "waiting",
+        "contacted",
+        "withdrawn"
+      ],
+      "default": "waiting"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Internal notes from the owner \u2014 not visible to seeker"
+    }
+  },
+  "required": [
+    "listing_id",
+    "user_email",
+    "position",
+    "joined_at"
+  ]
+}

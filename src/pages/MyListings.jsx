@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES, WILAYAS } from "../components/constants";
+import WaitlistPanel from "../components/listing/WaitlistPanel";
 
 export default function MyListingsPage() {
   const { t, lang } = useLang();
@@ -93,6 +94,8 @@ export default function MyListingsPage() {
           ? "Bonne nouvelle — le bien qui vous intéressait est à nouveau disponible."
           : "Good news — the property you were interested in is available again.",
       });
+      // Notify waitlist seekers
+      base44.functions.invoke("notifyWaitlist", { listing_id: listing.id, new_status: "active" }).catch(() => {});
     } else if (newStatus === "sold") {
       await notifySeekers(listing.id, {
         title: lang === "ar" ? "تم بيع العقار" : lang === "fr" ? "Bien vendu" : "Property Sold",
@@ -102,6 +105,7 @@ export default function MyListingsPage() {
           ? "Ce bien a été vendu et n'est plus disponible."
           : "This property has been sold and is no longer available.",
       });
+      base44.functions.invoke("notifyWaitlist", { listing_id: listing.id, new_status: "sold" }).catch(() => {});
     } else if (newStatus === "rented") {
       await notifySeekers(listing.id, {
         title: lang === "ar" ? "تم تأجير العقار" : lang === "fr" ? "Bien loué" : "Property Rented",
@@ -111,6 +115,7 @@ export default function MyListingsPage() {
           ? "Ce bien a été loué et n'est plus disponible."
           : "This property has been rented and is no longer available.",
       });
+      base44.functions.invoke("notifyWaitlist", { listing_id: listing.id, new_status: "rented" }).catch(() => {});
     }
   }
 
@@ -377,6 +382,9 @@ export default function MyListingsPage() {
                     <p className="text-xs text-amber-700 bg-amber-50 rounded px-2 py-1 mt-1 border border-amber-100">
                       ⏳ {lang === "ar" ? "بانتظار مراجعة المشرف" : lang === "fr" ? "En attente de validation admin" : "Awaiting admin review"}
                     </p>
+                  )}
+                  {listing.status === "reserved" && (
+                    <WaitlistPanel listing={listing} lang={lang} />
                   )}
                   <div className="flex items-center gap-3 mt-0.5">
                     <p className="text-xs text-gray-400 flex items-center gap-1">

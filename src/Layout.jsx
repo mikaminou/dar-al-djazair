@@ -304,11 +304,14 @@ function NavContent({ currentPageName, children }) {
                   <Link to={createPageUrl("Appointments")}>{lang === "ar" ? "مواعيدي" : lang === "fr" ? "Mes Rendez-vous" : "My Appointments"}</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                  <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
-                  <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
-                </DropdownMenuItem>
+                      <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to="/MyWaitlists">{lang === "ar" ? "قوائم انتظاري" : lang === "fr" ? "Mes listes d'attente" : "My Waitlists"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
+                      <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
+                    </DropdownMenuItem>
                 <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                   <Link to={createPageUrl("Messages")}>{t.messages}</Link>
                 </DropdownMenuItem>

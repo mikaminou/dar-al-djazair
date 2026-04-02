@@ -18,6 +18,7 @@ import ListingMap from "../components/listing/ListingMap";
 import FullscreenGallery from "../components/listing/FullscreenGallery";
 import BookingWidget from "../components/booking/BookingWidget";
 import { LISTING_CONFIG } from "../components/listing.config";
+import WaitlistBanner from "../components/listing/WaitlistBanner";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -382,12 +383,15 @@ export default function ListingDetailPage() {
                   {listing.contact_phone}
                 </a>
               )}
+              {listing.status === "reserved" && !isOwner && (
+                <WaitlistBanner listing={listing} user={user} lang={lang} />
+              )}
               {isOwner ? (
                 <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-3 text-xs text-emerald-700">
                   <CheckCircle className="w-4 h-4 flex-shrink-0" />
                   {lang === "ar" ? "أنت صاحب هذا الإعلان." : lang === "fr" ? "Vous êtes le propriétaire de cette annonce." : "You own this listing."}
                 </div>
-              ) : isUnavailable ? (
+              ) : isUnavailable && listing.status !== "reserved" ? (
                 <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-3 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   {sidebarUnavailableMessage()}
