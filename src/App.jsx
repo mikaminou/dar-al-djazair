@@ -4,6 +4,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import PostProject from './pages/PostProject';
 import ClientManagement from './pages/ClientManagement';
 import MyWaitlists from './pages/MyWaitlists';
+import MyProjects from './pages/MyProjects';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { motion } from 'framer-motion';
 import { Toaster } from "@/components/ui/toaster"
@@ -123,6 +124,7 @@ const AuthenticatedApp = () => {
         <Route path="/ProjectDetail" element={<PageTransition><LayoutWrapper currentPageName="ProjectDetail"><Suspense fallback={<PageLoadingFallback />}><ProjectDetail /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/PostProject" element={<PageTransition><LayoutWrapper currentPageName="PostProject"><Suspense fallback={<PageLoadingFallback />}><PostProject /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/ClientManagement" element={<PageTransition><LayoutWrapper currentPageName="ClientManagement"><Suspense fallback={<PageLoadingFallback />}><ClientManagement /></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/MyProjects" element={<PageTransition><LayoutWrapper currentPageName="MyProjects"><Suspense fallback={<PageLoadingFallback />}><MyProjects /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/MyWaitlists" element={<PageTransition><LayoutWrapper currentPageName="MyWaitlists"><Suspense fallback={<PageLoadingFallback />}><MyWaitlists /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>

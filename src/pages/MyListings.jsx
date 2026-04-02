@@ -198,6 +198,11 @@ export default function MyListingsPage() {
     );
   }
 
+  const tabLabel = {
+    listings: { en: "My Listings", fr: "Mes annonces", ar: "إعلاناتي" },
+    projects: { en: "My Projects", fr: "Mes projets",  ar: "مشاريعي" },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -219,6 +224,24 @@ export default function MyListingsPage() {
               {listings.length} {lang === "ar" ? "إعلان" : lang === "fr" ? "annonce(s) au total" : "total listing(s)"}
             </p>
           )}
+        </div>
+      </div>
+
+      {/* Tab strip */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+        <div className="max-w-5xl mx-auto px-4 flex gap-1">
+          <Link
+            to="/MyListings"
+            className="px-4 py-3 text-sm font-medium text-emerald-700 border-b-2 border-emerald-600"
+          >
+            {tabLabel.listings[lang] || tabLabel.listings.fr}
+          </Link>
+          <Link
+            to="/MyProjects"
+            className="px-4 py-3 text-sm font-medium text-gray-500 hover:text-emerald-700 transition-colors"
+          >
+            {tabLabel.projects[lang] || tabLabel.projects.fr}
+          </Link>
         </div>
       </div>
 
