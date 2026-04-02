@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES, FEATURES_LIST, formatPrice } from "../components/constants";
 import { LISTING_CONFIG } from "../components/listing";
-import { COMMUNES_BY_WILAYA } from "../components/communesData";
+
 import MobileHeader from "../components/MobileHeader";
 import {
   validateStep0, validateStep1, validateStep2, validateStep3, validateStep4,
@@ -286,7 +286,7 @@ export default function PostListingPage() {
     setDone(true);
   }
 
-  const communes = form.wilaya ? (COMMUNES_BY_WILAYA[form.wilaya] || []) : [];
+
   const isEditing = !!editingId;
   const stepLabel = (i) => (STEP_LABELS[lang] || STEP_LABELS.en)[i];
 
@@ -622,25 +622,21 @@ export default function PostListingPage() {
                   <FieldError msgKey={touchedFields.wilaya ? errors.wilaya : null} lang={lang} />
                 </div>
 
-                {/* Commune — Select from list */}
+                {/* Commune — free text input */}
                 <div className={`transition-all duration-200 ${form.wilaya ? "opacity-100" : "opacity-40 pointer-events-none"}`}>
                   <Label className="text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
                     <span className={`w-4 h-4 rounded-full border flex items-center justify-center text-xs ${form.wilaya ? "border-emerald-500 text-emerald-600" : "border-gray-300 text-gray-400"}`}>2</span>
                     {t.commune}<RequiredMark />
                     {!form.wilaya && <span className="text-xs text-gray-400 font-normal">({lang === "ar" ? "اختر الولاية أولاً" : lang === "fr" ? "Choisissez la wilaya d'abord" : "Select wilaya first"})</span>}
                   </Label>
-                  <Select
+                  <Input
                     value={form.commune}
-                    onValueChange={v => { set("commune", v); set("address", ""); markTouched("commune"); }}
+                    onChange={e => { set("commune", e.target.value); }}
+                    onBlur={() => { markTouched("commune"); runValidation(2, form); }}
                     disabled={!form.wilaya}
-                  >
-                    <SelectTrigger className={`border-gray-200 ${errors.commune && touchedFields.commune ? "border-red-400" : ""}`}>
-                      <SelectValue placeholder={lang === "ar" ? "اختر البلدية" : lang === "fr" ? "Sélectionner la commune" : "Select a commune"} />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-64">
-                      {communes.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                    placeholder={lang === "ar" ? "اسم البلدية" : lang === "fr" ? "Nom de la commune" : "Commune name"}
+                    className={`border-gray-200 focus:border-emerald-400 ${errors.commune && touchedFields.commune ? "border-red-400" : ""}`}
+                  />
                   <FieldError msgKey={touchedFields.commune ? errors.commune : null} lang={lang} />
                 </div>
 
