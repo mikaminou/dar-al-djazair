@@ -3,7 +3,7 @@ import { useLang } from "../components/LanguageContext";
 import { Check, Crown, ArrowRight, Sparkles, Shield, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const MONTHLY_PRICE = 5500;
+const MONTHLY_PRICE = 7500;
 const YEARLY_PRICE = MONTHLY_PRICE * 11; // 1 month free
 
 const FREE_FEATURES = [
