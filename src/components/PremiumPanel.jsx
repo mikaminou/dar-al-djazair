@@ -7,20 +7,157 @@ const MONTHLY = 7500;
 const YEARLY  = MONTHLY * 11;
 
 const HIGHLIGHTS = [
-  { en: "Unlimited listings & photos",                            fr: "Annonces & photos illimitées",                                       ar: "إعلانات وصور غير محدودة" },
-  { en: "Auto-post to all connected social media",               fr: "Publication auto sur tous vos réseaux sociaux connectés",           ar: "نشر تلقائي على جميع شبكات التواصل المربوطة" },
-  { en: "AI chatbot — buyers book & close deals from social media", fr: "Chatbot IA — réservation & closing directement depuis les réseaux", ar: "چاتبوت ذكي — الحجز وإتمام الصفقات من السوشيال ميديا" },
-  { en: "Exclusif par bien — guaranteed single-agency protection", fr: "Exclusif par bien — protection agence unique garantie",                ar: "حماية الحصرية — وكيل واحد لكل عقار" },
-  { en: "Real estate promotions & new projects",                 fr: "Promotions immobilières & projets neufs",                          ar: "ترقيات عقارية ومشاريع جديدة" },
-  { en: "AI-generated leads from buyer behaviour analysis",      fr: "Leads générés par IA depuis l’analyse comportementale acheteurs",   ar: "عملاء محتملون بالذكاء الاصطناعي من تحليل سلوك المستخدمين" },
-  { en: "Smart user-to-agency matching & redirection",           fr: "Redirection intelligente des utilisateurs vers votre agence",      ar: "توجيه ذكي للمستخدمين نحو وكالتك تلقائياً" },
-  { en: "Leads & analytics dashboard",                           fr: "Tableau de bord leads & analytiques",                            ar: "لوحة تحليلات وعملاء محتملين" },
-  { en: "Rental & landlord management",                          fr: "Gestion locative bailleur",                                      ar: "إدارة الإيجار للملاك" },
-  { en: "Boost & featured placement in search",                  fr: "Boost & mise en avant dans les résultats",                       ar: "تعزيز وتصدر نتائج البحث" },
-  { en: "Verified Partner badge (profile & listings)",           fr: "Badge Partenaire Vérifié (profil & annonces)",                   ar: "شارة الشريك الموثق" },
-  { en: "CRM tools & bulk listing management",                   fr: "Outils CRM & gestion en masse des annonces",                    ar: "أدوات CRM وإدارة الإعلانات بالجملة" },
-  { en: "Booking & visit management",                            fr: "Gestion des réservations et visites",                           ar: "إدارة الحجوزات والزيارات" },
-  { en: "Targeted push notifications (VAPID)",                   fr: "Notifications push acheteurs ciblés (VAPID)",                   ar: "إشعارات push مستهدفة" },
+  // ── LISTINGS & MEDIA ──────────────────────────────────────────────────────
+  {
+    en: "30 images & 5 videos per listing",
+    fr: "30 photos & 5 vidéos par annonce",
+    ar: "30 صورة و5 فيديوهات لكل إعلان"
+  },
+  {
+    en: "Auto-post to all connected social media",
+    fr: "Publication auto sur tous vos réseaux sociaux connectés",
+    ar: "نشر تلقائي على جميع شبكات التواصل المربوطة"
+  },
+  {
+    en: "Real estate promotions & new project showcases",
+    fr: "Promotions immobilières & vitrines de projets neufs",
+    ar: "ترقيات عقارية وعرض المشاريع الجديدة"
+  },
+  {
+    en: "Verified Partner badge on profile & all listings",
+    fr: "Badge Partenaire Vérifié sur profil & toutes les annonces",
+    ar: "شارة الشريك الموثق على الملف الشخصي وجميع الإعلانات"
+  },
+  {
+    en: "DAR EL DJAZAIR watermark auto-applied to all photos",
+    fr: "Filigrane DAR EL DJAZAIR appliqué automatiquement sur vos photos",
+    ar: "علامة مائية DAR EL DJAZAIR تُضاف تلقائياً على صورك"
+  },
+  {
+    en: "Exclusivity protection — guaranteed single-agency per property",
+    fr: "Protection exclusivité — une seule agence garantie par bien",
+    ar: "حماية الحصرية — وكيل واحد مضمون لكل عقار"
+  },
+
+  // ── AI & AUTOMATION ───────────────────────────────────────────────────────
+  {
+    en: "AI chatbot — buyers book & close deals from social media",
+    fr: "Chatbot IA — réservation & closing directement depuis les réseaux",
+    ar: "چاتبوت ذكي — الحجز وإتمام الصفقات من السوشيال ميديا"
+  },
+  {
+    en: "AI-generated leads from buyer behaviour analysis",
+    fr: "Leads générés par IA depuis l'analyse comportementale acheteurs",
+    ar: "عملاء محتملون بالذكاء الاصطناعي من تحليل سلوك المستخدمين"
+  },
+  {
+    en: "Smart user-to-agency matching & automatic redirection",
+    fr: "Redirection intelligente des utilisateurs vers votre agence",
+    ar: "توجيه ذكي للمستخدمين نحو وكالتك تلقائياً"
+  },
+  {
+    en: "Automated email follow-up sequences per lead status",
+    fr: "Séquences email automatisées par statut de lead",
+    ar: "متابعة بريد إلكتروني تلقائية حسب حالة كل عميل"
+  },
+
+  // ── CRM & LEADS ───────────────────────────────────────────────────────────
+  {
+    en: "Leads & analytics dashboard with export to PDF & CSV",
+    fr: "Tableau de bord leads & analytiques avec export PDF & CSV",
+    ar: "لوحة تحليلات وعملاء محتملين مع تصدير PDF و CSV"
+  },
+  {
+    en: "CRM tools & bulk listing management",
+    fr: "Outils CRM & gestion en masse des annonces",
+    ar: "أدوات CRM وإدارة الإعلانات بالجملة"
+  },
+  {
+    en: "Client management — create and track search profiles for your clients",
+    fr: "Gestion clients — créez et suivez les profils de recherche de vos clients",
+    ar: "إدارة العملاء — أنشئ وتابع ملفات البحث لعملائك"
+  },
+  {
+    en: "Instant alert when a client's search profile gets a new match",
+    fr: "Alerte instantanée quand le profil d'un client trouve un nouveau bien",
+    ar: "تنبيه فوري عند وجود عقار يطابق ملف بحث أحد عملائك"
+  },
+  {
+    en: "High priority lead email alerts — notified the moment a lead scores high",
+    fr: "Alertes email leads haute priorité — notifié dès qu'un lead devient chaud",
+    ar: "تنبيهات بريد إلكتروني للعملاء ذوي الأولوية العالية فور ارتفاع درجتهم"
+  },
+
+  // ── BOOKINGS & VISITS ─────────────────────────────────────────────────────
+  {
+    en: "Booking & visit management with availability calendar",
+    fr: "Gestion des réservations et visites avec calendrier de disponibilités",
+    ar: "إدارة الحجوزات والزيارات مع تقويم التوفر"
+  },
+  {
+    en: "Slot capacity management — allow multiple visitors per time slot",
+    fr: "Capacité par créneau — autorisez plusieurs visiteurs simultanément",
+    ar: "إدارة سعة الفترات — السماح لعدة زوار في نفس الوقت"
+  },
+  {
+    en: "Waitlist system — interested buyers queue if property is reserved",
+    fr: "Liste d'attente — les acheteurs s'inscrivent si le bien est réservé",
+    ar: "قائمة انتظار — المشترون المهتمون في الطابور إذا كان العقار محجوزاً"
+  },
+
+  // ── LANDLORD & RENTAL ─────────────────────────────────────────────────────
+  {
+    en: "Full rental & landlord management tools",
+    fr: "Gestion locative complète pour bailleurs",
+    ar: "أدوات إدارة إيجار متكاملة للملاك"
+  },
+  {
+    en: "Tenant payment tracker with PDF receipt generator",
+    fr: "Suivi des paiements locataires avec générateur de reçus PDF",
+    ar: "متابعة مدفوعات المستأجرين مع مولد وصل PDF"
+  },
+  {
+    en: "Renewal reminders — notified 2 months before tenant period expires",
+    fr: "Rappels de renouvellement — alerté 2 mois avant expiration du bail",
+    ar: "تنبيهات التجديد — إشعار قبل شهرين من انتهاء عقد الإيجار"
+  },
+  {
+    en: "Mutual confirmation system — both parties confirm verbal agreements",
+    fr: "Confirmation mutuelle — les deux parties confirment les accords verbaux",
+    ar: "نظام التأكيد المتبادل — كلا الطرفين يؤكدان الاتفاقيات الشفهية"
+  },
+  {
+    en: "Rental income dashboard with projected annual revenue",
+    fr: "Tableau de revenus locatifs avec projection annuelle",
+    ar: "لوحة دخل الإيجار مع توقعات الإيرادات السنوية"
+  },
+
+  // ── NOTIFICATIONS & EMAILS ────────────────────────────────────────────────
+  {
+    en: "Targeted push notifications to matched buyers (VAPID)",
+    fr: "Notifications push acheteurs ciblés (VAPID)",
+    ar: "إشعارات push مستهدفة للمشترين المطابقين"
+  },
+  {
+    en: "Email alert when your listing is approved, declined or needs changes",
+    fr: "Email dès que votre annonce est approuvée, refusée ou nécessite des modifications",
+    ar: "بريد إلكتروني فور الموافقة على إعلانك أو رفضه أو طلب تعديلات"
+  },
+  {
+    en: "Waitlist email alert — notified when a reserved property is available again",
+    fr: "Alerte email liste d'attente — notifié quand un bien réservé se libère",
+    ar: "تنبيه بريدي لقائمة الانتظار — إشعار حين يتوفر العقار المحجوز مجدداً"
+  },
+  {
+    en: "Exclusivity conflict alert — admin notified if your exclusive is listed elsewhere",
+    fr: "Alerte conflit exclusivité — admin notifié si votre exclusif est publié ailleurs",
+    ar: "تنبيه تعارض الحصرية — إشعار الإدارة إذا نُشر عقارك الحصري في مكان آخر"
+  },
+  {
+    en: "Post-deal review system — build your public reputation over time",
+    fr: "Système d'avis post-transaction — construisez votre réputation publique",
+    ar: "نظام التقييم بعد الصفقة — ابنِ سمعتك العامة بمرور الوقت"
+  },
 ];
 
 export default function PremiumPanel({ lang, user, onClose }) {
