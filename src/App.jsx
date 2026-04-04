@@ -4,6 +4,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import PostProject from './pages/PostProject';
 import ClientManagement from './pages/ClientManagement';
 import MyWaitlists from './pages/MyWaitlists';
+import UpgradeTier from './pages/UpgradeTier';
 import MyProjects from './pages/MyProjects';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { motion } from 'framer-motion';
@@ -126,6 +127,7 @@ const AuthenticatedApp = () => {
         <Route path="/ClientManagement" element={<PageTransition><LayoutWrapper currentPageName="ClientManagement"><Suspense fallback={<PageLoadingFallback />}><ClientManagement /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/MyProjects" element={<PageTransition><LayoutWrapper currentPageName="MyProjects"><Suspense fallback={<PageLoadingFallback />}><MyProjects /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/MyWaitlists" element={<PageTransition><LayoutWrapper currentPageName="MyWaitlists"><Suspense fallback={<PageLoadingFallback />}><MyWaitlists /></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/UpgradeTier" element={<PageTransition><LayoutWrapper currentPageName="UpgradeTier"><Suspense fallback={<PageLoadingFallback />}><UpgradeTier /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </>
