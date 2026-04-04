@@ -182,12 +182,7 @@ export default function PremiumPanel({ lang, user, onClose }) {
           </div>
 
           {/* RIGHT: Sticky pricing & CTA */}
-          <div className="w-full md:w-80 flex-shrink-0 flex flex-col items-center justify-center p-6 gap-5 bg-white/[0.02]">
-
-            {/* Section label */}
-            <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">
-              {t("Choose your plan", "Choisissez votre offre", "اختر خطتك")}
-            </p>
+          <div className="w-full md:w-72 flex-shrink-0 flex flex-col p-5 gap-4">
 
             {/* Plan toggle */}
             <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex gap-1">
@@ -198,8 +193,8 @@ export default function PremiumPanel({ lang, user, onClose }) {
                 <button
                   key={p.key}
                   onClick={() => setPlan(p.key)}
-                  className={`relative flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    plan === p.key ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30" : "text-white/50 hover:text-white hover:bg-white/5"
+                  className={`relative flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    plan === p.key ? "bg-emerald-500 text-white shadow" : "text-white/50 hover:text-white"
                   }`}
                 >
                   {t(p.en, p.fr, p.ar)}
@@ -212,38 +207,21 @@ export default function PremiumPanel({ lang, user, onClose }) {
               ))}
             </div>
 
-            {/* Price card */}
-            <div className="relative bg-gradient-to-br from-emerald-500/10 to-teal-500/5 border border-emerald-500/20 rounded-2xl p-5 text-center overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 to-transparent pointer-events-none" />
-              <div className="relative">
-                <div className="text-5xl font-extrabold text-white tracking-tight">
-                  {fmt(price)}
-                </div>
-                <div className="text-white/50 text-sm font-medium mt-1">DA {plan === "monthly"
+            {/* Price */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
+              <div className="text-4xl font-extrabold text-white tracking-tight">
+                {fmt(price)} <span className="text-base font-medium text-white/40">DA</span>
+              </div>
+              <div className="text-white/50 text-sm mt-1">
+                {plan === "monthly"
                   ? t("/ month", "/ mois", "/ شهر")
-                  : <>/ {t("year", "an", "سنة")}</>}
-                </div>
-                {plan === "yearly" && (
-                  <>
-                    <div className="mt-2 inline-flex items-center gap-1 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold px-3 py-1 rounded-full">
-                      🎁 {t("1 month free!", "1 mois offert!", "شهر مجاني!")}
-                    </div>
-                    <div className="text-white/30 text-xs mt-2">≈ {fmt(Math.round(YEARLY / 12))} DA / {t("month", "mois", "شهر")}</div>
-                  </>
-                )}
+                  : <>/ {t("year", "an", "سنة")} — <span className="text-emerald-400 font-semibold">{t("1 month free!", "1 mois offert!", "شهر مجاني!")}</span></>
+                }
               </div>
+              {plan === "yearly" && (
+                <div className="text-white/30 text-xs mt-1">≈ {fmt(Math.round(YEARLY / 12))} DA / {t("month", "mois", "شهر")}</div>
+              )}
             </div>
-
-            {/* What you save callout — yearly only */}
-            {plan === "yearly" && (
-              <div className="flex items-center gap-3 bg-amber-400/10 border border-amber-400/20 rounded-xl px-4 py-3">
-                <span className="text-2xl">💰</span>
-                <div>
-                  <p className="text-amber-300 text-xs font-bold">{t("You save", "Vous économisez", "توفر")}</p>
-                  <p className="text-amber-200 text-sm font-extrabold">{fmt(MONTHLY * 12 - YEARLY)} DA / {t("year", "an", "سنة")}</p>
-                </div>
-              </div>
-            )}
 
             {/* Optional message */}
             {status === "idle" && (
@@ -252,29 +230,25 @@ export default function PremiumPanel({ lang, user, onClose }) {
                 onChange={e => setMessage(e.target.value)}
                 placeholder={t("Optional message to admin…", "Message optionnel à l'admin…", "رسالة اختيارية للمسؤول...")}
                 rows={2}
-                className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-xl px-3 py-2.5 resize-none placeholder-white/25 focus:outline-none focus:border-emerald-500 transition-colors"
+                className="w-full bg-white/5 border border-white/10 text-white text-sm rounded-xl px-3 py-2 resize-none placeholder-white/30 focus:outline-none focus:border-emerald-500"
               />
             )}
 
             {/* Status states */}
             {status === "sent" && (
-              <div className="flex-1 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-5 text-center">
+              <div className="flex-1 flex items-center justify-center bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 text-center">
                 <div>
-                  <div className="w-12 h-12 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-emerald-400 text-xl">✓</span>
-                  </div>
-                  <p className="text-emerald-300 font-bold text-sm">{t("Request sent!", "Demande envoyée!", "تم إرسال الطلب!")}</p>
+                  <div className="text-emerald-400 text-3xl mb-2">✓</div>
+                  <p className="text-emerald-300 font-semibold text-sm">{t("Request sent!", "Demande envoyée!", "تم إرسال الطلب!")}</p>
                   <p className="text-white/40 text-xs mt-1">{t("Admin will contact you shortly.", "L'admin vous contactera bientôt.", "سيتواصل معك المسؤول قريبًا.")}</p>
                 </div>
               </div>
             )}
             {status === "already" && (
-              <div className="flex-1 flex items-center justify-center bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 text-center">
+              <div className="flex-1 flex items-center justify-center bg-amber-500/10 border border-amber-500/30 rounded-xl p-5 text-center">
                 <div>
-                  <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-amber-400 text-xl">⏳</span>
-                  </div>
-                  <p className="text-amber-300 font-bold text-sm">{t("Request pending", "Demande en cours", "الطلب قيد المراجعة")}</p>
+                  <div className="text-amber-400 text-3xl mb-2">⏳</div>
+                  <p className="text-amber-300 font-semibold text-sm">{t("Request pending", "Demande en cours", "الطلب قيد المراجعة")}</p>
                   <p className="text-white/40 text-xs mt-1">{t("Admin will contact you shortly.", "L'admin vous contactera bientôt.", "سيتواصل معك المسؤول قريبًا.")}</p>
                 </div>
               </div>
@@ -284,7 +258,7 @@ export default function PremiumPanel({ lang, user, onClose }) {
               <Button
                 onClick={handleRequest}
                 disabled={status === "loading"}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold gap-2 py-6 rounded-xl text-base shadow-xl shadow-emerald-500/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold gap-2 py-5 rounded-xl text-base shadow-lg shadow-emerald-500/20"
               >
                 {status === "loading"
                   ? <Loader2 className="w-5 h-5 animate-spin" />
@@ -293,14 +267,9 @@ export default function PremiumPanel({ lang, user, onClose }) {
               </Button>
             )}
 
-            {/* Trust line */}
-            <div className="flex items-center justify-center gap-2">
-              <div className="h-px flex-1 bg-white/5" />
-              <p className="text-white/20 text-xs text-center whitespace-nowrap">
-                🔒 {t("Admin reviews & activates manually", "L'admin examine et active manuellement", "يراجع المسؤول ويفعّل يدويًا")}
-              </p>
-              <div className="h-px flex-1 bg-white/5" />
-            </div>
+            <p className="text-white/20 text-xs text-center">
+              {t("Admin reviews & activates manually", "L'admin examine et active manuellement", "يراجع المسؤول ويفعّل يدويًا")}
+            </p>
           </div>
         </div>
       </div>
