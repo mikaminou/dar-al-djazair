@@ -7,14 +7,21 @@ const MONTHLY = 7500;
 const YEARLY  = MONTHLY * 11;
 
 const HIGHLIGHTS = [
-  { en: "Unlimited listings",             fr: "Annonces illimitées",            ar: "إعلانات غير محدودة" },
-  { en: "Unlimited photos per listing",   fr: "Photos illimitées par annonce",  ar: "صور غير محدودة" },
-  { en: "Leads & analytics dashboard",    fr: "Tableau de bord leads & analytics", ar: "لوحة تحليلات وعملاء" },
-  { en: "AI buyer recommendations",       fr: "Recommandations IA acheteurs",   ar: "توصيات مشترين بالذكاء الاصطناعي" },
-  { en: "CRM tools & client management",  fr: "Outils CRM & gestion clients",   ar: "أدوات CRM وإدارة العملاء" },
-  { en: "Boost & featured placement",     fr: "Boost & mise en avant",          ar: "تعزيز وتصدر النتائج" },
-  { en: "Verified Partner badge",         fr: "Badge Partenaire Vérifié",       ar: "شارة الشريك الموثق" },
-  { en: "Rental management & income",     fr: "Gestion locative & revenus",     ar: "إدارة الإيجار والدخل" },
+  { en: "Unlimited listings",                          fr: "Annonces illimitées",                                ar: "إعلانات غير محدودة" },
+  { en: "Unlimited photos per listing",                fr: "Photos illimitées par annonce",                    ar: "صور غير محدودة لكل إعلان" },
+  { en: "Leads & analytics dashboard",                 fr: "Tableau de bord leads & analytiques",               ar: "لوحة تحليلات وعملاء محتملين" },
+  { en: "Social media integration",                    fr: "Intégration des réseaux sociaux avec le système",   ar: "تكامل مع شبكات التواصل الاجتماعي" },
+  { en: "AI buyer recommendations",                    fr: "Recommandations IA de clients potentiel",           ar: "توصيات مشترين بالذكاء الاصطناعي" },
+  { en: "Rental & landlord management",                fr: "Gestion locative bailleur",                         ar: "إدارة الإيجار للملاك" },
+  { en: "4h grouped buyer digest emails",              fr: "Digest email groupé 4h — correspondances acheteurs", ar: "ملخص إيميل كل 4 ساعات للمشترين" },
+  { en: "Boost & featured placement",                  fr: "Boost & mise en avant dans les résultats",          ar: "تعزيز وتصدر نتائج البحث" },
+  { en: "Verified Partner badge (profile & listings)", fr: "Badge Partenaire Vérifié (profil & annonces)",      ar: "شارة الشريك الموثق" },
+  { en: "Buyer/tenant reviews & ratings",              fr: "Système d'avis & notes acheteurs/locataires",       ar: "نظام تقييمات المشترين والمستأجرين" },
+  { en: "Bulk listing management",                     fr: "Gestion en masse des annonces",                     ar: "إدارة الإعلانات بالجملة" },
+  { en: "CRM tools",                                   fr: "Outils CRM",                                        ar: "أدوات CRM" },
+  { en: "Booking & visit management",                  fr: "Gestion des réservation et visites",                ar: "إدارة الحجوزات والزيارات" },
+  { en: "Targeted push notifications (VAPID)",         fr: "Notifications push acheteurs ciblés (VAPID)",       ar: "إشعارات push مستهدفة" },
+  { en: "Virtual tour & video support",                fr: "Visite virtuelle & support vidéo",                  ar: "جولة افتراضية ودعم الفيديو" },
 ];
 
 export default function PremiumPanel({ lang, user, onClose }) {
