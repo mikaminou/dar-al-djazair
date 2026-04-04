@@ -59,6 +59,7 @@ function NavContent({ currentPageName, children }) {
     { label: t.rent, href: createPageUrl("Listings") + "?listing_type=rent" },
     { label: lang === "ar" ? "المشاريع" : lang === "fr" ? "Projets" : "Projects", href: "/Projects" },
     ...(isPro ? [{ label: t.sell, href: createPageUrl("PostListing") }] : []),
+    { label: lang === "ar" ? "⭐ بريميوم" : lang === "fr" ? "⭐ Premium" : "⭐ Premium", href: "/UpgradeTier", highlight: true },
   ];
 
   const isRtl = lang === "ar";
@@ -83,7 +84,11 @@ function NavContent({ currentPageName, children }) {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center select-none">
             {navLinks.map(link => (
-              <a key={link.label} href={link.href} className="px-3 py-2 min-h-[44px] flex items-center text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap">
+              <a key={link.label} href={link.href} className={`px-3 py-2 min-h-[44px] flex items-center text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                link.highlight
+                  ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-semibold"
+                  : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"
+              }`}>
                 {link.label}
               </a>
             ))}
@@ -182,6 +187,9 @@ function NavContent({ currentPageName, children }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none font-semibold text-amber-600">
+                      <Link to="/UpgradeTier">⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}</Link>
                     </DropdownMenuItem>
                     {isPro && (<>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
@@ -318,6 +326,9 @@ function NavContent({ currentPageName, children }) {
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to="/MyWaitlists">{lang === "ar" ? "قوائم انتظاري" : lang === "fr" ? "Mes listes d'attente" : "My Waitlists"}</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none font-semibold text-amber-600">
+                      <Link to="/UpgradeTier">⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
