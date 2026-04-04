@@ -1,99 +1,42 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
 import { useLang } from "../components/LanguageContext";
-import { Check, Crown, ArrowRight, Sparkles, Building2, BarChart3, Users, Star, Shield, Zap, MessageSquare, Bell, Eye, FileText, Headphones } from "lucide-react";
+import { Check, Crown, ArrowRight, Sparkles, Shield, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const PLANS = [
-  {
-    key: "monthly",
-    en: "Monthly", fr: "Mensuel", ar: "شهري",
-    price: 5000,
-    period_en: "/ month", period_fr: "/ mois", period_ar: "/ شهر",
-    badge: null,
-  },
-  {
-    key: "yearly",
-    en: "Annual", fr: "Annuel", ar: "سنوي",
-    price: 48000,
-    period_en: "/ year", period_fr: "/ an", period_ar: "/ سنة",
-    badge: { en: "Save 20%", fr: "Économisez 20%", ar: "وفر 20%" },
-  },
+const MONTHLY_PRICE = 5500;
+const YEARLY_PRICE = MONTHLY_PRICE * 11; // 1 month free
+
+const FREE_FEATURES = [
+  { en: "Up to 2 listings (cumulative)", fr: "Jusqu'à 2 annonces (compteur cumulatif)", ar: "حتى إعلانين (عداد تراكمي)" },
+  { en: "5 photos per listing", fr: "5 photos par annonce", ar: "5 صور لكل إعلان" },
+  { en: "Unique sharing link", fr: "Lien de partage unique", ar: "رابط مشاركة خاص" },
+  { en: "View counter", fr: "Compteur de vues", ar: "عداد المشاهدات" },
+  { en: "Integrated buyer–seller chat", fr: "Chat intégré acheteur ↔ vendeur", ar: "محادثة مدمجة مشتري ↔ بائع" },
+  { en: "Listing status (Active / Reserved / Sold / Rented)", fr: "Statut annonce (Actif / Réservé / Vendu / Loué)", ar: "حالة الإعلان (نشط / محجوز / مباع / مؤجر)" },
+  { en: "Search & filters (wilaya, type, price, area)", fr: "Recherche & filtres (wilaya, type, prix, surface)", ar: "بحث وفلاتر (ولاية، نوع، سعر، مساحة)" },
+  { en: "Trilingual interface (AR / FR / EN)", fr: "Interface trilingue (AR / FR / EN)", ar: "واجهة ثلاثية اللغات (ع / ف / إ)" },
+  { en: "Smart price input (millions DZD / DZD)", fr: "Saisie prix intelligente (millions DZD / DZD)", ar: "إدخال سعر ذكي (ملايين دج / دج)" },
+  { en: "Favorites & search history (buyer)", fr: "Favoris & historique de recherche (acheteur)", ar: "المفضلة وسجل البحث (مشتري)" },
 ];
 
-const FEATURES = [
-  {
-    icon: Building2,
-    en: "Unlimited property listings",
-    fr: "Annonces immobilières illimitées",
-    ar: "إعلانات عقارية غير محدودة",
-  },
-  {
-    icon: Star,
-    en: "Featured & boosted listings",
-    fr: "Annonces mises en avant et boostées",
-    ar: "إعلانات مميزة ومُعززة",
-  },
-  {
-    icon: BarChart3,
-    en: "Advanced analytics dashboard",
-    fr: "Tableau de bord analytique avancé",
-    ar: "لوحة تحليلات متقدمة",
-  },
-  {
-    icon: Users,
-    en: "CRM — client & lead management",
-    fr: "CRM — gestion clients et leads",
-    ar: "إدارة العملاء والعملاء المحتملين (CRM)",
-  },
-  {
-    icon: Bell,
-    en: "Instant lead notifications",
-    fr: "Notifications de leads instantanées",
-    ar: "إشعارات فورية للعملاء المحتملين",
-  },
-  {
-    icon: Eye,
-    en: "Listing views & engagement stats",
-    fr: "Vues et statistiques d'engagement",
-    ar: "إحصاءات مشاهدات وتفاعل الإعلانات",
-  },
-  {
-    icon: MessageSquare,
-    en: "Priority messaging inbox",
-    fr: "Messagerie prioritaire",
-    ar: "صندوق بريد ذو أولوية",
-  },
-  {
-    icon: Building2,
-    en: "Real estate project submissions",
-    fr: "Publication de projets immobiliers",
-    ar: "نشر المشاريع العقارية",
-  },
-  {
-    icon: FileText,
-    en: "Rental contract & tenant management",
-    fr: "Gestion des contrats de location et locataires",
-    ar: "إدارة عقود الإيجار والمستأجرين",
-  },
-  {
-    icon: Shield,
-    en: "Verified professional badge",
-    fr: "Badge professionnel vérifié",
-    ar: "شارة المحترف الموثق",
-  },
-  {
-    icon: Zap,
-    en: "Exclusive mandate tracking",
-    fr: "Suivi des mandats exclusifs",
-    ar: "تتبع التفويضات الحصرية",
-  },
-  {
-    icon: Headphones,
-    en: "Dedicated account support",
-    fr: "Support dédié à votre compte",
-    ar: "دعم مخصص لحسابك",
-  },
+const PREMIUM_FEATURES = [
+  { en: "Everything in Free", fr: "Tout sur Free", ar: "كل ميزات المجاني", highlight: false },
+  { en: "Unlimited listings", fr: "Annonces illimitées", ar: "إعلانات غير محدودة", highlight: true },
+  { en: "Unlimited photos per listing", fr: "Photos illimitées par annonce", ar: "صور غير محدودة لكل إعلان", highlight: true },
+  { en: "Leads & analytics dashboard", fr: "Tableau de bord leads & analytiques", ar: "لوحة إدارة العملاء المحتملين والتحليلات", highlight: true },
+  { en: "Social media integration", fr: "Intégration des réseaux sociaux avec le système", ar: "تكامل مع شبكات التواصل الاجتماعي", highlight: false },
+  { en: "AI-powered buyer recommendations", fr: "Recommandations IA de clients potentiel", ar: "توصيات مشترين بالذكاء الاصطناعي", highlight: true },
+  { en: "Landlord rental management", fr: "Gestion locative bailleur", ar: "إدارة الإيجار للملاك", highlight: false },
+  { en: "4h grouped email digest — buyer inquiries", fr: "Digest email groupé 4h — correspondances acheteurs", ar: "ملخص بريدي كل 4 ساعات — طلبات المشترين", highlight: false },
+  { en: "Boost & featured placement in results", fr: "Boost & mise en avant dans les résultats", ar: "تعزيز وتصدر نتائج البحث", highlight: true },
+  { en: "Verified Partner badge (profile & listings)", fr: "Badge Partenaire Vérifié (profil & annonces)", ar: "شارة الشريك الموثق (الملف والإعلانات)", highlight: false },
+  { en: "Buyer / tenant reviews & ratings", fr: "Système d'avis & notes acheteurs/locataires", ar: "تقييمات ومراجعات المشترين والمستأجرين", highlight: false },
+  { en: "Bulk listing management", fr: "Gestion en masse des annonces", ar: "إدارة الإعلانات بشكل مجمّع", highlight: false },
+  { en: "CRM tools", fr: "Outils CRM", ar: "أدوات CRM", highlight: true },
+  { en: "Booking & visit management", fr: "Gestion des réservations et visites", ar: "إدارة الحجوزات والزيارات", highlight: false },
+  { en: "Targeted push notifications to buyers (VAPID)", fr: "Notifications push acheteurs ciblés (VAPID)", ar: "إشعارات push مستهدفة للمشترين (VAPID)", highlight: false },
+  { en: "🔜 Virtual tour & video support", fr: "🔜 Visite virtuelle & support vidéo", ar: "🔜 جولة افتراضية ودعم الفيديو", highlight: false, soon: true },
+  { en: "🔜 Map-based geographic search", fr: "🔜 Recherche géographique sur carte", ar: "🔜 بحث جغرافي على الخريطة", highlight: false, soon: true },
 ];
 
 export default function UpgradeTier() {
@@ -102,36 +45,36 @@ export default function UpgradeTier() {
 
   const isRtl = lang === "ar";
   const t = (en, fr, ar) => lang === "fr" ? fr : lang === "ar" ? ar : en;
-  const currentPlan = PLANS.find(p => p.key === selectedPlan);
+
+  const price = selectedPlan === "monthly" ? MONTHLY_PRICE : YEARLY_PRICE;
+  const periodLabel = selectedPlan === "monthly"
+    ? t("/ month", "/ mois", "/ شهر")
+    : t("/ year", "/ an", "/ سنة");
 
   return (
     <div dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900">
-
-      {/* Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-3xl mx-auto px-4 pt-16 pb-24">
+      <div className="relative max-w-5xl mx-auto px-4 pt-16 pb-24">
 
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-semibold px-4 py-1.5 rounded-full mb-5">
             <Sparkles className="w-3.5 h-3.5" />
-            {t("Professional Plan", "Offre Professionnelle", "الباقة الاحترافية")}
+            {t("Professional Plan — Dar El Djazair", "Offre Professionnelle — Dar El Djazair", "الباقة الاحترافية — دار الجزائر")}
           </div>
-
           <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight">
-            {t("Grow Your Real Estate", "Développez votre", "طوّر عملك العقاري")}
+            {t("Level Up Your", "Propulsez votre", "طوّر عملك")}
             <br />
             <span className="bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
-              {t("Business", "Business Immobilier", "بشكل احترافي")}
+              {t("Real Estate Business", "Business Immobilier", "العقاري")}
             </span>
           </h1>
-
           <p className="text-slate-400 text-lg max-w-xl mx-auto">
             {t(
-              "Everything an agency or developer needs to manage, list, and grow — in one platform.",
-              "Tout ce dont une agence ou un promoteur a besoin pour gérer, publier et se développer — en une seule plateforme.",
-              "كل ما تحتاجه وكالتك أو شركتك لإدارة ونشر وتنمية أعمالك — في منصة واحدة."
+              "The complete toolkit for agencies, developers and professional agents in Algeria.",
+              "La boîte à outils complète pour les agences, promoteurs et agents professionnels en Algérie.",
+              "مجموعة الأدوات الكاملة للوكالات والمطورين والوكلاء المحترفين في الجزائر."
             )}
           </p>
         </div>
@@ -139,7 +82,10 @@ export default function UpgradeTier() {
         {/* Plan toggle */}
         <div className="flex justify-center mb-10">
           <div className="bg-white/10 border border-white/10 rounded-2xl p-1.5 flex gap-1.5">
-            {PLANS.map(plan => (
+            {[
+              { key: "monthly", en: "Monthly", fr: "Mensuel", ar: "شهري", badge: null },
+              { key: "yearly", en: "Annual", fr: "Annuel", ar: "سنوي", badge: { en: "1 month free", fr: "1 mois offert", ar: "شهر مجاني" } },
+            ].map(plan => (
               <button
                 key={plan.key}
                 onClick={() => setSelectedPlan(plan.key)}
@@ -160,61 +106,79 @@ export default function UpgradeTier() {
           </div>
         </div>
 
-        {/* Pricing card */}
-        <div className="relative bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 md:p-10 shadow-2xl shadow-emerald-500/20 border border-emerald-400/30 mb-10">
-          <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-bold px-5 py-1 rounded-full flex items-center gap-1.5">
-            <Crown className="w-3 h-3" />
-            {t("Pro Business", "Pro Business", "حساب احترافي")}
+        {/* Two column: Free vs Premium */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10">
+
+          {/* Free */}
+          <div className="bg-white/5 border border-white/10 rounded-3xl p-8">
+            <p className="text-white/50 text-sm font-bold uppercase tracking-wider mb-1">{t("Free", "Gratuit / مجاني", "مجاني")}</p>
+            <p className="text-4xl font-extrabold text-white mb-6">0 <span className="text-lg font-medium text-white/40">DA</span></p>
+
+            <ul className="space-y-3">
+              {FREE_FEATURES.map((f, i) => (
+                <li key={i} className="flex items-start gap-2.5 text-white/60 text-sm">
+                  <Check className="w-4 h-4 text-white/30 flex-shrink-0 mt-0.5" />
+                  {t(f.en, f.fr, f.ar)}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-8 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-center text-white/40 text-sm">
+              {t("Your current plan", "Votre offre actuelle", "خطتك الحالية")}
+            </div>
           </div>
 
-          {/* Price */}
-          <div className="text-center mb-8 mt-2">
-            <div className="flex items-end justify-center gap-2">
-              <span className="text-5xl font-extrabold text-white">
-                {new Intl.NumberFormat("fr-FR").format(currentPlan.price)}
+          {/* Premium */}
+          <div className="relative bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 shadow-2xl shadow-emerald-500/20 border border-emerald-400/30">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-amber-400 text-amber-900 text-xs font-bold px-5 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap">
+              <Crown className="w-3 h-3" />
+              Premium ★ / مميز
+            </div>
+
+            <p className="text-emerald-200 text-sm font-bold uppercase tracking-wider mb-1 mt-2">Premium</p>
+            <div className="flex items-end gap-2 mb-1">
+              <span className="text-4xl font-extrabold text-white">
+                {new Intl.NumberFormat("fr-FR").format(price)}
               </span>
-              <span className="text-emerald-200 text-base font-medium mb-2">
-                DA {t(currentPlan.period_en, currentPlan.period_fr, currentPlan.period_ar)}
-              </span>
+              <span className="text-emerald-200 text-base font-medium mb-1">DA {periodLabel}</span>
             </div>
             {selectedPlan === "yearly" && (
-              <p className="text-emerald-200/70 text-sm mt-1">
-                ≈ {new Intl.NumberFormat("fr-FR").format(Math.round(48000 / 12))} DA / {t("month", "mois", "شهر")}
+              <p className="text-emerald-200/70 text-sm mb-6">
+                ≈ {new Intl.NumberFormat("fr-FR").format(Math.round(YEARLY_PRICE / 12))} DA / {t("month", "mois", "شهر")} — {t("1 month free!", "1 mois offert !", "شهر مجاني!")}
               </p>
             )}
+            {selectedPlan === "monthly" && <div className="mb-6" />}
+
+            <ul className="space-y-3 mb-8">
+              {PREMIUM_FEATURES.map((f, i) => (
+                <li key={i} className={`flex items-start gap-2.5 text-sm ${f.soon ? "opacity-60" : ""}`}>
+                  <Check className={`w-4 h-4 flex-shrink-0 mt-0.5 ${f.highlight ? "text-amber-300" : "text-emerald-200"}`} />
+                  <span className={f.highlight ? "text-white font-semibold" : "text-white/90"}>
+                    {t(f.en, f.fr, f.ar)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              className="w-full bg-white text-emerald-700 hover:bg-emerald-50 font-bold gap-2 text-base py-6"
+              onClick={() => window.location.href = "/Profile"}
+            >
+              {t("Get Premium", "Passer au Premium", "الترقية إلى بريميوم")}
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+
+            <p className="text-emerald-200/50 text-xs text-center mt-3">
+              {t("Contact us to activate · Flexible billing", "Contactez-nous pour activer · Facturation flexible", "تواصل معنا للتفعيل · فوترة مرنة")}
+            </p>
           </div>
-
-          {/* Features grid */}
-          <div className="grid md:grid-cols-2 gap-3 mb-8">
-            {FEATURES.map(({ icon: Icon, en, fr, ar }) => (
-              <div key={en} className="flex items-center gap-3">
-                <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-white" />
-                </div>
-                <span className="text-white text-sm">{t(en, fr, ar)}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA */}
-          <Button
-            className="w-full bg-white text-emerald-700 hover:bg-emerald-50 font-bold gap-2 text-base py-6"
-            onClick={() => window.location.href = "/Profile"}
-          >
-            {t("Upgrade Now", "Passer au Pro", "ترقية الآن")}
-            <ArrowRight className="w-5 h-5" />
-          </Button>
-
-          <p className="text-emerald-200/50 text-xs text-center mt-3">
-            {t("Contact us to activate · Flexible billing", "Contactez-nous pour activer · Facturation flexible", "تواصل معنا للتفعيل · فوترة مرنة")}
-          </p>
         </div>
 
-        {/* Trust row */}
+        {/* Footer trust */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-white/40 text-xs">
-          <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" />{t("Trusted by 500+ agencies", "Approuvé par 500+ agences", "موثوق من أكثر من 500 وكالة")}</span>
-          <span className="flex items-center gap-1.5"><Star className="w-4 h-4" />{t("Algeria's #1 platform", "Plateforme n°1 en Algérie", "المنصة الأولى في الجزائر")}</span>
-          <span className="flex items-center gap-1.5"><Zap className="w-4 h-4" />{t("Instant access", "Accès immédiat", "وصول فوري")}</span>
+          <span className="flex items-center gap-1.5"><Shield className="w-4 h-4" />{t("Trusted platform", "Plateforme de confiance", "منصة موثوقة")}</span>
+          <span className="flex items-center gap-1.5"><Star className="w-4 h-4" />{t("Algeria's #1 real estate platform", "Plateforme immobilière n°1 en Algérie", "المنصة العقارية الأولى في الجزائر")}</span>
+          <span className="flex items-center gap-1.5"><Zap className="w-4 h-4" />{t("Instant activation", "Activation instantanée", "تفعيل فوري")}</span>
         </div>
       </div>
     </div>
