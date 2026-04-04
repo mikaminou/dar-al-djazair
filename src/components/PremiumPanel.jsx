@@ -182,7 +182,7 @@ export default function PremiumPanel({ lang, user, onClose }) {
           </div>
 
           {/* RIGHT: Sticky pricing & CTA */}
-          <div className="w-full md:w-80 flex-shrink-0 flex flex-col p-6 gap-5 bg-white/[0.02]">
+          <div className="w-full md:w-80 flex-shrink-0 flex flex-col items-center justify-center p-6 gap-5 bg-white/[0.02]">
 
             {/* Section label */}
             <p className="text-slate-500 text-xs font-semibold uppercase tracking-widest">
