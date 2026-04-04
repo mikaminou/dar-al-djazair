@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import PremiumPanel from "./components/PremiumPanel";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -20,6 +21,7 @@ function NavContent({ currentPageName, children }) {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -59,7 +61,7 @@ function NavContent({ currentPageName, children }) {
     { label: t.rent, href: createPageUrl("Listings") + "?listing_type=rent" },
     { label: lang === "ar" ? "المشاريع" : lang === "fr" ? "Projets" : "Projects", href: "/Projects" },
     ...(isPro ? [{ label: t.sell, href: createPageUrl("PostListing") }] : []),
-    { label: lang === "ar" ? "⭐ بريميوم" : lang === "fr" ? "⭐ Premium" : "⭐ Premium", href: "/UpgradeTier", highlight: true },
+
   ];
 
   const isRtl = lang === "ar";
@@ -84,14 +86,16 @@ function NavContent({ currentPageName, children }) {
           {/* Desktop Nav */}
           <nav className="hidden lg:flex items-center gap-1 flex-1 justify-center select-none">
             {navLinks.map(link => (
-              <a key={link.label} href={link.href} className={`px-3 py-2 min-h-[44px] flex items-center text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                link.highlight
-                  ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50 font-semibold"
-                  : "text-gray-600 hover:text-emerald-700 hover:bg-emerald-50"
-              }`}>
+              <a key={link.label} href={link.href} className="px-3 py-2 min-h-[44px] flex items-center text-sm font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors whitespace-nowrap">
                 {link.label}
               </a>
             ))}
+            <button
+              onClick={() => setShowPremium(true)}
+              className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-sm font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors whitespace-nowrap"
+            >
+              ⭐ Premium
+            </button>
           </nav>
 
           {/* Right side */}
@@ -188,8 +192,8 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none font-semibold text-amber-600">
-                      <Link to="/UpgradeTier">⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}</Link>
+                    <DropdownMenuItem onClick={() => setShowPremium(true)} className="min-h-[44px] flex items-center select-none font-semibold text-amber-600 cursor-pointer">
+                      ⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}
                     </DropdownMenuItem>
                     {isPro && (<>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
@@ -293,6 +297,7 @@ function NavContent({ currentPageName, children }) {
         />
       )}
       <VerificationBanner user={user} lang={lang} />
+      {showPremium && <PremiumPanel lang={lang} user={user} onClose={() => setShowPremium(false)} />}
 
       {/* MOBILE HEADER */}
       <header className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-[#13161c] border-b border-gray-100 dark:border-gray-800 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
@@ -327,8 +332,8 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to="/MyWaitlists">{lang === "ar" ? "قوائم انتظاري" : lang === "fr" ? "Mes listes d'attente" : "My Waitlists"}</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none font-semibold text-amber-600">
-                      <Link to="/UpgradeTier">⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}</Link>
+                    <DropdownMenuItem onClick={() => setShowPremium(true)} className="min-h-[44px] flex items-center select-none font-semibold text-amber-600 cursor-pointer">
+                      ⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>

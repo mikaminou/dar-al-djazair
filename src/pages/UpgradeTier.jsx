@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLang } from "../components/LanguageContext";
+import { base44 } from "@/api/base44Client";
+import PremiumPanel from "../components/PremiumPanel";
 import { Check, Crown, ArrowRight, Sparkles, Shield, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -42,6 +44,12 @@ const PREMIUM_FEATURES = [
 export default function UpgradeTier() {
   const { lang } = useLang();
   const [selectedPlan, setSelectedPlan] = useState("monthly");
+  const [showPanel, setShowPanel] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    base44.auth.me().then(u => setUser(u)).catch(() => {});
+  }, []);
 
   const isRtl = lang === "ar";
   const t = (en, fr, ar) => lang === "fr" ? fr : lang === "ar" ? ar : en;
@@ -162,7 +170,7 @@ export default function UpgradeTier() {
 
             <Button
               className="w-full bg-white text-emerald-700 hover:bg-emerald-50 font-bold gap-2 text-base py-6"
-              onClick={() => window.location.href = "/Profile"}
+              onClick={() => setShowPanel(true)}
             >
               {t("Get Premium", "Passer au Premium", "الترقية إلى بريميوم")}
               <ArrowRight className="w-5 h-5" />
@@ -173,6 +181,8 @@ export default function UpgradeTier() {
             </p>
           </div>
         </div>
+
+        {showPanel && <PremiumPanel lang={lang} user={user} onClose={() => setShowPanel(false)} />}
 
         {/* Footer trust */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-white/40 text-xs">

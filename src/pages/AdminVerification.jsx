@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2 } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown } from "lucide-react";
 import ExclusivityConflictView from "../components/admin/ExclusivityConflictView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ export default function AdminVerification() {
   const { lang } = useLang();
   const { toast } = useToast();
   const [requests, setRequests]       = useState([]);
+  const [upgradeRequests, setUpgradeRequests] = useState([]);
   const [pros,     setPros]           = useState([]);
   const [pendingListings, setPendingListings] = useState([]);
   const [pendingProjects, setPendingProjects] = useState([]);
@@ -39,13 +40,15 @@ export default function AdminVerification() {
     const me = await base44.auth.me().catch(() => null);
     if (!me || me.role !== "admin") { setLoading(false); return; }
     setIsAdmin(true);
-    const [data, allUsers, listings, projects] = await Promise.all([
+    const [data, allUsers, listings, projects, upgrades] = await Promise.all([
       base44.entities.VerificationRequest.list("-created_date", 300),
       base44.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
       base44.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
       base44.entities.Project.filter({ status: "pending" }, "-created_date", 100).catch(() => []),
+      base44.entities.UpgradeRequest.list("-created_date", 200).catch(() => []),
     ]);
     setRequests(data);
+    setUpgradeRequests(upgrades);
     setPros(allUsers);
     setPendingListings(listings);
     setPendingProjects(projects);
@@ -197,6 +200,20 @@ export default function AdminVerification() {
             <Users className="w-4 h-4" />
             {lang === "ar" ? "المحترفون" : lang === "fr" ? "Professionnels" : "Professionals"}
             <span className={`text-xs px-1.5 py-0.5 rounded-full ${tab === "pros" ? "bg-white/20" : "bg-gray-100 text-gray-500"}`}>{pros.length}</span>
+          </button>
+          <button
+            onClick={() => setTab("upgrades")}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              tab === "upgrades" ? "bg-amber-500 text-white" : "bg-white border border-gray-200 text-amber-600 hover:border-amber-400"
+            }`}
+          >
+            <Crown className="w-4 h-4" />
+            {lang === "ar" ? "طلبات بريميوم" : lang === "fr" ? "Demandes Premium" : "Upgrade Requests"}
+            {upgradeRequests.filter(r => r.status === "pending").length > 0 && (
+              <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${tab === "upgrades" ? "bg-white/20" : "bg-amber-100 text-amber-700"}`}>
+                {upgradeRequests.filter(r => r.status === "pending").length}
+              </span>
+            )}
           </button>
         </div>
 
@@ -502,6 +519,68 @@ export default function AdminVerification() {
                     : <><CheckCircle className="w-3.5 h-3.5" />{lang === "ar" ? "توثيق" : lang === "fr" ? "Vérifier" : "Verify"}</>
                   }
                 </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── UPGRADE REQUESTS TAB ── */}
+        {tab === "upgrades" && (
+          <div className="space-y-3">
+            {upgradeRequests.length === 0 ? (
+              <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
+                <Crown className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                <p>{lang === "ar" ? "لا توجد طلبات" : lang === "fr" ? "Aucune demande" : "No upgrade requests"}</p>
+              </div>
+            ) : upgradeRequests.map(req => (
+              <div key={req.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+                <div className="flex items-start justify-between gap-3 flex-wrap">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Crown className="w-4 h-4 text-amber-500" />
+                      <span className="font-semibold text-gray-900">{req.user_name || req.user_email}</span>
+                      <Badge className={req.status === "pending" ? "bg-amber-100 text-amber-700" : req.status === "approved" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"}>
+                        {req.status === "pending" ? (lang === "fr" ? "En attente" : lang === "ar" ? "قيد المراجعة" : "Pending") : req.status === "approved" ? (lang === "fr" ? "Approuvé" : lang === "ar" ? "مقبول" : "Approved") : (lang === "fr" ? "Refusé" : lang === "ar" ? "مرفوض" : "Rejected")}
+                      </Badge>
+                      <Badge className="bg-blue-50 text-blue-700">
+                        {req.plan === "monthly" ? (lang === "fr" ? "Mensuel" : lang === "ar" ? "شهري" : "Monthly") : (lang === "fr" ? "Annuel" : lang === "ar" ? "سنوي" : "Annual")}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-500">{req.user_email}</p>
+                    {req.message && <p className="text-sm text-gray-700 mt-1 italic">"{req.message}"</p>}
+                    <p className="text-xs text-gray-400 mt-1">{new Date(req.created_date).toLocaleDateString(lang === "fr" ? "fr-FR" : "en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
+                    {req.admin_note && <p className="text-xs text-gray-500 mt-1 italic">{lang === "fr" ? "Note: " : "Note: "}{req.admin_note}</p>}
+                  </div>
+                </div>
+                {req.status === "pending" && (
+                  <div className="mt-4 pt-3 border-t border-gray-50 space-y-3">
+                    <Textarea
+                      value={note}
+                      onChange={e => setNote(e.target.value)}
+                      placeholder={lang === "fr" ? "Note pour l'utilisateur (optionnel)" : lang === "ar" ? "ملاحظة للمستخدم (اختياري)" : "Note to user (optional)"}
+                      rows={2} className="resize-none text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={async () => {
+                        setBusy(true);
+                        await base44.entities.UpgradeRequest.update(req.id, { status: "approved", admin_note: note });
+                        await base44.entities.User.update(req.user_email, { role: "professional" }).catch(() => {});
+                        setUpgradeRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: "approved", admin_note: note } : r));
+                        setNote(""); setBusy(false);
+                      }}>
+                        <CheckCircle className="w-3.5 h-3.5" />{lang === "fr" ? "Approuver & Activer" : lang === "ar" ? "قبول وتفعيل" : "Approve & Activate"}
+                      </Button>
+                      <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={async () => {
+                        setBusy(true);
+                        await base44.entities.UpgradeRequest.update(req.id, { status: "rejected", admin_note: note });
+                        setUpgradeRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: "rejected", admin_note: note } : r));
+                        setNote(""); setBusy(false);
+                      }}>
+                        <XCircle className="w-3.5 h-3.5" />{lang === "fr" ? "Refuser" : lang === "ar" ? "رفض" : "Reject"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
