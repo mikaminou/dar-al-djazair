@@ -14,11 +14,10 @@ const CATEGORIES = [
     bg: "bg-blue-400/10",
     items: [
       { en: "30 images & 5 videos per listing", fr: "30 photos & 5 vidéos par annonce", ar: "30 صورة و5 فيديوهات لكل إعلان" },
-      { en: "Auto-post to all connected social media", fr: "Publication auto sur tous vos réseaux sociaux", ar: "نشر تلقائي على جميع شبكات التواصل" },
       { en: "DAR EL DJAZAIR watermark auto-applied to photos", fr: "Filigrane DAR EL DJAZAIR automatique sur vos photos", ar: "علامة مائية تُضاف تلقائياً على صورك" },
       { en: "Exclusivity protection — single-agency per property", fr: "Protection exclusivité — une seule agence par bien", ar: "حماية الحصرية — وكيل واحد لكل عقار" },
+      { en: "Client & property-based messaging with built-in appointment scheduling to seamlessly organize conversations and book visits without leaving the chat", fr: "Messagerie organisée par client et par bien avec planification de rendez-vous intégrée pour gérer facilement les échanges et fixer des visites sans quitter la conversation", ar: "مراسلة منظمة حسب العميل والعقار مع أداة مدمجة لحجز المواعيد لتسهيل إدارة المحادثات وتحديد الزيارات دون مغادرة الدردشة"},
       { en: "Verified Partner badge on profile & all listings", fr: "Badge Partenaire Vérifié sur profil & annonces", ar: "شارة الشريك الموثق على الملف والإعلانات" },
-      { en: "Boost & featured placement in search results", fr: "Boost & mise en avant dans les résultats", ar: "تعزيز وتصدر نتائج البحث" },
     ]
   },
   {
@@ -27,6 +26,7 @@ const CATEGORIES = [
     color: "text-purple-400",
     bg: "bg-purple-400/10",
     items: [
+      { en: "Auto-post to all connected social media", fr: "Publication auto sur tous vos réseaux sociaux", ar: "نشر تلقائي على جميع شبكات التواصل" },
       { en: "AI chatbot — buyers book & close deals from social media", fr: "Chatbot IA — réservation & closing depuis les réseaux", ar: "چاتبوت ذكي — الحجز وإتمام الصفقات من السوشيال ميديا" },
       { en: "AI-generated leads from buyer behaviour analysis", fr: "Leads générés par IA depuis l'analyse comportementale", ar: "عملاء محتملون بالذكاء الاصطناعي" },
       { en: "Smart user-to-agency matching & redirection", fr: "Redirection intelligente vers votre agence", ar: "توجيه ذكي للمستخدمين نحو وكالتك" },
@@ -75,7 +75,7 @@ const CATEGORIES = [
     color: "text-rose-400",
     bg: "bg-rose-400/10",
     items: [
-      { en: "Targeted push notifications to matched buyers (VAPID)", fr: "Notifications push acheteurs ciblés (VAPID)", ar: "إشعارات push مستهدفة للمشترين المطابقين" },
+      { en: "Targeted push notifications to matched buyers", fr: "Notifications push acheteurs ciblés ", ar: "إشعارات push مستهدفة للمشترين المطابقين" },
       { en: "Email alert when listing is approved, declined or needs changes", fr: "Email dès qu'une annonce est approuvée, refusée ou modifiée", ar: "بريد إلكتروني فور الموافقة على إعلانك أو رفضه" },
       { en: "Exclusivity conflict alert — notified if your exclusive is listed elsewhere", fr: "Alerte conflit exclusivité si votre bien est publié ailleurs", ar: "تنبيه تعارض الحصرية إذا نُشر عقارك في مكان آخر" },
       { en: "Post-deal review system — build your public reputation", fr: "Système d'avis post-transaction — construisez votre réputation", ar: "نظام التقييم بعد الصفقة — ابنِ سمعتك العامة" },
