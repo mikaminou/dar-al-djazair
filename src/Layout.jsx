@@ -21,6 +21,7 @@ function NavContent({ currentPageName, children }) {
   const [user, setUser] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [createMenuOpen, setCreateMenuOpen] = useState(false);
+  const [mobilePublishOpen, setMobilePublishOpen] = useState(false);
   const [showPremium, setShowPremium] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -445,12 +446,32 @@ function NavContent({ currentPageName, children }) {
           {/* Centered Plus Button */}
           <div className="relative -top-6">
             {isPro ? (
-            <Link 
-              to={createPageUrl("PostListing")} 
-              className="flex items-center justify-center h-14 w-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
-            >
-              <Plus className="w-7 h-7" />
-            </Link>
+            <div className="relative">
+              {mobilePublishOpen && (
+                <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 bg-white dark:bg-[#1a1d24] border border-gray-200 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden z-50">
+                  <Link
+                    to={createPageUrl("PostListing")}
+                    onClick={() => setMobilePublishOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                  >
+                    🏠 {lang === "ar" ? "نشر إعلان" : lang === "fr" ? "Publier une annonce" : "Post a Listing"}
+                  </Link>
+                  <Link
+                    to="/PostProject"
+                    onClick={() => setMobilePublishOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 border-t border-gray-100 dark:border-gray-700"
+                  >
+                    🏗️ {lang === "ar" ? "نشر مشروع" : lang === "fr" ? "Publier un projet" : "Post a Project"}
+                  </Link>
+                </div>
+              )}
+              <button
+                onClick={() => setMobilePublishOpen(o => !o)}
+                className="flex items-center justify-center h-14 w-14 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg transition-all hover:scale-105 active:scale-95"
+              >
+                <Plus className="w-7 h-7" />
+              </button>
+            </div>
             ) : (
             <div className="flex items-center justify-center h-14 w-14 bg-gray-200 text-gray-400 rounded-full shadow-lg cursor-not-allowed">
               <Plus className="w-7 h-7" />
