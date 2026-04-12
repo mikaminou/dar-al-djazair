@@ -334,7 +334,7 @@ function NavContent({ currentPageName, children }) {
               <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 select-none">
+          <DropdownMenuContent align="end" className="w-56 select-none max-h-[70vh] overflow-y-auto">
             {user ? (
               <>
                 <div className="px-3 py-2 text-xs text-gray-500 truncate">{user.email}</div>
