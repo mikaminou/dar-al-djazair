@@ -194,9 +194,11 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("SavedSearches")}>{lang === "ar" ? "بحوثي المحفوظة" : lang === "fr" ? "Mes recherches" : "Saved Searches"}</Link>
                     </DropdownMenuItem>
+                    {!isPro && (
                     <DropdownMenuItem onClick={() => setShowPremium(true)} className="min-h-[44px] flex items-center select-none font-semibold text-amber-600 cursor-pointer">
                       ⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}
                     </DropdownMenuItem>
+                    )}
                     {isPro && (<>
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("MyListings")}>{t.myListings}</Link>
@@ -334,9 +336,11 @@ function NavContent({ currentPageName, children }) {
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to="/MyWaitlists">{lang === "ar" ? "قوائم انتظاري" : lang === "fr" ? "Mes listes d'attente" : "My Waitlists"}</Link>
                     </DropdownMenuItem>
+                    {!isPro && (
                     <DropdownMenuItem onClick={() => setShowPremium(true)} className="min-h-[44px] flex items-center select-none font-semibold text-amber-600 cursor-pointer">
                       ⭐ {lang === "ar" ? "الترقية إلى بريميوم" : lang === "fr" ? "Passer au Premium" : "Upgrade to Premium"}
                     </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild className="min-h-[44px] flex items-center select-none">
                       <Link to={createPageUrl("Favorites")}>{t.favorites}</Link>
                     </DropdownMenuItem>
