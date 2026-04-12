@@ -90,12 +90,14 @@ function NavContent({ currentPageName, children }) {
                 {link.label}
               </a>
             ))}
+            {user && !isPro && (
             <button
               onClick={() => setShowPremium(true)}
               className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] text-sm font-semibold text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors whitespace-nowrap"
             >
               ⭐ Premium
             </button>
+            )}
           </nav>
 
           {/* Right side */}
