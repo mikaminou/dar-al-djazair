@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Calendar, Clock, CheckCircle, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Calendar, Clock, CheckCircle, ChevronDown, ChevronUp, Users, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLang } from "../LanguageContext";
@@ -15,6 +17,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
   const [submitting, setSubmitting] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [existingRequest, setExistingRequest] = useState(null); // "pending"|"accepted"|null
+  const [existingAppointmentId, setExistingAppointmentId] = useState(null);
 
   useEffect(() => {
     if (open && !loaded) loadSlots();
@@ -37,6 +40,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
     if (user) {
       const active = appsData.find(a => a.status === "pending" || a.status === "accepted");
       setExistingRequest(active ? active.status : null);
+      setExistingAppointmentId(active ? active.id : null);
     }
 
     // Merge slots: listing-specific takes priority, exclude duplicates
@@ -182,13 +186,20 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
   // Show status for existing active request
   if (existingRequest === "pending" || existingRequest === "accepted") {
     return (
-      <div className="mt-4 pt-4 border-t border-gray-100">
+      <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
         <div className={`flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium ${
           existingRequest === "accepted" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
         }`}>
           {existingRequest === "accepted" ? <CheckCircle className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
           {l(existingRequest)}
         </div>
+        <Link
+          to={createPageUrl("Appointments")}
+          className="flex items-center justify-center gap-1.5 w-full text-sm font-semibold text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 transition-colors"
+        >
+          {lang === "ar" ? "عرض موعدي" : lang === "fr" ? "Voir mon rendez-vous" : "View my appointment"}
+          <ArrowRight className="w-4 h-4" />
+        </Link>
       </div>
     );
   }
