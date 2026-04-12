@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
  */
 export default function MobileHeader({ title }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const canGoBack = window.history.length > 1;
   const isRootRoute = location.pathname === "/" || location.pathname === "/Home";
 
@@ -20,7 +21,7 @@ export default function MobileHeader({ title }) {
         <div className="w-10">
           {!isRootRoute && canGoBack ? (
             <button
-              onClick={() => window.history.back()}
+              onClick={() => navigate(-1)}
               className="flex items-center justify-center p-2 text-gray-600 dark:text-gray-400 hover:text-emerald-700 dark:hover:text-emerald-500 select-none"
               title="Back"
             >
