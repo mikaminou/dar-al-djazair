@@ -119,13 +119,27 @@ function NavContent({ currentPageName, children }) {
             </DropdownMenu>
 
             {isPro && (
-            <Link
-              to={createPageUrl("PostListing")}
-              className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="hidden lg:inline">{t.postListing}</span>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0">
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden lg:inline">{t.postListing}</span>
+                  <ChevronDown className="w-3 h-3 opacity-70" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center">
+                  <Link to={createPageUrl("PostListing")}>
+                    🏠 {lang === "ar" ? "نشر إعلان عقار" : lang === "fr" ? "Publier une annonce" : "Post a Listing"}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="min-h-[44px] flex items-center">
+                  <Link to="/PostProject">
+                    🏗️ {lang === "ar" ? "نشر مشروع" : lang === "fr" ? "Publier un projet" : "Post a Project"}
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             )}
 
             {/* Notifications */}
