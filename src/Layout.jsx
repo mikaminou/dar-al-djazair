@@ -123,7 +123,7 @@ function NavContent({ currentPageName, children }) {
               <DropdownMenuTrigger asChild>
                 <button className="hidden md:flex items-center justify-center gap-1 min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-3 rounded-lg transition-colors flex-shrink-0">
                   <Plus className="w-4 h-4" />
-                  <span className="hidden lg:inline">{t.postListing}</span>
+                  <span className="hidden lg:inline">{lang === "ar" ? "نشر" : lang === "fr" ? "Publier" : "Publish"}</span>
                   <ChevronDown className="w-3 h-3 opacity-70" />
                 </button>
               </DropdownMenuTrigger>
