@@ -208,16 +208,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
-            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
-              🏘️ {lang === "ar" ? "٥٠٠٠+ إعلان" : lang === "fr" ? "5 000+ annonces" : "5,000+ listings"}
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
-              🗺️ {lang === "ar" ? "٥٨ ولاية" : "58 wilayas"}
-            </span>
-            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
-              ✅ {lang === "ar" ? "إعلانات موثوقة" : lang === "fr" ? "Annonces vérifiées" : "Verified listings"}
-            </span>
+          <div className="flex items-center justify-center gap-4 mt-8 flex-wrap">
+            {[
+              { icon: "🤖", title: lang === "fr" ? "Smart Suggestions" : lang === "ar" ? "اقتراحات ذكية" : "Smart Suggestions", sub: lang === "fr" ? "Suggestions intelligentes" : lang === "ar" ? "مقترحات ذكية" : "Smart picks" },
+              { icon: "🔔", title: lang === "fr" ? "Instant Alerts" : lang === "ar" ? "تنبيهات فورية" : "Instant Alerts", sub: lang === "fr" ? "Alertes en temps réel" : lang === "ar" ? "تنبيهات لحظية" : "Real-time alerts" },
+              { icon: "💬", title: lang === "fr" ? "Messaging System" : lang === "ar" ? "نظام المراسلة" : "Messaging System", sub: lang === "fr" ? "Messagerie intégrée" : lang === "ar" ? "مراسلة مدمجة" : "Built-in chat" },
+            ].map((f, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-5 py-3 text-center text-white min-w-[140px]">
+                <div className="text-2xl mb-1">{f.icon}</div>
+                <div className="text-sm font-semibold">{f.title}</div>
+                <div className="text-xs text-white/70 mt-0.5">{f.sub}</div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
