@@ -140,9 +140,9 @@ export default function HomePage() {
           {/* Feature pills */}
           <div className="grid grid-cols-3 gap-3">
             {[
-              { icon: "🤖", title: lang === "fr" ? "Smart Suggestions" : lang === "ar" ? "اقتراحات ذكية" : "Smart Suggestions", sub: lang === "fr" ? "Suggestions intelligentes" : lang === "ar" ? "مقترحات ذكية" : "Smart picks" },
-              { icon: "🔔", title: lang === "fr" ? "Instant Alerts" : lang === "ar" ? "تنبيهات فورية" : "Instant Alerts", sub: lang === "fr" ? "Alertes en temps réel" : lang === "ar" ? "تنبيهات لحظية" : "Real-time alerts" },
-              { icon: "💬", title: lang === "fr" ? "Messaging System" : lang === "ar" ? "نظام المراسلة" : "Messaging System", sub: lang === "fr" ? "Messagerie intégrée" : lang === "ar" ? "مراسلة مدمجة" : "Built-in chat" },
+              { icon: "🤖", title: lang === "ar" ? "اقتراحات ذكية" : lang === "fr" ? "Suggestions Intelligentes" : "Smart Suggestions", sub: lang === "ar" ? "مقترحات مخصصة لك" : lang === "fr" ? "Personnalisées pour vous" : "Tailored picks for you" },
+              { icon: "🔔", title: lang === "ar" ? "تنبيهات فورية" : lang === "fr" ? "Alertes Instantanées" : "Instant Alerts", sub: lang === "ar" ? "إشعارات في الوقت الفعلي" : lang === "fr" ? "Notifications en temps réel" : "Real-time notifications" },
+              { icon: "💬", title: lang === "ar" ? "نظام المراسلة" : lang === "fr" ? "Messagerie Intégrée" : "Messaging System", sub: lang === "ar" ? "تواصل مع البائعين" : lang === "fr" ? "Contactez les vendeurs" : "Chat with sellers" },
             ].map((f, i) => (
               <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center text-white">
                 <div className="text-xl mb-1">{f.icon}</div>
@@ -210,9 +210,9 @@ export default function HomePage() {
 
           <div className="flex items-center justify-center gap-4 mt-8 flex-wrap">
             {[
-              { icon: "🤖", title: lang === "fr" ? "Smart Suggestions" : lang === "ar" ? "اقتراحات ذكية" : "Smart Suggestions", sub: lang === "fr" ? "Suggestions intelligentes" : lang === "ar" ? "مقترحات ذكية" : "Smart picks" },
-              { icon: "🔔", title: lang === "fr" ? "Instant Alerts" : lang === "ar" ? "تنبيهات فورية" : "Instant Alerts", sub: lang === "fr" ? "Alertes en temps réel" : lang === "ar" ? "تنبيهات لحظية" : "Real-time alerts" },
-              { icon: "💬", title: lang === "fr" ? "Messaging System" : lang === "ar" ? "نظام المراسلة" : "Messaging System", sub: lang === "fr" ? "Messagerie intégrée" : lang === "ar" ? "مراسلة مدمجة" : "Built-in chat" },
+              { icon: "🤖", title: lang === "ar" ? "اقتراحات ذكية" : lang === "fr" ? "Suggestions Intelligentes" : "Smart Suggestions", sub: lang === "ar" ? "مقترحات مخصصة لك" : lang === "fr" ? "Personnalisées pour vous" : "Tailored picks for you" },
+              { icon: "🔔", title: lang === "ar" ? "تنبيهات فورية" : lang === "fr" ? "Alertes Instantanées" : "Instant Alerts", sub: lang === "ar" ? "إشعارات في الوقت الفعلي" : lang === "fr" ? "Notifications en temps réel" : "Real-time notifications" },
+              { icon: "💬", title: lang === "ar" ? "نظام المراسلة" : lang === "fr" ? "Messagerie Intégrée" : "Messaging System", sub: lang === "ar" ? "تواصل مع البائعين" : lang === "fr" ? "Contactez les vendeurs" : "Chat with sellers" },
             ].map((f, i) => (
               <div key={i} className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-5 py-3 text-center text-white min-w-[140px]">
                 <div className="text-2xl mb-1">{f.icon}</div>
