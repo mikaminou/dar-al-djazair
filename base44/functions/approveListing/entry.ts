@@ -1,4 +1,16 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+/**
+ * approveListing
+ *
+ * Admin approval hook for listings.
+ * On "approve":
+ *   1. Sets listing status to "watermarking" (hidden from public).
+ *   2. Returns immediately to admin (non-blocking).
+ *   3. Triggers watermarkListingPhotos in background — which sets status to "active" when done.
+ *   4. If watermarking call fails entirely, falls back to setting status "active" directly.
+ *
+ * On "decline" / "propose_changes": updates status and notifies owner as before.
+ */
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const T = {
   approved_title: {
@@ -62,13 +74,60 @@ Deno.serve(async (req) => {
     let newStatus, notifType, notifTitle, notifBody, emailSubject, emailBody, notifUrl;
 
     if (action === "approve") {
-      newStatus = "active";
-      notifType = "listing_match"; // reuse existing type
+      // Step 1: Mark as "watermarking" — hides from public browse while watermark runs
+      const approvePayload = {
+        status: "watermarking",
+        admin_note: null,
+        active_since: new Date().toISOString(),
+      };
+      if (admin_note) approvePayload.admin_note = admin_note;
+      await base44.asServiceRole.entities.Listing.update(listing_id, approvePayload);
+
+      // Step 2: Trigger watermarking in background (fire & forget pattern)
+      // watermarkListingPhotos will set status to "active" when it completes.
+      // We do NOT await this — admin gets immediate response.
+      let watermarkNote = null;
+      try {
+        const wmRes = await base44.asServiceRole.functions.invoke("watermarkListingPhotos", { listing_id });
+        if (wmRes?.data?.adminNote) watermarkNote = wmRes.data.adminNote;
+      } catch (wmErr) {
+        watermarkNote = `Watermarking failed to run: ${wmErr.message}`;
+        // Fallback: set listing active so it's not stuck in "watermarking" forever
+        await base44.asServiceRole.entities.Listing.update(listing_id, {
+          status: "active",
+          admin_note: watermarkNote,
+        }).catch(() => {});
+      }
+
+      // Step 3: Notify owner
+      notifType = "listing_match";
       notifTitle = `✅ ${t("approved_title", ownerLang)}`;
       notifBody = t("approved_body", ownerLang);
       notifUrl = `ListingDetail?id=${listing_id}`;
       emailSubject = t("approved_title", ownerLang);
       emailBody = `<p>${t("approved_body", ownerLang)}</p><p><a href="${baseUrl}/ListingDetail?id=${listing_id}">${t("view_listing", ownerLang)}</a></p>`;
+
+      const refId = `listing_approve_${listing_id}_${Date.now()}`;
+      await base44.asServiceRole.entities.Notification.create({
+        user_email: ownerEmail,
+        type: notifType,
+        title: notifTitle,
+        body: notifBody,
+        url: notifUrl,
+        is_read: false,
+        ref_id: refId,
+      }).catch(() => {});
+
+      if (ownerEmail) {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: ownerEmail,
+          subject: emailSubject,
+          body: emailBody,
+        }).catch(() => {});
+      }
+
+      return Response.json({ ok: true, new_status: "active", watermark_note: watermarkNote });
+
     } else if (action === "decline") {
       newStatus = "declined";
       notifType = "listing_match";
@@ -77,6 +136,7 @@ Deno.serve(async (req) => {
       notifUrl = `MyListings`;
       emailSubject = t("declined_title", ownerLang);
       emailBody = `<p>${t("declined_body", ownerLang)}</p>${admin_note ? `<p><strong>${t("reason", ownerLang)}:</strong> ${admin_note}</p>` : ""}`;
+
     } else if (action === "propose_changes") {
       newStatus = "changes_requested";
       notifType = "listing_match";
@@ -85,31 +145,16 @@ Deno.serve(async (req) => {
       notifUrl = `PostListing?edit=${listing_id}`;
       emailSubject = t("changes_title", ownerLang);
       emailBody = `<p>${t("changes_body", ownerLang)}</p>${admin_note ? `<p><strong>📝 ${admin_note}</strong></p>` : ""}<p><a href="${baseUrl}/PostListing?edit=${listing_id}">${t("edit_listing", ownerLang)}</a></p>`;
+
     } else {
       return Response.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    // Update listing status
+    // For decline / propose_changes
     const updatePayload = { status: newStatus };
     if (admin_note) updatePayload.admin_note = admin_note;
-    if (action === "approve") {
-      updatePayload.active_since = new Date().toISOString();
-      updatePayload.admin_note = null;
-    }
     await base44.asServiceRole.entities.Listing.update(listing_id, updatePayload);
 
-    // Watermark photos on approval (non-blocking — failures don't stop approval)
-    let watermarkAdminNote = null;
-    if (action === "approve" && (listing.images || []).length > 0) {
-      try {
-        const wmRes = await base44.asServiceRole.functions.invoke('watermarkListingPhotos', { listing_id });
-        if (wmRes?.data?.adminNote) watermarkAdminNote = wmRes.data.adminNote;
-      } catch (wmErr) {
-        watermarkAdminNote = `Watermarking could not run: ${wmErr.message}`;
-      }
-    }
-
-    // Create in-app notification
     const refId = `listing_${action}_${listing_id}_${Date.now()}`;
     await base44.asServiceRole.entities.Notification.create({
       user_email: ownerEmail,
@@ -121,7 +166,6 @@ Deno.serve(async (req) => {
       ref_id: refId,
     }).catch(() => {});
 
-    // Send email
     if (ownerEmail) {
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: ownerEmail,
@@ -130,7 +174,7 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
-    return Response.json({ ok: true, new_status: newStatus, watermark_note: watermarkAdminNote });
+    return Response.json({ ok: true, new_status: newStatus });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

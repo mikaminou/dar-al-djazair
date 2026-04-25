@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown, RefreshCw } from "lucide-react";
 import ExclusivityConflictView from "../components/admin/ExclusivityConflictView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +33,8 @@ export default function AdminVerification() {
   const [note,     setNote]           = useState("");
   const [busy,     setBusy]           = useState(false);
   const [lightbox, setLightbox]       = useState(null); // { images, index }
+  const [retryingId, setRetryingId]   = useState(null);
+  const [watermarkFailedListings, setWatermarkFailedListings] = useState([]);
 
   useEffect(() => { load(); }, []);
 
@@ -40,18 +42,22 @@ export default function AdminVerification() {
     const me = await base44.auth.me().catch(() => null);
     if (!me || me.role !== "admin") { setLoading(false); return; }
     setIsAdmin(true);
-    const [data, allUsers, listings, projects, upgrades] = await Promise.all([
+    const [data, allUsers, listings, projects, upgrades, failedWm] = await Promise.all([
       base44.entities.VerificationRequest.list("-created_date", 300),
       base44.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
       base44.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
       base44.entities.Project.filter({ status: "pending" }, "-created_date", 100).catch(() => []),
       base44.entities.UpgradeRequest.list("-created_date", 200).catch(() => []),
+      base44.entities.Listing.filter({ status: "active" }, "-updated_date", 200)
+        .then(all => all.filter(l => l.admin_note && l.admin_note.startsWith("Watermark")))
+        .catch(() => []),
     ]);
     setRequests(data);
     setUpgradeRequests(upgrades);
     setPros(allUsers);
     setPendingListings(listings);
     setPendingProjects(projects);
+    setWatermarkFailedListings(failedWm);
 
     // Load submitter info for each listing
     const emails = [...new Set(listings.map(l => l.created_by).filter(Boolean))];
@@ -88,6 +94,19 @@ export default function AdminVerification() {
     setExpandId(null);
     setNote("");
     setBusy(false);
+  }
+
+  async function handleRetryWatermark(listing) {
+    setRetryingId(listing.id);
+    const res = await base44.functions.invoke("watermarkListingPhotos", { listing_id: listing.id, retry: true });
+    setRetryingId(null);
+    const note = res?.data?.adminNote;
+    if (note) {
+      toast({ title: lang === "ar" ? "تحذير: العلامة المائية" : lang === "fr" ? "Avertissement filigrane" : "Watermark Warning", description: note, variant: "destructive", duration: 8000 });
+    } else {
+      toast({ title: lang === "ar" ? "تم تطبيق العلامة المائية" : lang === "fr" ? "Filigrane appliqué" : "Watermark applied", description: lang === "ar" ? "تم تطبيق العلامة المائية بنجاح" : lang === "fr" ? "Le filigrane a été appliqué avec succès." : "Watermark applied successfully.", duration: 4000 });
+      setWatermarkFailedListings(prev => prev.filter(l => l.id !== listing.id));
+    }
   }
 
   async function handleListingAction(listing, action) {
@@ -275,6 +294,38 @@ export default function AdminVerification() {
         {/* ── LISTINGS APPROVAL TAB ── */}
         {tab === "listings" && (
           <div className="space-y-3">
+            {/* Watermark retry section */}
+            {watermarkFailedListings.length > 0 && (
+              <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-orange-800 mb-3 flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  {lang === "ar" ? "إعلانات بعلامة مائية فاشلة — يمكن إعادة المحاولة" : lang === "fr" ? "Annonces avec filigrane échoué — relancer" : "Listings with failed watermark — retry available"}
+                </p>
+                <div className="space-y-2">
+                  {watermarkFailedListings.map(l => (
+                    <div key={l.id} className="bg-white rounded-lg border border-orange-100 p-3 flex items-center justify-between gap-3 flex-wrap">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-gray-800 truncate">{l.title}</p>
+                        <p className="text-xs text-orange-600 truncate">{l.admin_note}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={retryingId === l.id}
+                        className="text-orange-700 border-orange-300 hover:bg-orange-50 gap-1.5 text-xs flex-shrink-0"
+                        onClick={() => handleRetryWatermark(l)}
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${retryingId === l.id ? "animate-spin" : ""}`} />
+                        {retryingId === l.id
+                          ? (lang === "ar" ? "جارٍ..." : lang === "fr" ? "En cours..." : "Retrying...")
+                          : (lang === "ar" ? "إعادة المحاولة" : lang === "fr" ? "Relancer le filigrane" : "Retry Watermark")}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {pendingListings.length === 0 ? (
               <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
                 <Home className="w-10 h-10 mx-auto mb-3 opacity-30" />
