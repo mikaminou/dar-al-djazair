@@ -208,10 +208,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-8 mt-6 text-white/80 text-sm">
-            <span>🏘️ {lang === "ar" ? "٥٠٠٠+ إعلان" : lang === "fr" ? "5000+ annonces" : "5000+ listings"}</span>
-            <span>🗺️ {lang === "ar" ? "٥٨ ولاية" : "58 wilayas"}</span>
-            <span>✅ {lang === "ar" ? "إعلانات موثوقة" : lang === "fr" ? "Annonces vérifiées" : "Verified listings"}</span>
+          <div className="flex items-center justify-center gap-3 mt-6 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
+              🏘️ {lang === "ar" ? "٥٠٠٠+ إعلان" : lang === "fr" ? "5 000+ annonces" : "5,000+ listings"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
+              🗺️ {lang === "ar" ? "٥٨ ولاية" : "58 wilayas"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 text-white text-sm font-medium">
+              ✅ {lang === "ar" ? "إعلانات موثوقة" : lang === "fr" ? "Annonces vérifiées" : "Verified listings"}
+            </span>
           </div>
         </div>
       </div>
