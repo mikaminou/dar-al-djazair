@@ -73,13 +73,88 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* HERO */}
+      {/* HERO — Mobile: full green, Desktop: background image */}
       <div
-        className="relative bg-cover bg-center py-24 px-4"
+        className="relative bg-cover bg-center md:py-24 py-0 px-0 md:px-4"
         style={{ backgroundImage: "url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1600&q=80')" }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/80 to-emerald-700/60" />
-        <div className="relative z-10 max-w-5xl mx-auto text-center text-white">
+
+        {/* Mobile Hero */}
+        <div className="md:hidden relative z-10 bg-gradient-to-b from-emerald-800 to-emerald-700 min-h-[100svh] flex flex-col px-5 pt-20 pb-6">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs text-white mb-5 self-start">
+            <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
+            {lang === "ar" ? "منصة عقارات الجزائر الأولى" : lang === "fr" ? "La 1ère plateforme immobilière d'Algérie" : "Algeria's #1 Real Estate Platform"}
+          </div>
+
+          {/* Title */}
+          <h1 className="text-4xl font-bold text-white leading-tight mb-1">
+            {lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}
+          </h1>
+          <p className="text-amber-400 text-lg font-medium mb-7">{t.tagline}</p>
+
+          {/* Search filters stacked */}
+          <div className="bg-white rounded-2xl shadow-2xl p-4 flex flex-col gap-3 mb-6">
+            <Select value={filters.listing_type || "all"} onValueChange={v => setFilters(f => ({ ...f, listing_type: v === "all" ? "" : v }))}>
+              <SelectTrigger className="border-gray-200 text-gray-700 w-full">
+                <SelectValue placeholder={lang === "ar" ? "نوع الإعلان" : lang === "fr" ? "Type d'Annonce" : "Listing Type"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === "ar" ? "نوع الإعلان" : lang === "fr" ? "Type d'Annonce" : "Listing Type"}</SelectItem>
+                <SelectItem value="sale">{t.sale}</SelectItem>
+                <SelectItem value="rent">{t.forRent}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.property_type || "all"} onValueChange={v => setFilters(f => ({ ...f, property_type: v === "all" ? "" : v }))}>
+              <SelectTrigger className="border-gray-200 text-gray-700 w-full">
+                <SelectValue placeholder={lang === "ar" ? "كل الأنواع" : lang === "fr" ? "Tous les Types" : "All Types"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === "ar" ? "كل الأنواع" : lang === "fr" ? "Tous les Types" : "All Types"}</SelectItem>
+                {PROPERTY_TYPES.map(pt => (
+                  <SelectItem key={pt.value} value={pt.value}>{pt.label[lang] || pt.label.fr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.wilaya || "all"} onValueChange={v => setFilters(f => ({ ...f, wilaya: v === "all" ? "" : v }))}>
+              <SelectTrigger className="border-gray-200 text-gray-700 w-full">
+                <SelectValue placeholder={lang === "ar" ? "كل الولايات" : lang === "fr" ? "Toutes les Wilayas" : "All Wilayas"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{lang === "ar" ? "كل الولايات" : lang === "fr" ? "Toutes les Wilayas" : "All Wilayas"}</SelectItem>
+                {WILAYAS.map(w => (
+                  <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button onClick={handleSearch} className="bg-emerald-600 hover:bg-emerald-700 text-white w-full gap-2 font-semibold h-12 text-base rounded-xl">
+              <Search className="w-5 h-5" />
+              {lang === "ar" ? "بحث" : lang === "fr" ? "Rechercher" : "Search"}
+            </Button>
+          </div>
+
+          {/* Feature pills */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { icon: "🤖", title: lang === "fr" ? "Smart Suggestions" : lang === "ar" ? "اقتراحات ذكية" : "Smart Suggestions", sub: lang === "fr" ? "Suggestions intelligentes" : lang === "ar" ? "مقترحات ذكية" : "Smart picks" },
+              { icon: "🔔", title: lang === "fr" ? "Instant Alerts" : lang === "ar" ? "تنبيهات فورية" : "Instant Alerts", sub: lang === "fr" ? "Alertes en temps réel" : lang === "ar" ? "تنبيهات لحظية" : "Real-time alerts" },
+              { icon: "💬", title: lang === "fr" ? "Messaging System" : lang === "ar" ? "نظام المراسلة" : "Messaging System", sub: lang === "fr" ? "Messagerie intégrée" : lang === "ar" ? "مراسلة مدمجة" : "Built-in chat" },
+            ].map((f, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-xl p-2.5 text-center text-white">
+                <div className="text-xl mb-1">{f.icon}</div>
+                <div className="text-[10px] font-semibold leading-tight">{f.title}</div>
+                <div className="text-[9px] text-white/70 mt-0.5 leading-tight">{f.sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop Hero */}
+        <div className="hidden md:block relative z-10 max-w-5xl mx-auto text-center text-white py-8">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-sm mb-6">
             <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" />
             {lang === "ar" ? "منصة عقارات الجزائر الأولى" : lang === "fr" ? "La 1ère plateforme immobilière d'Algérie" : "Algeria's #1 Real Estate Platform"}
@@ -89,7 +164,6 @@ export default function HomePage() {
             <span className="block text-amber-400 text-2xl md:text-3xl font-normal mt-2">{t.tagline}</span>
           </h1>
 
-          {/* Search bar */}
           <div className="bg-white rounded-2xl shadow-2xl p-4 mt-8 max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row gap-3">
               <Select value={filters.listing_type || "all"} onValueChange={v => setFilters(f => ({ ...f, listing_type: v === "all" ? "" : v }))}>
