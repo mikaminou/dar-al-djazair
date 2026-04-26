@@ -348,6 +348,81 @@ The function is idempotent — safe to run multiple times.
 
 ---
 
+---
+
+## Marketplace Filters
+
+Fields that appear in the filter panel are controlled by the `showInSearchFilter` flag in each field definition.
+
+When `showInSearchFilter: true`, `DynamicSearchFilters` will automatically render the appropriate input:
+- `boolean` → Yes/No/Any chip group
+- `enum` → Select dropdown
+- `unit_number` → Min/Max inputs with unit toggle (e.g. m²/hectares)
+- `number` → Min/Max numeric inputs (or min-only for count fields like bedrooms/floor)
+
+No changes to the filter panel component are needed.
+
+---
+
+## Quick Filter Chips
+
+Quick chips in the marketplace are defined in:
+
+```
+src/components/quickFilterChips.config.js
+```
+
+To add a chip for a new type:
+
+```js
+{
+  id: "chalet_montagne",
+  label: { fr: "Chalet de montagne", ar: "شاليه جبلي", en: "Mountain chalet" },
+  icon: "🏔️",
+  filters: {
+    property_type: "chalet",
+    // any additional filter keys
+  },
+},
+```
+
+The chip is automatically highlighted when the current filters match it, and clears those filters when tapped again.
+
+---
+
+## Type-Specific Sort Options
+
+The marketplace dynamically adds sort options when a single property type is selected.
+
+To add sort options for a new type, edit the `sortOptions` `useMemo` in `pages/Listings.jsx`:
+
+```js
+if (filters.property_type === "chalet") {
+  extra.push({ value: "-altitude", label: { en: "Highest altitude", fr: "Plus haute altitude", ar: "أعلى ارتفاع" } });
+}
+```
+
+---
+
+## Map Pin Icons
+
+Map pins use the icon registry from `components/icons/PropertyTypeIcon.jsx`.
+When you add a new property type, register its Lucide icon there so map pins
+render the correct icon for that type.
+
+---
+
+## URL State
+
+All filter state is automatically encoded into the URL via `utils/urlFilterState.js`.
+
+Universal filters use short URL keys (`pt`, `w`, `c`, `type`, etc.).
+Dynamic attribute filters are encoded with the `attr_` prefix (e.g. `attr_min_bedrooms=2`).
+
+No changes to `urlFilterState.js` are needed for new types — the encoder loops over all filter keys automatically.
+
+---
+
 ## Migration Order of Operations
 
 When deploying a new property type to production:
