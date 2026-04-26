@@ -111,7 +111,7 @@ export const PROPERTY_TYPE_DEFS = [
         { key: "concierge",    type: "boolean", required: false,                              label: { en: "Concierge",    fr: "Concierge",      ar: "بواب"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
         ...UNIVERSAL_AMENITIES.map(opt => ({ 
           key: opt.value, type: "boolean", required: false, label: opt.label, 
-          group: "amenities", showInSearchFilter: false, showInListingCard: false 
+          group: "amenities", showInSearchFilter: true, showInListingCard: false 
         })),
         { key: "building_age",   type: "number",  required: false,                              label: { en: "Building Year Built",   fr: "Année de constr. de l'immeuble", ar: "سنة بناء العمارة"     },             min: 1900, max: 2030,                   group: "construction",    showInSearchFilter: false, showInListingCard: false },
     ],
