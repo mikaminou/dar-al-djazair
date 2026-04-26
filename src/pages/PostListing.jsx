@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
-import { WILAYAS, FEATURES_LIST, formatPrice } from "../components/constants";
+import { WILAYAS, formatPrice } from "../components/constants";
 import { PROPERTY_TYPES, migrateAttributes, getAllPropertyTypes } from "../components/propertyTypes.config";
 import { LISTING_CONFIG } from "../components/listing";
 import DynamicFormRenderer from "../components/listing/DynamicFormRenderer";
@@ -113,6 +113,18 @@ export default function PostListingPage() {
             }
           }
 
+          // AMENITIES MIGRATION: move legacy flat features into attributes
+          // Old schema: features array with strings like "parking", "garden", etc.
+          // New schema: attributes.parking = true, attributes.garden = true, etc.
+          if (listing.features && Array.isArray(listing.features) && listing.features.length > 0) {
+            for (const feat of listing.features) {
+              if (!migratedAttrs[feat]) {
+                migratedAttrs[feat] = true;
+              }
+            }
+            // Features migrated; will be cleared on save
+          }
+
           setForm({
             listing_type:  listing.listing_type  || "sale",
             property_type: propertyType,
@@ -211,12 +223,7 @@ export default function PostListingPage() {
     return Object.keys(e).length === 0;
   };
 
-  const toggleFeature = (feat) => {
-    set("features", form.features.includes(feat)
-      ? form.features.filter(f => f !== feat)
-      : [...form.features, feat]
-    );
-  };
+
 
   async function uploadImages(files) {
     setUploadError("");
@@ -293,6 +300,7 @@ export default function PostListingPage() {
       floor:      coercedAttrs.floor     || undefined,
       furnished:  coercedAttrs.furnished || undefined,
       attributes: coercedAttrs,
+      features:   [], // Clear legacy features array; all amenities now in attributes
     };
     if (editingId) {
       const existing = await base44.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);
@@ -539,26 +547,7 @@ export default function PostListingPage() {
                   </div>
                 </div>
 
-                {/* Features / Amenities */}
-                <div>
-                  <div className="flex items-center gap-3 mb-3.5">
-                    <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      {lang === "ar" ? "المميزات العامة" : lang === "fr" ? "Équipements généraux" : "General Amenities"}
-                    </span>
-                    <div className="flex-1 h-px bg-gray-100" />
-                  </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                    {FEATURES_LIST.map(feat => {
-                      const active = form.features.includes(feat.value);
-                      return (
-                        <button key={feat.value} type="button" onClick={() => toggleFeature(feat.value)}
-                          className={`px-4 py-3 rounded-lg text-sm font-semibold border-2 transition-all ${active ? "bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-emerald-600 shadow-md" : "bg-white text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50"}`}>
-                          {feat.label[lang] || feat.label.fr}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+
               </div>
             )}
 

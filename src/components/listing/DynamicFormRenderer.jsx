@@ -39,6 +39,41 @@ function isVisible(field, value) {
 
 function NumberField({ field, value, onChange, error, warning, lang, listingType }) {
   const req = isRequired(field, listingType);
+  const isAmenity = field.group === "amenities";
+  
+  // Numeric amenities (e.g., parking_spots, garage_spots) render as stepper pills
+  if (isAmenity) {
+    const numVal = Number(value[field.key] ?? 0);
+    return (
+      <div>
+        <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
+          {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
+        </Label>
+        <div className="flex items-center gap-2 border border-gray-200 rounded-full px-2 py-1.5 w-fit bg-white hover:border-emerald-300 transition-colors">
+          <button
+            type="button"
+            onClick={() => onChange(field.key, Math.max((field.min ?? 0), numVal - 1))}
+            disabled={numVal <= (field.min ?? 0)}
+            className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold text-emerald-600 hover:bg-emerald-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+          >
+            −
+          </button>
+          <span className="text-sm font-semibold text-gray-700 min-w-[24px] text-center">{numVal}</span>
+          <button
+            type="button"
+            onClick={() => onChange(field.key, Math.min((field.max ?? 999), numVal + 1))}
+            disabled={field.max !== undefined && numVal >= field.max}
+            className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold text-emerald-600 hover:bg-emerald-50 disabled:text-gray-300 disabled:hover:bg-transparent transition-colors"
+          >
+            +
+          </button>
+        </div>
+        {error && <p className="flex items-center gap-1 text-xs text-red-600 mt-1"><AlertCircle className="w-3 h-3" />{error}</p>}
+      </div>
+    );
+  }
+  
+  // Non-amenity number fields: standard text input
   return (
     <div>
       <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
@@ -90,6 +125,26 @@ function TextField({ field, value, onChange, error, lang, listingType }) {
 
 function BooleanField({ field, value, onChange, lang }) {
   const active = !!value[field.key];
+  // Amenities group: render as pill toggles
+  const isAmenity = field.group === "amenities";
+  
+  if (isAmenity) {
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(field.key, !active)}
+        className={`px-3 py-2 rounded-full text-xs font-semibold border-2 transition-all ${
+          active
+            ? "border-emerald-500 bg-emerald-600 text-white shadow-sm"
+            : "border-gray-200 bg-white text-gray-600 hover:border-emerald-300"
+        }`}
+      >
+        {lbl(field, lang)}
+      </button>
+    );
+  }
+  
+  // Non-amenity booleans: render as radio dots
   return (
     <button
       type="button"
@@ -226,13 +281,16 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
   }
 
   const boolFields = [];
+  const amenityFields = [];
   const nonBoolFields = {};
 
-  // Separate booleans (rendered together in a grid) vs other types
+  // Separate: amenities → pill grid, other booleans → radio dots grid, rest → standard grid
   for (const group of sortedGroups) {
     const fields = fieldsByGroup[group.key] || [];
     for (const field of fields) {
-      if (field.type === "boolean") {
+      if (field.group === "amenities" && (field.type === "boolean" || field.type === "number")) {
+        amenityFields.push({ field, group });
+      } else if (field.type === "boolean") {
         boolFields.push({ field, group });
       } else {
         if (!nonBoolFields[group.key]) nonBoolFields[group.key] = [];
@@ -259,7 +317,9 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
       {sortedGroups.map(group => {
         const regular = nonBoolFields[group.key] || [];
         const bools = boolFields.filter(b => b.group.key === group.key).map(b => b.field);
-        if (regular.length === 0 && bools.length === 0) return null;
+        const amenities = amenityFields.filter(a => a.group.key === group.key).map(a => a.field);
+        
+        if (regular.length === 0 && bools.length === 0 && amenities.length === 0) return null;
 
         return (
           <div key={group.key}>
@@ -271,14 +331,24 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
               <div className="flex-1 h-px bg-emerald-100" />
             </div>
 
+            {/* Standard fields (number, text, enum, unit_number) */}
             {regular.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                 {regular.map(f => renderField(f))}
               </div>
             )}
+            
+            {/* Non-amenity booleans (radio dots) */}
             {bools.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-3">
                 {bools.map(f => renderField(f))}
+              </div>
+            )}
+            
+            {/* Amenity pills (flex wrap) */}
+            {amenities.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {amenities.map(f => renderField(f))}
               </div>
             )}
           </div>

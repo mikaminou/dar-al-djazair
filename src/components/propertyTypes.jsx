@@ -1,0 +1,486 @@
+/**
+ * SINGLE SOURCE OF TRUTH — property type definitions.
+ *
+ * To add a new property type: add one entry to PROPERTY_TYPE_DEFS.
+ * To add a field to an existing type: add one entry to that type's `fields` array.
+ * No other file needs to change for structural fields.
+ *
+ * Field types:
+ *   number      → numeric input
+ *   boolean     → toggle / checkbox
+ *   enum        → single select
+ *   multi_enum  → multi-select chips
+ *   unit_number → number + unit selector
+ *   text        → free text
+ *
+ * Card display flags (on FieldDefinition):
+ *   showInListingCard?: boolean      — include in card fact row candidates
+ *   cardOrder?: number               — lower = higher priority (default 99)
+ *   cardIcon?: string                — icon key resolved in ListingCardFacts
+ *   cardFormat?: 'value_unit'|'icon_value'|'boolean_chip'|'enum_label'
+ *
+ * Badge flags (on FieldDefinition):
+ *   showAsCardBadge?: boolean        — render in badge row
+ *   cardBadgePriority?: number       — higher = shown first (default 0)
+ *   cardBadgeStyle?: 'positive'|'neutral'|'warning'
+ *   cardBadgeLabel?: { [lang]: { true?: string, false?: string, [val]: string } }
+ *   cardBadgeCondition?: 'rent_only' | 'sale_only' | 'if_true' | 'if_false' | 'always'
+ */
+
+// ─── Shared option sets ───────────────────────────────────────────────────────
+// ─── Universal amenities (relevant to most types) ────────────────────────────
+const UNIVERSAL_AMENITIES = [
+  { value: "security",       label: { en: "Security",       fr: "Sécurité",        ar: "أمان"          } },
+  { value: "air_conditioning",label: { en: "Air Conditioning", fr: "Climatisation", ar: "تكييف هواء"  } },
+  { value: "heating",        label: { en: "Heating",        fr: "Chauffage",       ar: "التدفئة"      } },
+  { value: "solar_panels",   label: { en: "Solar Panels",   fr: "Panneaux solaires",ar: "ألواح شمسية" } },
+  { value: "well",           label: { en: "Well",           fr: "Puits",           ar: "بئر"           } },
+  { value: "intercom",       label: { en: "Intercom",       fr: "Interphone",      ar: "جرس باب"      } },
+  { value: "double_glazing", label: { en: "Double Glazing", fr: "Double vitrage",  ar: "زجاج مزدوج"   } },
+  { value: "generator",      label: { en: "Generator",      fr: "Générateur",      ar: "مولد كهرباء" } },
+  { value: "water_tank",     label: { en: "Water Tank",     fr: "Citerne d'eau",   ar: "خزان ماء"    } },
+];
+
+const FURNISHED_OPTIONS = [
+  { value: "furnished",      label: { en: "Furnished",      fr: "Meublé",          ar: "مفروش"        } },
+  { value: "semi_furnished", label: { en: "Semi-furnished", fr: "Semi-meublé",     ar: "مفروش جزئياً"  } },
+  { value: "unfurnished",    label: { en: "Unfurnished",    fr: "Non meublé",      ar: "غير مفروش"    } },
+];
+
+export const PROPERTY_TYPE_DEFS = [
+  // ─────────────────────────────────────────────────────────────────────────────
+  // APARTMENT
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "apartment",
+    label: { en: "Apartment", fr: "Appartement", ar: "شقة" },
+    icon: "🏢",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "construction",    label: { en: "Construction",    fr: "Construction",     ar: "البناء"   }, order: 4 },
+    ],
+    fields: [
+      { key: "area",         type: "number",  required: true,                               label: { en: "Area (m²)",    fr: "Surface (m²)",   ar: "المساحة (م²)"    }, unit: "m²",  min: 1, warnBelow: 20, warnAbove: 1000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 2, cardIcon: "ruler",  cardFormat: "value_unit" },
+      { key: "rooms",        type: "number",  required: true,                               label: { en: "Rooms",        fr: "Pièces",         ar: "الغرف"           },             min: 1, max: 50,                          group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 4, cardIcon: "grid",   cardFormat: "icon_value" },
+      { key: "bedrooms",     type: "number",  required: true,                               label: { en: "Bedrooms",     fr: "Chambres",       ar: "غرف النوم"       },             min: 0, max: 20,                          group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "bed",    cardFormat: "icon_value" },
+      { key: "bathrooms",    type: "number",  required: true,                               label: { en: "Bathrooms",    fr: "Salles de bain", ar: "الحمامات"        },             min: 0, max: 10,                          group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 5, cardIcon: "bath",   cardFormat: "icon_value" },
+      { key: "floor",        type: "number",  required: true,                               label: { en: "Floor",        fr: "Étage",          ar: "الطابق"          },             min: 0, max: 100,                         group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "floors", cardFormat: "icon_value" },
+      { key: "total_floors", type: "number",  required: true,                               label: { en: "Total Floors", fr: "Nbre d'étages",  ar: "إجمالي الطوابق" },             min: 0, max: 200,                         group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "furnished",    type: "enum",    required: { whenListingType: "rent" },        label: { en: "Furnished",    fr: "Ameublement",    ar: "التأثيث"         }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "rent_only",
+        cardBadgeLabel: { en: { furnished: "Furnished" }, fr: { furnished: "Meublé" }, ar: { furnished: "مفروش" } } },
+      { key: "balcony",      type: "boolean", required: false,                              label: { en: "Balcony",      fr: "Balcon",         ar: "شرفة"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+         showAsCardBadge: true, cardBadgePriority: 12, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+         cardBadgeLabel: { en: { true: "Balcony" }, fr: { true: "Balcon" }, ar: { true: "شرفة" } } },
+       { key: "parking",      type: "boolean", required: false,                              label: { en: "Parking",      fr: "Parking",        ar: "موقف سيارات"    }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+         showAsCardBadge: true, cardBadgePriority: 5, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+         cardBadgeLabel: { en: { true: "Parking" }, fr: { true: "Parking" }, ar: { true: "موقف" } } },
+       { key: "elevator",     type: "boolean", required: false,                              label: { en: "Elevator",     fr: "Ascenseur",      ar: "مصعد"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+         showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+         cardBadgeLabel: { en: { true: "Elevator" }, fr: { true: "Ascenseur" }, ar: { true: "مصعد" } } },
+       { key: "fiber_internet",type: "boolean", required: false,                              label: { en: "Fiber Internet", fr: "Fibre optique",  ar: "ألياف بصرية"   }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+       { key: "terrace",      type: "boolean", required: false,                              label: { en: "Terrace",      fr: "Terrasse",       ar: "테라스"          }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+         showAsCardBadge: true, cardBadgePriority: 9, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+         cardBadgeLabel: { en: { true: "Terrace" }, fr: { true: "Terrasse" }, ar: { true: "تراس" } } },
+       { key: "cave",         type: "boolean", required: false,                              label: { en: "Cellar",       fr: "Cellier",        ar: "قبو"             }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+       { key: "concierge",    type: "boolean", required: false,                              label: { en: "Concierge",    fr: "Concierge",      ar: "بواب"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+       ...UNIVERSAL_AMENITIES.map(opt => ({ 
+         key: opt.value, type: "boolean", required: false, label: opt.label, 
+         group: "amenities", showInSearchFilter: false, showInListingCard: false 
+       })),
+       { key: "year_built",   type: "number",  required: false,                              label: { en: "Year Built",   fr: "Année de constr.", ar: "سنة البناء"     },             min: 1900, max: 2030,                   group: "construction",    showInSearchFilter: false, showInListingCard: false },
+    ],
+  },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HOUSE
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "house",
+    label: { en: "House", fr: "Maison", ar: "منزل" },
+    icon: "🏠",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "construction",    label: { en: "Construction",    fr: "Construction",     ar: "البناء"   }, order: 4 },
+    ],
+    fields: [
+      { key: "area",       type: "number",  required: true,                        label: { en: "Built Area (m²)",  fr: "Surface habitable (m²)", ar: "المساحة المبنية (م²)" }, unit: "m²",  min: 1, warnBelow: 40, warnAbove: 2000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "ruler", cardFormat: "value_unit" },
+      { key: "land_area",  type: "number",  required: false,                       label: { en: "Land Area (m²)",   fr: "Surface terrain (m²)",  ar: "مساحة الأرض (م²)"    }, unit: "m²",  min: 1,                           group: "surfaces",        showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "tree", cardFormat: "value_unit" },
+      { key: "rooms",      type: "number",  required: true,                        label: { en: "Rooms",            fr: "Pièces",                ar: "الغرف"                },             min: 1, max: 50,                      group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 4, cardIcon: "grid", cardFormat: "icon_value" },
+      { key: "bedrooms",   type: "number",  required: true,                        label: { en: "Bedrooms",         fr: "Chambres",              ar: "غرف النوم"            },             min: 0, max: 20,                      group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 2, cardIcon: "bed",  cardFormat: "icon_value" },
+      { key: "bathrooms",  type: "number",  required: true,                        label: { en: "Bathrooms",        fr: "Salles de bain",        ar: "الحمامات"             },             min: 0, max: 10,                      group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 5, cardIcon: "bath", cardFormat: "icon_value" },
+      { key: "levels",     type: "number",  required: true,                        label: { en: "Levels / Floors",  fr: "Niveaux",               ar: "الطوابق"              },             min: 1, max: 10,                      group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "furnished",  type: "enum",    required: { whenListingType: "rent" }, label: { en: "Furnished",        fr: "Ameublement",           ar: "التأثيث"              }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "garden",     type: "boolean", required: false,                       label: { en: "Garden",           fr: "Jardin",                ar: "حديقة"                }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Garden" }, fr: { true: "Jardin" }, ar: { true: "حديقة" } } },
+      { key: "garage",     type: "boolean", required: false,                       label: { en: "Garage",           fr: "Garage",                ar: "مرآب"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 7, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Garage" }, fr: { true: "Garage" }, ar: { true: "مرآب" } } },
+      { key: "terrace",      type: "boolean", required: false,                       label: { en: "Terrace",          fr: "Terrasse",              ar: "تراس"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 9, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Terrace" }, fr: { true: "Terrasse" }, ar: { true: "تراس" } } },
+      { key: "pool",         type: "boolean", required: false,                       label: { en: "Pool",             fr: "Piscine",               ar: "مسبح"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Pool" }, fr: { true: "Piscine" }, ar: { true: "مسبح" } } },
+      { key: "fiber_internet",type: "boolean", required: false,                       label: { en: "Fiber Internet",   fr: "Fibre optique",       ar: "ألياف بصرية"         }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      ...UNIVERSAL_AMENITIES.map(opt => ({ 
+        key: opt.value, type: "boolean", required: false, label: opt.label, 
+        group: "amenities", showInSearchFilter: false, showInListingCard: false 
+      })),
+      { key: "year_built", type: "number",  required: false,                       label: { en: "Year Built",       fr: "Année de constr.",      ar: "سنة البناء"           },             min: 1900, max: 2030,               group: "construction",    showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // VILLA
+  // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "villa",
+    label: { en: "Villa", fr: "Villa", ar: "فيلا" },
+    icon: "🏡",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "construction",    label: { en: "Construction",    fr: "Construction",     ar: "البناء"   }, order: 4 },
+    ],
+    fields: [
+      { key: "area",         type: "number",  required: true,                        label: { en: "Built Area (m²)",  fr: "Surface habitable (m²)", ar: "المساحة المبنية (م²)" }, unit: "m²",  min: 1, warnBelow: 80, warnAbove: 5000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 2, cardIcon: "ruler", cardFormat: "value_unit" },
+      { key: "land_area",    type: "number",  required: true,                        label: { en: "Land Area (m²)",   fr: "Surface terrain (m²)",  ar: "مساحة الأرض (م²)"    }, unit: "m²",  min: 1,                          group: "surfaces",        showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "tree", cardFormat: "value_unit" },
+      { key: "rooms",        type: "number",  required: true,                        label: { en: "Rooms",            fr: "Pièces",                ar: "الغرف"                },             min: 1, max: 50,                     group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 4, cardIcon: "grid", cardFormat: "icon_value" },
+      { key: "bedrooms",     type: "number",  required: true,                        label: { en: "Bedrooms",         fr: "Chambres",              ar: "غرف النوم"            },             min: 0, max: 20,                     group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "bed",  cardFormat: "icon_value" },
+      { key: "bathrooms",    type: "number",  required: true,                        label: { en: "Bathrooms",        fr: "Salles de bain",        ar: "الحمامات"             },             min: 0, max: 10,                     group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 5, cardIcon: "bath", cardFormat: "icon_value" },
+      { key: "levels",       type: "number",  required: true,                        label: { en: "Levels / Floors",  fr: "Niveaux",               ar: "الطوابق"              },             min: 1, max: 10,                     group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "furnished",    type: "enum",    required: { whenListingType: "rent" }, label: { en: "Furnished",        fr: "Ameublement",           ar: "التأثيث"              }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "garden",       type: "boolean", required: false,                       label: { en: "Garden",           fr: "Jardin",                ar: "حديقة"                }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Garden" }, fr: { true: "Jardin" }, ar: { true: "حديقة" } } },
+      { key: "pool",         type: "boolean", required: false,                       label: { en: "Pool",             fr: "Piscine",               ar: "مسبح"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Pool" }, fr: { true: "Piscine" }, ar: { true: "مسبح" } } },
+      { key: "garage_spots", type: "number",  required: false,                       label: { en: "Garage Spots",     fr: "Places de garage",      ar: "أماكن المرآب"         },             min: 0, max: 20,                     group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "terrace",      type: "boolean", required: false,                       label: { en: "Terrace",          fr: "Terrasse",              ar: "تراس"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 9, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Terrace" }, fr: { true: "Terrasse" }, ar: { true: "تراس" } } },
+      { key: "fiber_internet",type: "boolean", required: false,                       label: { en: "Fiber Internet",   fr: "Fibre optique",       ar: "ألياف بصرية"         }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      ...UNIVERSAL_AMENITIES.map(opt => ({ 
+        key: opt.value, type: "boolean", required: false, label: opt.label, 
+        group: "amenities", showInSearchFilter: false, showInListingCard: false 
+      })),
+      { key: "year_built",   type: "number",  required: false,                       label: { en: "Year Built",       fr: "Année de constr.",      ar: "سنة البناء"           },             min: 1900, max: 2030,               group: "construction",    showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LAND
+      // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "land",
+    label: { en: "Land", fr: "Terrain", ar: "أرض" },
+    icon: "🌿",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",           fr: "Surfaces",           ar: "المساحات"          }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics",    fr: "Caractéristiques",   ar: "الخصائص"          }, order: 2 },
+      { key: "amenities",       label: { en: "Access & Utilities", fr: "Accès & Réseaux",    ar: "الوصول والمرافق"  }, order: 3 },
+    ],
+    fields: [
+      { key: "area",             type: "unit_number", required: true,  label: { en: "Area",          fr: "Surface",        ar: "المساحة"      }, unitOptions: ["m²", "hectares"], min: 1, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "ruler",  cardFormat: "value_unit" },
+      { key: "buildable",        type: "boolean",     required: true,  label: { en: "Buildable",     fr: "Constructible",  ar: "قابل للبناء"  }, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "build",  cardFormat: "boolean_chip",
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "always",
+        cardBadgeLabel: { en: { true: "Buildable", false: "Not buildable" }, fr: { true: "Constructible", false: "Non constructible" }, ar: { true: "قابل للبناء", false: "غير قابل للبناء" } } },
+      { key: "zoning_type",      type: "enum",        required: false, label: { en: "Zoning Type",   fr: "Zone",           ar: "نوع المنطقة"  }, options: [
+        { value: "residential",  label: { en: "Residential",  fr: "Résidentielle", ar: "سكني"    } },
+        { value: "commercial",   label: { en: "Commercial",   fr: "Commerciale",   ar: "تجاري"   } },
+        { value: "agricultural", label: { en: "Agricultural", fr: "Agricole",      ar: "زراعي"   } },
+        { value: "industrial",   label: { en: "Industrial",   fr: "Industrielle",  ar: "صناعي"   } },
+        { value: "mixed",        label: { en: "Mixed",        fr: "Mixte",         ar: "مختلط"   } },
+      ], group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "frontage_meters",  type: "number",      required: false, label: { en: "Frontage (m)",  fr: "Façade (m)",     ar: "الواجهة (م)"  }, unit: "m", min: 0, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "width", cardFormat: "value_unit" },
+      { key: "has_water_access", type: "boolean",     required: false, label: { en: "Water Access",  fr: "Accès à l'eau",  ar: "توصيل ماء"    }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 7, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Water" }, fr: { true: "Eau" }, ar: { true: "ماء" } } },
+      { key: "has_electricity",  type: "boolean",     required: false, label: { en: "Electricity",   fr: "Électricité",    ar: "توصيل كهرباء" }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Electricity" }, fr: { true: "Électricité" }, ar: { true: "كهرباء" } } },
+      { key: "has_road_access",  type: "boolean",     required: false, label: { en: "Road Access",   fr: "Accès routier",  ar: "وصول بالطريق" }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 6, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Road" }, fr: { true: "Accès routier" }, ar: { true: "طريق" } } },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // COMMERCIAL
+      // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "commercial",
+    label: { en: "Commercial", fr: "Local Commercial", ar: "محل تجاري" },
+    icon: "🏪",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "suitability",     label: { en: "Suitable For",    fr: "Adapté à",         ar: "مناسب لـ" }, order: 4 },
+      { key: "construction",    label: { en: "Construction",    fr: "Construction",     ar: "البناء"   }, order: 5 },
+    ],
+    fields: [
+      { key: "area",            type: "number",     required: true,  label: { en: "Area (m²)",     fr: "Surface (m²)",    ar: "المساحة (م²)" }, unit: "m²", min: 1, warnBelow: 10, warnAbove: 5000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "ruler", cardFormat: "value_unit" },
+      { key: "floor",           type: "number",     required: false, label: { en: "Floor",          fr: "Étage",           ar: "الطابق"        }, min: 0, max: 100, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "frontage_meters", type: "number",     required: true,  label: { en: "Frontage (m)",   fr: "Façade (m)",      ar: "الواجهة (م)"   }, unit: "m", min: 0, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "width", cardFormat: "value_unit" },
+      { key: "has_storefront",  type: "boolean",    required: false, label: { en: "Has Storefront", fr: "Devanture",       ar: "واجهة تجارية"  }, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "has_storage",     type: "boolean",    required: false, label: { en: "Has Storage",    fr: "Espace stockage", ar: "مستودع"        }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "parking",         type: "boolean",    required: false, label: { en: "Parking",        fr: "Parking",         ar: "موقف سيارات"  }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 5, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Parking" }, fr: { true: "Parking" }, ar: { true: "موقف" } } },
+      { key: "security",        type: "boolean",    required: false, label: { en: "Security",       fr: "Sécurité",        ar: "أمان"          }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "air_conditioning", type: "boolean",    required: false, label: { en: "Air Conditioning", fr: "Climatisation",   ar: "تكييف هواء"  }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "suitable_for",    type: "multi_enum", required: false, label: { en: "Suitable For",   fr: "Adapté pour",     ar: "مناسب لـ"      }, options: [
+        { value: "restaurant", label: { en: "Restaurant", fr: "Restaurant", ar: "مطعم"   } },
+        { value: "retail",     label: { en: "Retail",     fr: "Commerce",   ar: "تجزئة"  } },
+        { value: "pharmacy",   label: { en: "Pharmacy",   fr: "Pharmacie",  ar: "صيدلية" } },
+        { value: "office",     label: { en: "Office",     fr: "Bureau",     ar: "مكتب"   } },
+        { value: "warehouse",  label: { en: "Warehouse",  fr: "Entrepôt",   ar: "مستودع" } },
+        { value: "showroom",   label: { en: "Showroom",   fr: "Showroom",   ar: "معرض"   } },
+        { value: "other",      label: { en: "Other",      fr: "Autre",      ar: "أخرى"   } },
+      ], group: "suitability", showInSearchFilter: false, showInListingCard: true, cardOrder: 3, cardIcon: "tag", cardFormat: "enum_label" },
+      { key: "year_built",      type: "number",     required: false, label: { en: "Year Built",     fr: "Année de constr.", ar: "سنة البناء"   }, min: 1900, max: 2030, group: "construction", showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // BUILDING (Immeuble)
+      // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "building",
+    label: { en: "Building", fr: "Immeuble", ar: "عمارة" },
+    icon: "🏗️",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "construction",    label: { en: "Construction",    fr: "Construction",     ar: "البناء"   }, order: 4 },
+    ],
+    fields: [
+      { key: "total_area",       type: "number",  required: true,  label: { en: "Total Area (m²)",  fr: "Surface totale (m²)", ar: "المساحة الإجمالية (م²)" }, unit: "m²", min: 1, warnBelow: 100, warnAbove: 50000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 3, cardIcon: "ruler",    cardFormat: "value_unit" },
+      { key: "total_floors",     type: "number",  required: true,  label: { en: "Total Floors",     fr: "Nombre d'étages",     ar: "إجمالي الطوابق"         }, min: 1, max: 100, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "floors",   cardFormat: "icon_value" },
+      { key: "total_units",      type: "number",  required: true,  label: { en: "Total Units",      fr: "Nombre d'unités",     ar: "إجمالي الوحدات"         }, min: 1, max: 1000, group: "characteristics", showInSearchFilter: false, showInListingCard: true, cardOrder: 1, cardIcon: "building", cardFormat: "icon_value" },
+      { key: "ground_floor_use", type: "enum",    required: false, label: { en: "Ground Floor Use", fr: "RDC",                 ar: "استخدام الطابق الأرضي"  }, options: [
+        { value: "residential", label: { en: "Residential", fr: "Résidentiel", ar: "سكني"  } },
+        { value: "commercial",  label: { en: "Commercial",  fr: "Commercial",  ar: "تجاري" } },
+        { value: "parking",     label: { en: "Parking",     fr: "Parking",     ar: "موقف"  } },
+        { value: "mixed",       label: { en: "Mixed",       fr: "Mixte",       ar: "مختلط" } },
+      ], group: "characteristics", showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 5, cardBadgeStyle: "neutral", cardBadgeCondition: "always",
+        cardBadgeLabel: { en: { commercial: "Commercial GF" }, fr: { commercial: "RDC commercial" }, ar: { commercial: "الطابق الأرضي تجاري" } } },
+      { key: "has_basement",     type: "boolean", required: false, label: { en: "Basement",         fr: "Sous-sol",            ar: "قبو"                     }, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "parking_spots",    type: "number",  required: false, label: { en: "Parking Spots",    fr: "Places de parking",   ar: "أماكن الانتظار"         }, min: 0, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "has_elevator",     type: "boolean", required: false, label: { en: "Elevator",         fr: "Ascenseur",           ar: "مصعد"                    }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Elevator" }, fr: { true: "Ascenseur" }, ar: { true: "مصعد" } } },
+      { key: "security",         type: "boolean", required: false, label: { en: "Security",         fr: "Sécurité",            ar: "أمان"                    }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "generator",        type: "boolean", required: false, label: { en: "Generator",        fr: "Générateur",          ar: "مولد كهرباء"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "water_tank",       type: "boolean", required: false, label: { en: "Water Tank",       fr: "Citerne d'eau",       ar: "خزان ماء"               }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "year_built",       type: "number",  required: false, label: { en: "Year Built",       fr: "Année de constr.",    ar: "سنة البناء"              }, min: 1900, max: 2030, group: "construction", showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // OFFICE
+      // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "office",
+    label: { en: "Office", fr: "Bureau", ar: "مكتب" },
+    icon: "🖥️",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",        fr: "Surfaces",         ar: "المساحات"  }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics", fr: "Caractéristiques", ar: "الخصائص"  }, order: 2 },
+      { key: "amenities",       label: { en: "Amenities",       fr: "Équipements",      ar: "المرافق"  }, order: 3 },
+      { key: "suitability",     label: { en: "Suitable For",    fr: "Adapté à",         ar: "مناسب لـ" }, order: 4 },
+    ],
+    fields: [
+      { key: "area",          type: "number",     required: true,                        label: { en: "Area (m²)",     fr: "Surface (m²)",  ar: "المساحة (م²)" }, unit: "m²", min: 1, warnBelow: 10, warnAbove: 2000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "ruler",  cardFormat: "value_unit" },
+      { key: "floor",         type: "number",     required: true,                        label: { en: "Floor",         fr: "Étage",         ar: "الطابق"        }, min: 0, max: 100, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "floors", cardFormat: "icon_value" },
+      { key: "total_floors",  type: "number",     required: false,                       label: { en: "Total Floors",  fr: "Nbre d'étages", ar: "إجمالي الطوابق"}, min: 0, max: 200, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "partitioned",   type: "boolean",    required: true,                        label: { en: "Open Space",    fr: "Open space",    ar: "مكتب مفتوح"    }, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "layout", cardFormat: "boolean_chip",
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "neutral", cardBadgeCondition: "always",
+        cardBadgeLabel: { en: { true: "Partitioned", false: "Open space" }, fr: { true: "Cloisonné", false: "Open space" }, ar: { true: "مقسّم", false: "مساحة مفتوحة" } } },
+      { key: "furnished",     type: "enum",       required: { whenListingType: "rent" }, label: { en: "Furnished",     fr: "Ameublement",   ar: "التأثيث"       }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "parking_spots", type: "number",     required: false,                       label: { en: "Parking Spots", fr: "Places parking",ar: "أماكن الانتظار"}, min: 0, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "has_elevator",  type: "boolean",    required: false,                       label: { en: "Elevator",      fr: "Ascenseur",     ar: "مصعد"          }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 5, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Elevator" }, fr: { true: "Ascenseur" }, ar: { true: "مصعد" } } },
+      { key: "air_conditioning", type: "boolean",    required: false,                       label: { en: "Air Conditioning", fr: "Climatisation",   ar: "تكييف هواء"  }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "fiber_internet",  type: "boolean",    required: false,                       label: { en: "Fiber Internet",   fr: "Fibre optique",   ar: "ألياف بصرية" }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "security",        type: "boolean",    required: false,                       label: { en: "Security",        fr: "Sécurité",        ar: "أمان"          }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
+      { key: "suitable_for",  type: "multi_enum", required: false,                       label: { en: "Suitable For",  fr: "Adapté pour",   ar: "مناسب لـ"      }, options: [
+        { value: "startup",        label: { en: "Startup",        fr: "Startup",           ar: "شركة ناشئة"  } },
+        { value: "law_firm",       label: { en: "Law Firm",       fr: "Cabinet juridique", ar: "مكتب محاماة" } },
+        { value: "medical_office", label: { en: "Medical Office", fr: "Cabinet médical",   ar: "عيادة"       } },
+        { value: "agency",         label: { en: "Agency",         fr: "Agence",            ar: "وكالة"       } },
+        { value: "coworking",      label: { en: "Co-working",     fr: "Co-working",        ar: "مشترك"       } },
+        { value: "other",          label: { en: "Other",          fr: "Autre",             ar: "أخرى"        } },
+      ], group: "suitability", showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+
+      // ─────────────────────────────────────────────────────────────────────────────
+      // FARM
+      // ─────────────────────────────────────────────────────────────────────────────
+  {
+    key: "farm",
+    label: { en: "Farm", fr: "Ferme / Hacienda", ar: "مزرعة" },
+    icon: "🌾",
+    groups: [
+      { key: "surfaces",        label: { en: "Surfaces",              fr: "Surfaces",                   ar: "المساحات"          }, order: 1 },
+      { key: "characteristics", label: { en: "Characteristics",       fr: "Caractéristiques",           ar: "الخصائص"          }, order: 2 },
+      { key: "amenities",       label: { en: "Utilities & Equipment", fr: "Réseaux & Équipements",      ar: "المرافق والتجهيزات"}, order: 3 },
+      { key: "construction",    label: { en: "Construction",          fr: "Construction",               ar: "البناء"           }, order: 4 },
+    ],
+    fields: [
+      { key: "total_area",         type: "number",     required: true,  label: { en: "Total Area (ha)",     fr: "Surface totale (ha)",        ar: "المساحة الإجمالية (هكتار)"    }, unit: "ha",  min: 0.01, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 1, cardIcon: "ruler",       cardFormat: "value_unit" },
+      { key: "buildable_area",     type: "number",     required: false, label: { en: "Buildable Area (m²)", fr: "Surface constructible (m²)", ar: "المساحة القابلة للبناء (م²)"  }, unit: "m²",  min: 1,    group: "surfaces",        showInSearchFilter: false, showInListingCard: false },
+      { key: "has_house",          type: "boolean",    required: false, label: { en: "Has House",           fr: "Maison incluse",              ar: "يشمل منزلاً"                  }, group: "amenities",        showInSearchFilter: false, showInListingCard: true,  cardOrder: 4, cardIcon: "home",        cardFormat: "boolean_chip" },
+      { key: "house_area",         type: "number",     required: false, label: { en: "House Area (m²)",     fr: "Surface maison (m²)",        ar: "مساحة المنزل (م²)"            }, unit: "m²",  min: 1,    conditional: { field: "has_house", value: true }, group: "surfaces", showInSearchFilter: false, showInListingCard: false },
+      { key: "has_water_access",   type: "boolean",    required: true,  label: { en: "Water Access",        fr: "Accès à l'eau",              ar: "توصيل ماء"                    }, group: "amenities",        showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "water",       cardFormat: "boolean_chip",
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "always",
+        cardBadgeLabel: { en: { true: "Water", false: "No water" }, fr: { true: "Eau", false: "Sans eau" }, ar: { true: "ماء", false: "بدون ماء" } } },
+      { key: "water_source",       type: "enum",       required: false, label: { en: "Water Source",        fr: "Source d'eau",               ar: "مصدر الماء"                   }, options: [
+        { value: "well",           label: { en: "Well",           fr: "Puits",         ar: "بئر"       } },
+        { value: "river",          label: { en: "River",          fr: "Rivière",       ar: "نهر"       } },
+        { value: "public_network", label: { en: "Public Network", fr: "Réseau public", ar: "شبكة عامة" } },
+        { value: "multiple",       label: { en: "Multiple",       fr: "Multiple",      ar: "متعدد"     } },
+      ], group: "amenities", showInSearchFilter: false, showInListingCard: false },
+      { key: "has_electricity",    type: "boolean",    required: true,  label: { en: "Electricity",         fr: "Électricité",                ar: "توصيل كهرباء"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: true,  cardOrder: 3, cardIcon: "electricity", cardFormat: "boolean_chip",
+        showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "always",
+        cardBadgeLabel: { en: { true: "Electricity", false: "No electricity" }, fr: { true: "Électricité", false: "Sans électricité" }, ar: { true: "كهرباء", false: "بدون كهرباء" } } },
+      { key: "soil_type",          type: "text",       required: false, label: { en: "Soil Type",           fr: "Type de sol",                ar: "نوع التربة"                   }, group: "characteristics",  showInSearchFilter: false, showInListingCard: false },
+      { key: "equipment_included", type: "multi_enum", required: false, label: { en: "Equipment Included",  fr: "Équipements inclus",         ar: "التجهيزات المشمولة"           }, options: [
+        { value: "irrigation_system",    label: { en: "Irrigation System",   fr: "Système d'irrigation", ar: "نظام ري"       } },
+        { value: "greenhouses",          label: { en: "Greenhouses",         fr: "Serres",               ar: "بيوت بلاستيكية"} },
+        { value: "tractor",              label: { en: "Tractor",             fr: "Tracteur",             ar: "جرار"          } },
+        { value: "storage",              label: { en: "Storage",             fr: "Stockage",             ar: "مستودع"        } },
+        { value: "livestock_buildings",  label: { en: "Livestock Buildings", fr: "Bâtiments élevage",    ar: "مباني الماشية" } },
+        { value: "other",                label: { en: "Other",               fr: "Autre",                ar: "أخرى"          } },
+      ], group: "amenities", showInSearchFilter: false, showInListingCard: false },
+      { key: "livestock_included", type: "multi_enum", required: false, label: { en: "Livestock Included",  fr: "Bétail inclus",              ar: "ماشية مشمولة"                 }, options: [
+        { value: "cattle",        label: { en: "Cattle",        fr: "Bovins",       ar: "ماشية"     } },
+        { value: "sheep",         label: { en: "Sheep",         fr: "Ovins",        ar: "أغنام"     } },
+        { value: "goats",         label: { en: "Goats",         fr: "Caprins",      ar: "ماعز"      } },
+        { value: "poultry",       label: { en: "Poultry",       fr: "Volailles",    ar: "دواجن"     } },
+        { value: "horses",        label: { en: "Horses",        fr: "Chevaux",      ar: "خيول"      } },
+        { value: "other",         label: { en: "Other",         fr: "Autre",        ar: "أخرى"      } },
+      ], group: "amenities", showInSearchFilter: false, showInListingCard: false },
+      { key: "year_built",         type: "number",     required: false, label: { en: "Year Built",          fr: "Année de constr.",           ar: "سنة البناء"                   }, min: 1900, max: 2030, group: "construction", showInSearchFilter: false, showInListingCard: false },
+      ],
+      },
+      ];
+
+// ─── Pure accessor functions (Single Source of Truth API) ────────────────────
+
+/** Returns the PropertyTypeDefinition for a given key, or null */
+export function getPropertyType(key) {
+  return PROPERTY_TYPE_DEFS.find(pt => pt.key === key) || null;
+}
+
+/** Returns all property type definitions */
+export function getAllPropertyTypes() {
+  return PROPERTY_TYPE_DEFS;
+}
+
+/** Returns the field definitions for a given property type key */
+export function getFieldsForType(key) {
+  const pt = getPropertyType(key);
+  return pt ? pt.fields : [];
+}
+
+/**
+ * Returns the required fields for a given property type and listing type.
+ * A field is required if required===true OR required.whenListingType === listingType.
+ */
+export function getRequiredFields(propertyTypeKey, listingType) {
+  return getFieldsForType(propertyTypeKey).filter(f => {
+    if (f.required === true) return true;
+    if (f.required && typeof f.required === "object") {
+      return f.required.whenListingType === listingType;
+    }
+    return false;
+  });
+}
+
+/**
+ * Returns fields that should be shown in the search filter for a given type.
+ */
+export function getSearchFilterFields(propertyTypeKey) {
+  return getFieldsForType(propertyTypeKey).filter(f => f.showInSearchFilter);
+}
+
+/**
+ * Returns fields to show in the listing card, sorted by cardOrder.
+ */
+export function getCardFields(propertyTypeKey) {
+  return getFieldsForType(propertyTypeKey)
+    .filter(f => f.showInListingCard)
+    .sort((a, b) => (a.cardOrder ?? 99) - (b.cardOrder ?? 99));
+}
+
+/**
+ * Returns badge-eligible fields for the listing card, sorted by priority descending.
+ */
+export function getCardBadgeFields(propertyTypeKey) {
+  return getFieldsForType(propertyTypeKey)
+    .filter(f => f.showAsCardBadge)
+    .sort((a, b) => (b.cardBadgePriority ?? 0) - (a.cardBadgePriority ?? 0));
+}
+
+/**
+ * Validates a form value object against the config for a given property type.
+ * Returns { valid: boolean, errors: { [fieldKey]: string } }
+ */
+export function validateAttributes(attributes, propertyTypeKey, listingType) {
+  const requiredFields = getRequiredFields(propertyTypeKey, listingType);
+  const errors = {};
+  for (const field of requiredFields) {
+    const val = attributes[field.key];
+    if (val === undefined || val === null || val === "") {
+      errors[field.key] = "required";
+    } else if (field.type === "number" || field.type === "unit_number") {
+      const n = Number(val);
+      if (isNaN(n)) { errors[field.key] = "invalid_number"; continue; }
+      if (field.min !== undefined && n < field.min) errors[field.key] = "below_min";
+      if (field.max !== undefined && n > field.max) errors[field.key] = "above_max";
+    }
+  }
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+/**
+ * Computes the intersection of field keys between two property types.
+ */
+export function getSharedFieldKeys(typeKeyA, typeKeyB) {
+  const keysA = new Set(getFieldsForType(typeKeyA).map(f => f.key));
+  return getFieldsForType(typeKeyB).map(f => f.key).filter(k => keysA.has(k));
+}
+
+/**
+ * Given an attributes object and a property type change,
+ * returns a new attributes object retaining only shared field values.
+ */
+export function migrateAttributes(attributes, fromType, toType) {
+  const shared = getSharedFieldKeys(fromType, toType);
+  const result = {};
+  for (const key of shared) {
+    if (attributes[key] !== undefined) result[key] = attributes[key];
+  }
+  return result;
+}
+
+// ─── Convenience re-export: flat PROPERTY_TYPES list for dropdowns ────────────
+export const PROPERTY_TYPES = PROPERTY_TYPE_DEFS.map(({ key, label, icon }) => ({
+  value: key,
+  label,
+  icon,
+}));
