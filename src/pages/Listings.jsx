@@ -348,6 +348,7 @@ export default function ListingsPage() {
               <ListingCard
                 key={listing.id}
                 listing={listing}
+                lang={lang}
                 isFavorite={favorites.includes(listing.id)}
                 onToggleFavorite={toggleFavorite}
                 isCompared={!!compareList.find(l => l.id === listing.id)}

@@ -390,7 +390,7 @@ export default function ListingDetailPage() {
               <h2 className="font-bold text-gray-800 mb-4">{t.similarListings}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {similar.map(l => (
-                  <ListingCard key={l.id} listing={l} isFavorite={favorites.includes(l.id)} onToggleFavorite={async (lst) => {
+                  <ListingCard key={l.id} listing={l} lang={lang} isFavorite={favorites.includes(l.id)} onToggleFavorite={async (lst) => {
                     const me2 = await base44.auth.me().catch(() => null);
                     if (!me2) { base44.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
                     const isFav2 = favorites.includes(lst.id);
