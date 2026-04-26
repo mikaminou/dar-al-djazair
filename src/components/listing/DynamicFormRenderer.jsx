@@ -87,10 +87,10 @@ function NumberField({ field, value, onChange, error, warning, lang, listingType
           value={value[field.key] ?? ""}
           onChange={e => onChange(field.key, e.target.value)}
           placeholder={field.placeholder?.[lang] || (lang === "ar" ? "مثال: 80" : lang === "fr" ? "Ex: 80" : "Ex: 80")}
-          className={`pr-12 focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors text-sm ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}
+          className={`pr-12 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all text-sm rounded-lg ${error ? "border-red-400 bg-red-50/50" : "border-gray-300 hover:border-gray-400 bg-white"}`}
         />
         {field.unit && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-gray-500 pointer-events-none bg-gray-50 px-1.5">
             {field.unit}
           </span>
         )}
@@ -116,7 +116,7 @@ function TextField({ field, value, onChange, error, lang, listingType }) {
          value={value[field.key] ?? ""}
          onChange={e => onChange(field.key, e.target.value)}
          placeholder={field.placeholder?.[lang] || ""}
-         className={`border-gray-200 focus:border-emerald-400 text-sm ${error ? "border-red-400 bg-red-50/30" : ""}`}
+         className={`text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${error ? "border-red-400 bg-red-50/50" : "border-gray-300 hover:border-gray-400 bg-white"}`}
        />
        {error && <p className="flex items-center gap-1 text-xs text-red-600 mt-2"><AlertCircle className="w-3 h-3" />{error}</p>}
      </div>
@@ -173,7 +173,7 @@ function EnumField({ field, value, onChange, error, lang, listingType }) {
          {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
        </Label>
        <Select value={value[field.key] || ""} onValueChange={v => onChange(field.key, v)}>
-         <SelectTrigger className={`text-sm focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}>
+         <SelectTrigger className={`text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${error ? "border-red-400 bg-red-50/50" : "border-gray-300 hover:border-gray-400 bg-white"}`}>
            <SelectValue placeholder={lang === "ar" ? "اختر..." : lang === "fr" ? "Choisir..." : "Select..."} />
          </SelectTrigger>
          <SelectContent>
@@ -234,7 +234,7 @@ function UnitNumberField({ field, value, onChange, error, lang, listingType }) {
              value={value[field.key] ?? ""}
              onChange={e => onChange(field.key, e.target.value)}
              placeholder={lang === "ar" ? "مثال: 100" : lang === "fr" ? "Ex: 100" : "Ex: 100"}
-             className={`flex-1 focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors text-sm ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}
+             className={`flex-1 text-sm rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all ${error ? "border-red-400 bg-red-50/50" : "border-gray-300 hover:border-gray-400 bg-white"}`}
            />
          {/* Unit toggle pills */}
          {field.unitOptions && field.unitOptions.length > 1 ? (
@@ -313,7 +313,7 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {sortedGroups.map((group, idx) => {
         const regular = nonBoolFields[group.key] || [];
         const bools = boolFields.filter(b => b.group.key === group.key).map(b => b.field);
@@ -322,14 +322,14 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
         if (regular.length === 0 && bools.length === 0 && amenities.length === 0) return null;
 
         return (
-          <div key={group.key} className={idx > 0 ? "pt-2" : ""}>
-            {/* Group header with separator */}
-             <div className="flex items-center gap-2 mb-3">
-               <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider whitespace-nowrap">
-                 {group.label?.[lang] || group.label?.fr}
-               </span>
-               <div className="flex-1 h-px bg-gray-200" />
-             </div>
+          <div key={group.key} className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow">
+            {/* Group header — teal label with icon */}
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-100">
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-xs font-bold text-emerald-700 uppercase tracking-widest">
+                {group.label?.[lang] || group.label?.fr}
+              </span>
+            </div>
 
             {/* Standard fields (number, text, enum, unit_number) */}
             {regular.length > 0 && (
@@ -340,14 +340,14 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
             
             {/* Non-amenity booleans (radio dots) */}
             {bools.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+              <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${regular.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
                 {bools.map(f => renderField(f))}
               </div>
             )}
             
             {/* Amenity pills (flex wrap) */}
             {amenities.length > 0 && (
-              <div className="flex flex-wrap gap-2.5">
+              <div className={`flex flex-wrap gap-2 ${regular.length > 0 || bools.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
                 {amenities.map(f => renderField(f))}
               </div>
             )}

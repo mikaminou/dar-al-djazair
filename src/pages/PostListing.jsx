@@ -535,19 +535,24 @@ export default function PostListingPage() {
                 </div>
 
                 {/* Property Details — DynamicFormRenderer is the ONLY source */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
-                    {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}
-                  </h3>
-                  <DynamicFormRenderer
-                    propertyType={form.property_type}
-                    listingType={form.listing_type}
-                    value={form.attributes || {}}
-                    onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
-                    errors={errors}
-                    warnings={warnings}
-                    lang={lang}
-                  />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-emerald-50 to-emerald-100/50 rounded-xl border border-emerald-200">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-sm font-bold">⚙</div>
+                    <h3 className="text-sm font-bold text-emerald-900">
+                      {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}
+                    </h3>
+                  </div>
+                  <div className="bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100 p-5">
+                    <DynamicFormRenderer
+                      propertyType={form.property_type}
+                      listingType={form.listing_type}
+                      value={form.attributes || {}}
+                      onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
+                      errors={errors}
+                      warnings={warnings}
+                      lang={lang}
+                    />
+                  </div>
                 </div>
 
 
