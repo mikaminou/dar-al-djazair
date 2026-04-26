@@ -9,15 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, FEATURES_LIST, formatPrice } from "../components/constants";
-import { PROPERTY_TYPES, migrateAttributes } from "../components/propertyTypes.config";
+import { PROPERTY_TYPES, migrateAttributes, getAllPropertyTypes } from "../components/propertyTypes.config";
 import { LISTING_CONFIG } from "../components/listing";
 import DynamicFormRenderer from "../components/listing/DynamicFormRenderer";
 
 import MobileHeader from "../components/MobileHeader";
 import {
   validateStep0, validateStep1, validateStep2, validateStep3, validateStep4,
-  validateImageFile, checkImageResolution, fullValidationPass, hasBedrooms,
-  hasBathrooms, hasFurnished, t as vt,
+  validateImageFile, checkImageResolution, fullValidationPass, t as vt,
 } from "../components/listing/listingValidation";
 
 const STEPS = ["Type", "Details", "Location", "Photos", "Contact", "Review"];
@@ -76,15 +75,8 @@ export default function PostListingPage() {
     price:          "",
     hide_price:     !LISTING_CONFIG.DEFAULT_PRICE_VISIBLE,
     is_exclusive:   false,
-    area:           "",
-    rooms:          "",
-    bedrooms:       "",
-    bathrooms:      "",
-    floor:          "",
-    year_built:     "",
-    furnished:      "",
     features:       [],
-    attributes:     {},   // dynamic type-specific fields
+    attributes:     {},   // single source for all type-specific fields
     wilaya:         "",
     commune:        "",
     address:        "",
@@ -111,6 +103,16 @@ export default function PostListingPage() {
           if (listing.created_by !== me.email) { window.location.href = createPageUrl("MyListings"); return; }
           // Migrate legacy "new_development" to "building"
           const propertyType = listing.property_type === "new_development" ? "building" : (listing.property_type || "apartment");
+
+          // DRAFT MIGRATION: move legacy root-level type-specific keys into attributes
+          const migratedAttrs = { ...(listing.attributes || {}) };
+          const legacyKeys = ["area", "rooms", "bedrooms", "bathrooms", "floor", "year_built", "furnished"];
+          for (const k of legacyKeys) {
+            if (listing[k] !== undefined && listing[k] !== null && listing[k] !== "" && migratedAttrs[k] === undefined) {
+              migratedAttrs[k] = String(listing[k]);
+            }
+          }
+
           setForm({
             listing_type:  listing.listing_type  || "sale",
             property_type: propertyType,
@@ -119,15 +121,8 @@ export default function PostListingPage() {
             price:         listing.price         || "",
             hide_price:    listing.hide_price     ?? false,
             is_exclusive:  listing.is_exclusive    ?? false,
-            area:          listing.area     ? String(listing.area)      : "",
-            rooms:         listing.rooms    ? String(listing.rooms)     : "",
-            bedrooms:      listing.bedrooms ? String(listing.bedrooms)  : "",
-            bathrooms:     listing.bathrooms? String(listing.bathrooms) : "",
-            floor:         listing.floor    ? String(listing.floor)     : "",
-            year_built:    listing.year_built? String(listing.year_built):"",
-            furnished:     listing.furnished || "",
             features:      listing.features  || [],
-            attributes:    listing.attributes || {},
+            attributes:    migratedAttrs,
             wilaya:        listing.wilaya    || "",
             commune:       listing.commune   || "",
             address:       listing.address   || "",
@@ -264,9 +259,9 @@ export default function PostListingPage() {
     setTouchedFields(p => {
       const all = { ...p };
       const keys = {
-        0: ["listing_type", "property_type"],
-        1: ["title", "price", "area", "bedrooms", "bathrooms", "floor", "furnished"],
-        2: ["wilaya", "commune", "address"],
+      0: ["listing_type", "property_type"],
+      1: ["title", "price"],
+      2: ["wilaya", "commune", "address"],
         3: ["images"],
         4: ["contact_name", "contact_phone", "contact_email"],
       };
@@ -282,16 +277,22 @@ export default function PostListingPage() {
 
   async function submit() {
     setSaving(true);
+    // Convert numeric attribute values to numbers before saving
+    const coercedAttrs = {};
+    for (const [k, v] of Object.entries(form.attributes || {})) {
+      const n = Number(v);
+      coercedAttrs[k] = (!isNaN(n) && v !== "" && v !== true && v !== false) ? n : v;
+    }
     const payload = {
       ...form,
-      price:      Number(form.price)      || 0,
-      area:       form.area       ? Number(form.area)       : undefined,
-      rooms:      form.rooms      ? Number(form.rooms)      : undefined,
-      bedrooms:   form.bedrooms   ? Number(form.bedrooms)   : undefined,
-      bathrooms:  form.bathrooms  ? Number(form.bathrooms)  : undefined,
-      floor:      form.floor      ? Number(form.floor)      : undefined,
-      year_built: form.year_built ? Number(form.year_built) : undefined,
-      attributes: form.attributes || {},
+      price:      Number(form.price) || 0,
+      // Also write key entity columns for search/filter compatibility
+      area:       coercedAttrs.area      || coercedAttrs.total_area || undefined,
+      bedrooms:   coercedAttrs.bedrooms  || undefined,
+      bathrooms:  coercedAttrs.bathrooms || undefined,
+      floor:      coercedAttrs.floor     || undefined,
+      furnished:  coercedAttrs.furnished || undefined,
+      attributes: coercedAttrs,
     };
     if (editingId) {
       const existing = await base44.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);
@@ -332,12 +333,12 @@ export default function PostListingPage() {
       label: lang === "ar" ? "التفاصيل" : lang === "fr" ? "Détails" : "Details",
       hasError: reviewStepErrors[1],
       items: [
-        { label: lang === "ar" ? "العنوان"  : lang === "fr" ? "Titre"        : "Title",       value: form.title },
-        { label: lang === "ar" ? "السعر"    : lang === "fr" ? "Prix"         : "Price",       value: form.price ? formatPrice(Number(form.price), lang) : "—" },
-        { label: lang === "ar" ? "المساحة"  : lang === "fr" ? "Surface"      : "Area",        value: form.area      ? `${form.area} m²`  : "—" },
-        { label: lang === "ar" ? "الغرف"   : lang === "fr" ? "Pièces"       : "Rooms",       value: form.rooms     || "—" },
-        { label: lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres"     : "Bedrooms",    value: form.bedrooms  || "—" },
-        { label: lang === "ar" ? "حمامات"  : lang === "fr" ? "SDB"          : "Bathrooms",   value: form.bathrooms || "—" },
+        { label: lang === "ar" ? "العنوان" : lang === "fr" ? "Titre" : "Title", value: form.title },
+        { label: lang === "ar" ? "السعر"   : lang === "fr" ? "Prix"  : "Price", value: form.price ? formatPrice(Number(form.price), lang) : "—" },
+        ...Object.entries(form.attributes || {}).slice(0, 6).map(([k, v]) => ({
+          label: k,
+          value: v === true ? "✓" : v === false ? "✗" : String(v),
+        })),
       ],
     },
     {
@@ -518,122 +519,34 @@ export default function PostListingPage() {
                   </label>
                 </div>
 
-                {/* Area */}
-                <div className="border border-orange-100 rounded-xl p-4 bg-orange-50/50">
-                  <Label className="text-xs font-bold text-orange-900 mb-2.5 block">
-                    {lang === "ar" ? "المساحة (م²)" : lang === "fr" ? "Surface (m²)" : "Area (m²)"}
-                    {["apartment","house","villa","commercial","office","new_development"].includes(form.property_type) && <RequiredMark />}
-                  </Label>
-                  <Input
-                    type="number"
-                    value={form.area}
-                    onChange={e => set("area", e.target.value)}
-                    onBlur={() => { markTouched("area"); runValidation(1, form); }}
-                    placeholder="0"
-                    className={`border-orange-200 focus:border-orange-400 ${errors.area && touchedFields.area ? "border-red-400" : ""}`}
-                  />
-                  <FieldError   msgKey={touchedFields.area ? errors.area   : null} lang={lang} />
-                  <FieldWarning msgKey={warnings.area} lang={lang} />
-                </div>
-
-                {/* Rooms grid */}
-                <div>
-                  <Label className="text-xs font-bold text-gray-700 mb-3 block uppercase tracking-wider">
-                    {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Layout"}
-                  </Label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {/* Rooms — always shown */}
-                    <div className="border border-emerald-100 rounded-lg p-3 bg-emerald-50/40">
-                      <p className="text-xs font-bold text-emerald-900 mb-2">{lang === "ar" ? "الغرف" : lang === "fr" ? "Pièces" : "Rooms"}</p>
-                      <Input type="number" min="0" value={form.rooms} onChange={e => set("rooms", e.target.value)} placeholder="0" className="border-emerald-200 text-center text-lg font-bold" />
-                    </div>
-
-                    {/* Bedrooms */}
-                    {hasBedrooms(form.property_type) && (
-                      <div className="border border-blue-100 rounded-lg p-3 bg-blue-50/40">
-                        <p className="text-xs font-bold text-blue-900 mb-2">{lang === "ar" ? "غرف نوم" : lang === "fr" ? "Chambres" : "Bedrooms"}<RequiredMark /></p>
-                        <Input
-                          type="number" min="0" value={form.bedrooms}
-                          onChange={e => set("bedrooms", e.target.value)}
-                          onBlur={() => { markTouched("bedrooms"); runValidation(1, form); }}
-                          placeholder="0" className={`border-blue-200 text-center text-lg font-bold ${errors.bedrooms && touchedFields.bedrooms ? "border-red-400" : ""}`}
-                        />
-                        <FieldError msgKey={touchedFields.bedrooms ? errors.bedrooms : null} lang={lang} />
-                      </div>
-                    )}
-
-                    {/* Bathrooms */}
-                    {hasBathrooms(form.property_type) && (
-                      <div className="border border-cyan-100 rounded-lg p-3 bg-cyan-50/40">
-                        <p className="text-xs font-bold text-cyan-900 mb-2">{lang === "ar" ? "حمامات" : lang === "fr" ? "SDB" : "Baths"}<RequiredMark /></p>
-                        <Input
-                          type="number" min="0" value={form.bathrooms}
-                          onChange={e => set("bathrooms", e.target.value)}
-                          onBlur={() => { markTouched("bathrooms"); runValidation(1, form); }}
-                          placeholder="0" className={`border-cyan-200 text-center text-lg font-bold ${errors.bathrooms && touchedFields.bathrooms ? "border-red-400" : ""}`}
-                        />
-                        <FieldError msgKey={touchedFields.bathrooms ? errors.bathrooms : null} lang={lang} />
-                      </div>
-                    )}
-
-                    {/* Floor */}
-                    {form.property_type !== "land" && (
-                      <div className="border border-indigo-100 rounded-lg p-3 bg-indigo-50/40">
-                        <p className="text-xs font-bold text-indigo-900 mb-2">{lang === "ar" ? "الطابق" : lang === "fr" ? "Étage" : "Floor"}</p>
-                        <Input
-                          type="number" min="0" value={form.floor}
-                          onChange={e => set("floor", e.target.value)}
-                          onBlur={() => { markTouched("floor"); runValidation(1, form); }}
-                          placeholder="0" className={`border-indigo-200 text-center text-lg font-bold ${errors.floor && touchedFields.floor ? "border-red-400" : ""}`}
-                        />
-                        <FieldError msgKey={touchedFields.floor ? errors.floor : null} lang={lang} />
-                      </div>
-                    )}
+                {/* Property Details — DynamicFormRenderer is the ONLY source */}
+                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                    <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <DynamicFormRenderer
+                      propertyType={form.property_type}
+                      listingType={form.listing_type}
+                      value={form.attributes || {}}
+                      onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
+                      errors={errors}
+                      warnings={warnings}
+                      lang={lang}
+                    />
                   </div>
                 </div>
 
-                {/* Furnished */}
-                {hasFurnished(form.property_type) && (
-                  <div className="border border-amber-100 rounded-xl p-4 bg-amber-50/50">
-                    <Label className="text-xs font-bold text-amber-900 mb-2.5 block">
-                      {t.furnished}
-                      {form.listing_type === "rent" && <RequiredMark />}
-                    </Label>
-                    <Select value={form.furnished} onValueChange={v => { set("furnished", v); markTouched("furnished"); }}>
-                      <SelectTrigger className={`border-amber-200 ${errors.furnished && touchedFields.furnished ? "border-red-400" : ""}`}>
-                        <SelectValue placeholder={lang === "ar" ? "اختر..." : lang === "fr" ? "Choisir..." : "Select..."} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="furnished">{lang === "ar" ? "مفروش" : lang === "fr" ? "Meublé" : "Furnished"}</SelectItem>
-                        <SelectItem value="semi_furnished">{lang === "ar" ? "مفروش جزئياً" : lang === "fr" ? "Semi-meublé" : "Semi-furnished"}</SelectItem>
-                        <SelectItem value="unfurnished">{lang === "ar" ? "غير مفروش" : lang === "fr" ? "Vide" : "Unfurnished"}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FieldError msgKey={touchedFields.furnished ? errors.furnished : null} lang={lang} />
-                  </div>
-                )}
-
-                {/* Dynamic type-specific fields */}
-                <div className="border border-blue-100 rounded-xl p-4 bg-blue-50/30">
-                  <Label className="text-xs font-bold text-blue-900 mb-3 block uppercase tracking-wider">
-                    {lang === "ar" ? "✦ تفاصيل حسب النوع" : lang === "fr" ? "✦ Détails spécifiques au type" : "✦ Type-specific Details"}
-                  </Label>
-                  <DynamicFormRenderer
-                    propertyType={form.property_type}
-                    listingType={form.listing_type}
-                    value={form.attributes || {}}
-                    onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
-                    errors={{}}
-                    warnings={{}}
-                    lang={lang}
-                  />
-                </div>
-
-                {/* Features */}
+                {/* Features / Amenities */}
                 <div>
-                  <Label className="text-xs font-bold text-gray-700 mb-3.5 block uppercase tracking-wider">
-                    {lang === "ar" ? "✦ المميزات" : lang === "fr" ? "✦ Caractéristiques" : "✦ Amenities"}
-                  </Label>
+                  <div className="flex items-center gap-3 mb-3.5">
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-wider">
+                      {lang === "ar" ? "المميزات العامة" : lang === "fr" ? "Équipements généraux" : "General Amenities"}
+                    </span>
+                    <div className="flex-1 h-px bg-gray-100" />
+                  </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
                     {FEATURES_LIST.map(feat => {
                       const active = form.features.includes(feat.value);

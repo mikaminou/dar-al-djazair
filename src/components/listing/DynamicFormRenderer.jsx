@@ -41,19 +41,28 @@ function NumberField({ field, value, onChange, error, warning, lang, listingType
   const req = isRequired(field, listingType);
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+      <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
         {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
-        {field.unit && <span className="ml-1 text-gray-400 font-normal">({field.unit})</span>}
       </Label>
-      <Input
-        type="number"
-        min={field.min}
-        max={field.max}
-        value={value[field.key] ?? ""}
-        onChange={e => onChange(field.key, e.target.value)}
-        placeholder={field.placeholder?.[lang] || "0"}
-        className={`text-center ${error ? "border-red-400" : ""}`}
-      />
+      <div className="relative">
+        <Input
+          type="number"
+          min={field.min}
+          max={field.max}
+          value={value[field.key] ?? ""}
+          onChange={e => onChange(field.key, e.target.value)}
+          placeholder={field.placeholder?.[lang] || "0"}
+          className={`pr-12 focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}
+        />
+        {field.unit && (
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">
+            {field.unit}
+          </span>
+        )}
+      </div>
+      {field.helperText?.[lang] && !error && (
+        <p className="text-[11px] text-gray-400 mt-1">{field.helperText[lang]}</p>
+      )}
       {error && <p className="flex items-center gap-1 text-xs text-red-600 mt-1"><AlertCircle className="w-3 h-3" />{error}</p>}
       {warning && !error && <p className="flex items-center gap-1 text-xs text-amber-600 mt-1"><AlertTriangle className="w-3 h-3" />{warning}</p>}
     </div>
@@ -64,7 +73,7 @@ function TextField({ field, value, onChange, error, lang, listingType }) {
   const req = isRequired(field, listingType);
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+      <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
         {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
       </Label>
       <Input
@@ -85,13 +94,17 @@ function BooleanField({ field, value, onChange, lang }) {
     <button
       type="button"
       onClick={() => onChange(field.key, !active)}
-      className={`w-full text-left px-3 py-2.5 rounded-lg border-2 text-xs font-semibold transition-all ${
+      className={`w-full text-left px-3 py-2.5 rounded-xl border-2 text-xs font-semibold transition-all flex items-center gap-2 ${
         active
-          ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-          : "border-gray-200 text-gray-500 hover:border-emerald-200"
+          ? "border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm"
+          : "border-gray-200 bg-white text-gray-500 hover:border-emerald-300 hover:bg-emerald-50/40"
       }`}
     >
-      <span className="mr-1.5">{active ? "✓" : "○"}</span>
+      <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+        active ? "border-emerald-500 bg-emerald-500" : "border-gray-300"
+      }`}>
+        {active && <span className="w-1.5 h-1.5 rounded-full bg-white block" />}
+      </span>
       {lbl(field, lang)}
     </button>
   );
@@ -101,11 +114,11 @@ function EnumField({ field, value, onChange, error, lang, listingType }) {
   const req = isRequired(field, listingType);
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+      <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
         {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
       </Label>
       <Select value={value[field.key] || ""} onValueChange={v => onChange(field.key, v)}>
-        <SelectTrigger className={`text-sm ${error ? "border-red-400" : "border-gray-200"}`}>
+        <SelectTrigger className={`text-sm focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}>
           <SelectValue placeholder={lang === "ar" ? "اختر..." : lang === "fr" ? "Choisir..." : "Select..."} />
         </SelectTrigger>
         <SelectContent>
@@ -127,8 +140,8 @@ function MultiEnumField({ field, value, onChange, lang }) {
     onChange(field.key, selected.includes(v) ? selected.filter(x => x !== v) : [...selected, v]);
   };
   return (
-    <div>
-      <Label className="text-xs font-semibold text-gray-700 mb-2 block">{lbl(field, lang)}</Label>
+    <div className="sm:col-span-2 md:col-span-3">
+      <Label className="text-xs font-semibold text-gray-600 mb-2 block">{lbl(field, lang)}</Label>
       <div className="flex flex-wrap gap-1.5">
         {(field.options || []).map(opt => {
           const active = selected.includes(opt.value);
@@ -156,7 +169,7 @@ function UnitNumberField({ field, value, onChange, error, lang, listingType }) {
   const currentUnit = value[unitKey] || (field.unitOptions?.[0] || "");
   return (
     <div>
-      <Label className="text-xs font-semibold text-gray-700 mb-1.5 block">
+      <Label className="text-xs font-semibold text-gray-600 mb-1.5 block">
         {lbl(field, lang)}{req && <span className="text-red-500 ml-0.5">*</span>}
       </Label>
       <div className="flex gap-2">
@@ -166,18 +179,31 @@ function UnitNumberField({ field, value, onChange, error, lang, listingType }) {
           value={value[field.key] ?? ""}
           onChange={e => onChange(field.key, e.target.value)}
           placeholder="0"
-          className={`flex-1 ${error ? "border-red-400" : ""}`}
+          className={`flex-1 focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-colors ${error ? "border-red-400 bg-red-50/30" : "border-gray-200"}`}
         />
-        <Select value={currentUnit} onValueChange={v => onChange(unitKey, v)}>
-          <SelectTrigger className="w-28 border-gray-200 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(field.unitOptions || []).map(u => (
-              <SelectItem key={u} value={u}>{u}</SelectItem>
+        {/* Unit toggle pills */}
+        {field.unitOptions && field.unitOptions.length > 1 ? (
+          <div className="flex gap-1">
+            {field.unitOptions.map(u => (
+              <button
+                key={u}
+                type="button"
+                onClick={() => onChange(unitKey, u)}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                  currentUnit === u
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-white text-gray-500 border-gray-200 hover:border-emerald-400"
+                }`}
+              >
+                {u}
+              </button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        ) : (
+          <span className="flex items-center px-3 text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg font-medium">
+            {currentUnit}
+          </span>
+        )}
       </div>
       {error && <p className="flex items-center gap-1 text-xs text-red-600 mt-1"><AlertCircle className="w-3 h-3" />{error}</p>}
     </div>
@@ -237,11 +263,16 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
 
         return (
           <div key={group.key}>
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-              {group.label?.[lang] || group.label?.fr}
-            </p>
+            {/* Group header with separator */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-widest whitespace-nowrap">
+                {group.label?.[lang] || group.label?.fr}
+              </span>
+              <div className="flex-1 h-px bg-emerald-100" />
+            </div>
+
             {regular.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-3">
                 {regular.map(f => renderField(f))}
               </div>
             )}

@@ -187,7 +187,7 @@ export const t = (key, lang) => VM[key]?.[lang] || VM[key]?.en || key;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-import { getAllPropertyTypes, getFieldsForType } from "../propertyTypes.config";
+import { getAllPropertyTypes, getFieldsForType, validateAttributes } from "../propertyTypes.config";
 
 const VALID_LISTING_TYPES  = ["sale", "rent"];
 // Derived from the config — single source of truth
@@ -233,8 +233,8 @@ export function validateStep2(form) {
 
 export function validateStep1(form) {
   const errors = {}, warnings = {};
-  const pt = form.property_type;
   const lt = form.listing_type;
+  const attrs = form.attributes || {};
 
   // Title
   if (!form.title || !form.title.trim()) {
@@ -257,52 +257,10 @@ export function validateStep1(form) {
     else if (price > 10000000) warnings.price = "price_rent_high_warning";
   }
 
-  // Area
-  const area = form.area !== "" ? Number(form.area) : null;
-  if (areaRequired(pt)) {
-    if (area === null || form.area === "") errors.area = "area_required";
-    else if (area < 10)  errors.area = "area_too_small";
-    else if (areaHasCap(pt) && area > 100000) warnings.area = "area_too_large_warning";
-  } else if (area !== null && form.area !== "") {
-    if (area < 10) errors.area = "area_too_small";
-    else if (areaHasCap(pt) && area > 100000) warnings.area = "area_too_large_warning";
-  }
-
-  // Bedrooms
-  if (hasBedrooms(pt)) {
-    if (form.bedrooms === "" || form.bedrooms === null || form.bedrooms === undefined) {
-      errors.bedrooms = "bedrooms_required";
-    } else {
-      const b = Number(form.bedrooms);
-      if (b < 0 || !Number.isInteger(b)) errors.bedrooms = "bedrooms_required";
-      else if (b > 20) errors.bedrooms = "bedrooms_too_many";
-      else if (form.rooms !== "" && form.rooms !== null && form.rooms !== undefined && b > Number(form.rooms)) {
-        errors.bedrooms = "bedrooms_exceeds_rooms";
-      }
-    }
-  }
-
-  // Bathrooms
-  if (hasBathrooms(pt)) {
-    if (form.bathrooms === "" || form.bathrooms === null || form.bathrooms === undefined) {
-      errors.bathrooms = "bathrooms_required";
-    } else {
-      const b = Number(form.bathrooms);
-      if (b < 0 || !Number.isInteger(b)) errors.bathrooms = "bathrooms_required";
-      else if (b > 10) errors.bathrooms = "bathrooms_too_many";
-    }
-  }
-
-  // Floor
-  if (form.floor !== "" && form.floor !== null && form.floor !== undefined) {
-    const fl = Number(form.floor);
-    if (fl < 0 || !Number.isInteger(fl)) errors.floor = "floor_invalid";
-    else if (fl > 100) errors.floor = "floor_too_high";
-  }
-
-  // Furnished — required for rent + applicable types
-  if (lt === "rent" && hasFurnished(pt)) {
-    if (!form.furnished) errors.furnished = "furnished_required";
+  // Validate required attributes from config
+  const attrValidation = validateAttributes(attrs, form.property_type, lt);
+  for (const [k, v] of Object.entries(attrValidation.errors)) {
+    errors[k] = v === "required" ? "required" : v;
   }
 
   return { errors, warnings };
