@@ -314,7 +314,7 @@ export default function ProfilePage() {
                       <SelectValue placeholder="..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {WILAYAS.map(w => <SelectItem key={w} value={w}>{w}</SelectItem>)}
+                      {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
