@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2, Camera } from "lucide-react";
+import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2, Camera, Mail } from "lucide-react";
 import UserAvatar from "../components/UserAvatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import ListingCard from "../components/listing/ListingCard";
@@ -71,6 +71,7 @@ export default function ProfilePage() {
       wilaya: userInfo?.wilaya || (Array.isArray(userInfo?.wilayas) ? "" : ""),
       wilayas: Array.isArray(userInfo?.wilayas) ? userInfo.wilayas : (userInfo?.wilaya ? [userInfo.wilaya] : []),
       website: userInfo?.website || "",
+      contact_email: userInfo?.contact_email || "",
       avatar_url: userInfo?.avatar_url || "",
     });
 
@@ -222,6 +223,11 @@ export default function ProfilePage() {
                         <Phone className="w-4 h-4" />{profileUser.phone}
                       </a>
                     )}
+                    {profileUser.contact_email && (
+                      <a href={`mailto:${profileUser.contact_email}`} className="flex items-center gap-1 hover:text-emerald-600">
+                        <Mail className="w-4 h-4" />{profileUser.contact_email}
+                      </a>
+                    )}
                     {profileUser.website && (
                       <a href={profileUser.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 hover:text-emerald-600">
                         <Globe className="w-4 h-4" />{profileUser.website}
@@ -319,6 +325,12 @@ export default function ProfilePage() {
                     {lang === "ar" ? "رقم الهاتف" : lang === "fr" ? "Téléphone" : "Phone"}
                   </label>
                   <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+213 ..." className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>
+                    {lang === "ar" ? "البريد الإلكتروني للتواصل" : lang === "fr" ? "Email de contact" : "Contact Email"}
+                  </label>
+                  <Input type="email" value={form.contact_email} onChange={e => setForm(p => ({ ...p, contact_email: e.target.value }))} placeholder="contact@..." className={inputCls} />
                 </div>
                 <div>
                   <label className={labelCls}>
