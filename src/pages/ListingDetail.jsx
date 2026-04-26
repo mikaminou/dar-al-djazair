@@ -22,7 +22,8 @@ import BookingWidget from "../components/booking/BookingWidget";
 import { LISTING_CONFIG } from "../components/listing.config";
 import WaitlistBanner from "../components/listing/WaitlistBanner";
 import { computeAgencyExperience } from "../utils/computeAgencyExperience";
-import DynamicFieldDisplay from "../components/listing/DynamicFieldDisplay";
+import DynamicFieldDisplay, { legacyAttributesAdapter } from "../components/listing/DynamicFieldDisplay";
+import ListingBadgeRow from "../components/listing/ListingBadgeRow";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -157,6 +158,16 @@ export default function ListingDetailPage() {
   const isUnavailable = ["reserved", "sold", "rented", "deleted", "archived"].includes(listing.status);
   const isOwner = user && (user.email === listing.created_by || user.email === listing.contact_email);
 
+  // Resolve attributes — falls back to legacy top-level columns
+  const resolvedAttributes = Object.keys(listing.attributes || {}).length > 0
+    ? listing.attributes
+    : legacyAttributesAdapter(listing);
+
+  // Building → project suggestion (owner-only)
+  const showProjectSuggestion = isOwner
+    && listing.property_type === "building"
+    && ((resolvedAttributes?.total_units || 0) > 30);
+
   const images = listing.images?.length > 0
     ? listing.images
     : ["https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=800&q=80"];
@@ -205,6 +216,26 @@ export default function ListingDetailPage() {
           <div className="max-w-6xl mx-auto flex items-center gap-2 text-amber-800 text-sm font-medium">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             {unavailableMessage()}
+          </div>
+        </div>
+      )}
+
+      {showProjectSuggestion && (
+        <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+          <div className="max-w-6xl mx-auto flex flex-wrap items-center gap-3 text-blue-800 text-sm">
+            <span className="font-medium">
+              {lang === "ar"
+                ? "يشبه هذا الإعلان مشروعاً عقارياً. هل تريد نشره كمشروع للاستفادة من الواجهة المخصصة؟"
+                : lang === "fr"
+                ? "Cette annonce ressemble à un projet immobilier. Voulez-vous la republier comme Projet pour bénéficier de la vitrine dédiée ?"
+                : "This listing looks like a real estate project. Would you like to repost it as a Project for a dedicated showcase?"}
+            </span>
+            <a
+              href={`/PostProject?from_listing=${listing.id}`}
+              className="inline-flex items-center gap-1 text-xs font-semibold bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              {lang === "ar" ? "تحويل إلى مشروع" : lang === "fr" ? "Convertir en Projet" : "Convert to Project"}
+            </a>
           </div>
         </div>
       )}
@@ -283,6 +314,7 @@ export default function ListingDetailPage() {
                   ? <div className="text-2xl font-bold text-emerald-700">{formatPrice(listing.price, listing.listing_type, lang)}</div>
                   : <div className="text-sm font-semibold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg">{lang === "ar" ? "السعر عند الاتصال" : lang === "fr" ? "Prix sur demande" : "Price on request"}</div>
                 }
+                <ListingBadgeRow listing={{ ...listing, attributes: resolvedAttributes }} lang={lang} />
               </div>
             </div>
 
@@ -307,12 +339,13 @@ export default function ListingDetailPage() {
           </div>
 
           {/* Dynamic type-specific attributes */}
-          {listing.attributes && Object.keys(listing.attributes).length > 0 && (
+          {Object.keys(resolvedAttributes).length > 0 && (
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h2 className="font-bold text-gray-800 mb-4">{lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}</h2>
               <DynamicFieldDisplay
-                propertyType={listing.property_type === "new_development" ? "building" : listing.property_type}
-                attributes={listing.attributes}
+                propertyType={listing.property_type}
+                attributes={resolvedAttributes}
+                listing={listing}
                 lang={lang}
               />
             </div>
