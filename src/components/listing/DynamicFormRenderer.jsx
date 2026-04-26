@@ -281,15 +281,18 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
   }
 
   const boolFields = [];
-  const amenityFields = [];
+  const amenityBoolFields = [];
+  const amenityNumericFields = [];
   const nonBoolFields = {};
 
-  // Separate: amenities → pill grid, other booleans → radio dots grid, rest → standard grid
+  // Separate: numeric amenities, boolean amenities pills, other booleans → radio dots, rest → standard grid
   for (const group of sortedGroups) {
     const fields = fieldsByGroup[group.key] || [];
     for (const field of fields) {
-      if (field.group === "amenities" && (field.type === "boolean" || field.type === "number")) {
-        amenityFields.push({ field, group });
+      if (field.group === "amenities" && field.type === "number") {
+        amenityNumericFields.push({ field, group });
+      } else if (field.group === "amenities" && field.type === "boolean") {
+        amenityBoolFields.push({ field, group });
       } else if (field.type === "boolean") {
         boolFields.push({ field, group });
       } else {
@@ -317,9 +320,10 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
       {sortedGroups.map((group, idx) => {
         const regular = nonBoolFields[group.key] || [];
         const bools = boolFields.filter(b => b.group.key === group.key).map(b => b.field);
-        const amenities = amenityFields.filter(a => a.group.key === group.key).map(a => a.field);
+        const numericAmenities = amenityNumericFields.filter(a => a.group.key === group.key).map(a => a.field);
+        const boolAmenities = amenityBoolFields.filter(a => a.group.key === group.key).map(a => a.field);
         
-        if (regular.length === 0 && bools.length === 0 && amenities.length === 0) return null;
+        if (regular.length === 0 && bools.length === 0 && numericAmenities.length === 0 && boolAmenities.length === 0) return null;
 
         return (
           <div key={group.key} className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow">
@@ -345,10 +349,17 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
               </div>
             )}
             
-            {/* Amenity pills (flex wrap) */}
-            {amenities.length > 0 && (
-              <div className={`flex flex-wrap gap-2 ${regular.length > 0 || bools.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
-                {amenities.map(f => renderField(f))}
+            {/* Numeric amenities (steppers) */}
+            {numericAmenities.length > 0 && (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${regular.length > 0 || bools.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
+                {numericAmenities.map(f => renderField(f))}
+              </div>
+            )}
+            
+            {/* Boolean amenity pills (flex wrap) */}
+            {boolAmenities.length > 0 && (
+              <div className={`flex flex-wrap gap-2 ${regular.length > 0 || bools.length > 0 || numericAmenities.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
+                {boolAmenities.map(f => renderField(f))}
               </div>
             )}
           </div>
