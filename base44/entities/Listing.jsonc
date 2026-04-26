@@ -23,7 +23,7 @@
         "villa",
         "land",
         "commercial",
-        "new_development",
+        "building",
         "office",
         "farm"
       ]
@@ -97,6 +97,10 @@
         "type": "string"
       }
     },
+    "attributes": {
+      "type": "object",
+      "description": "Dynamic type-specific attributes. Schema defined in propertyTypes.config.js."
+    },
     "status": {
       "type": "string",
       "enum": [
@@ -164,12 +168,12 @@
     "is_exclusive": {
       "type": "boolean",
       "default": false,
-      "description": "This listing is listed exclusively with this agency/individual and should not appear on other platforms."
+      "description": "This listing is listed exclusively with this agency/individual."
     },
     "exclusivity_conflict": {
       "type": "boolean",
       "default": false,
-      "description": "Flagged by system: this pending listing may duplicate an existing exclusive listing."
+      "description": "Flagged by system: may duplicate an existing exclusive listing."
     },
     "conflict_listing_id": {
       "type": "string",

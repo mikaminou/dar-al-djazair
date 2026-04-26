@@ -187,8 +187,11 @@ export const t = (key, lang) => VM[key]?.[lang] || VM[key]?.en || key;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+import { getAllPropertyTypes, getFieldsForType } from "../propertyTypes.config";
+
 const VALID_LISTING_TYPES  = ["sale", "rent"];
-const VALID_PROPERTY_TYPES = ["apartment", "house", "villa", "land", "commercial", "new_development", "office", "farm"];
+// Derived from the config — single source of truth
+const VALID_PROPERTY_TYPES = getAllPropertyTypes().map(pt => pt.key);
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 const MAX_IMAGE_SIZE_MB    = 10;
 const MAX_IMAGES           = 20;
@@ -196,12 +199,16 @@ const MAX_IMAGES           = 20;
 const DZ_PHONE_RE = /^(05|06|07)\d{8}$|^\+213[567]\d{8}$/;
 const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Types where bedrooms/bathrooms make sense
-export const hasBedrooms   = (pt) => ["apartment", "house", "villa", "new_development"].includes(pt);
-export const hasBathrooms  = (pt) => ["apartment", "house", "villa", "new_development", "commercial", "office"].includes(pt);
-export const hasFurnished  = (pt) => ["apartment", "house", "villa", "new_development"].includes(pt);
-export const areaRequired  = (pt) => ["apartment", "house", "villa", "commercial", "office", "new_development"].includes(pt);
-export const areaHasCap    = (pt) => ["apartment", "house", "villa", "new_development"].includes(pt);
+// Derive type helpers from config field definitions
+const _hasField = (pt, key) => getFieldsForType(pt).some(f => f.key === key);
+export const hasBedrooms  = (pt) => _hasField(pt, "bedrooms");
+export const hasBathrooms = (pt) => _hasField(pt, "bathrooms");
+export const hasFurnished = (pt) => _hasField(pt, "furnished");
+export const areaRequired = (pt) => {
+  const f = getFieldsForType(pt).find(f => f.key === "area" || f.key === "total_area");
+  return !!f && f.required === true;
+};
+export const areaHasCap   = (pt) => ["apartment", "house", "villa"].includes(pt);
 
 // ─── Per-step validators ──────────────────────────────────────────────────────
 
@@ -357,6 +364,11 @@ export function checkImageResolution(file) {
 }
 
 /** Run all steps and return a map of step → boolean hasErrors */
+// Also ensure any legacy new_development is treated as building
+export function normalizePropertyType(pt) {
+  return pt === "new_development" ? "building" : pt;
+}
+
 export function fullValidationPass(form, images) {
   const s0 = validateStep0(form);
   const s1 = validateStep1(form);

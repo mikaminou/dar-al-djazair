@@ -65,16 +65,10 @@ export const WILAYAS = [
   // but are not always standardized yet in all APIs
 ];
 
-export const PROPERTY_TYPES = [
-  { value: "apartment", label: { en: "Apartment", fr: "Appartement", ar: "شقة" } },
-  { value: "house", label: { en: "House", fr: "Maison", ar: "منزل" } },
-  { value: "villa", label: { en: "Villa", fr: "Villa", ar: "فيلا" } },
-  { value: "land", label: { en: "Land", fr: "Terrain", ar: "أرض" } },
-  { value: "commercial", label: { en: "Commercial", fr: "Commercial", ar: "تجاري" } },
-  { value: "new_development", label: { en: "Real Estate Development", fr: "Promotion Immobilière", ar: "ترقية عقارية" } },
-  { value: "office", label: { en: "Office", fr: "Bureau", ar: "مكتب" } },
-  { value: "farm", label: { en: "Farm", fr: "Ferme", ar: "مزرعة" } }
-];
+// PROPERTY_TYPES is now driven by the single-source-of-truth config.
+// Import from propertyTypes.config.js for the full schema; this export
+// maintains backward compatibility for dropdown usage.
+export { PROPERTY_TYPES } from "./propertyTypes.config";
 
 export const FEATURES_LIST = [
   {

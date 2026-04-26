@@ -22,6 +22,7 @@ import BookingWidget from "../components/booking/BookingWidget";
 import { LISTING_CONFIG } from "../components/listing.config";
 import WaitlistBanner from "../components/listing/WaitlistBanner";
 import { computeAgencyExperience } from "../utils/computeAgencyExperience";
+import DynamicFieldDisplay from "../components/listing/DynamicFieldDisplay";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -304,6 +305,18 @@ export default function ListingDetailPage() {
               </Button>
             </div>
           </div>
+
+          {/* Dynamic type-specific attributes */}
+          {listing.attributes && Object.keys(listing.attributes).length > 0 && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+              <h2 className="font-bold text-gray-800 mb-4">{lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}</h2>
+              <DynamicFieldDisplay
+                propertyType={listing.property_type === "new_development" ? "building" : listing.property_type}
+                attributes={listing.attributes}
+                lang={lang}
+              />
+            </div>
+          )}
 
           {/* Description */}
           {listing.description && (
