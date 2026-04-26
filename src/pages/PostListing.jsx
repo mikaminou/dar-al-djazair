@@ -481,14 +481,14 @@ export default function PostListingPage() {
             {step === 1 && (
               <div className="space-y-6">
                 {/* Title */}
-                <div className="bg-gradient-to-br from-emerald-50 to-blue-50 border border-emerald-100 rounded-2xl p-5">
-                  <Label className="text-sm font-bold text-emerald-900 mb-2.5 block">{t.titleLabel}<RequiredMark /></Label>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">{t.titleLabel}<RequiredMark /></Label>
                   <Input
                     value={form.title}
                     onChange={e => set("title", e.target.value)}
                     onBlur={() => { markTouched("title"); runValidation(1, form); }}
                     placeholder={lang === "ar" ? "مثال: شقة 3 غرف في وهران" : lang === "fr" ? "Ex: Appartement 3 pièces à Oran" : "Ex: 3-room apartment in Oran"}
-                    className={`border-emerald-200 focus:border-emerald-400 ${errors.title && touchedFields.title ? "border-red-400" : ""}`}
+                    className={`border-gray-200 focus:border-emerald-400 ${errors.title && touchedFields.title ? "border-red-400" : ""}`}
                   />
                   <FieldError msgKey={touchedFields.title ? errors.title : null} lang={lang} />
                 </div>
@@ -500,51 +500,54 @@ export default function PostListingPage() {
                 </div>
 
                 {/* Price */}
-                <div className="border border-purple-100 rounded-xl p-4 bg-purple-50/50">
-                  <Label className="text-xs font-bold text-purple-900 mb-2.5 block">{t.priceLabel}<RequiredMark /></Label>
-                  <Input
-                    type="number"
-                    value={form.price}
-                    onChange={e => set("price", e.target.value)}
-                    onBlur={() => { markTouched("price"); runValidation(1, form); }}
-                    placeholder="0"
-                    className={`border-purple-200 focus:border-purple-400 ${errors.price && touchedFields.price ? "border-red-400" : ""}`}
-                  />
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">{t.priceLabel}<RequiredMark /></Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={form.price}
+                      onChange={e => set("price", e.target.value)}
+                      onBlur={() => { markTouched("price"); runValidation(1, form); }}
+                      placeholder={lang === "ar" ? "مثال: 5000000" : lang === "fr" ? "Ex: 5000000" : "Ex: 5000000"}
+                      className={`border-gray-200 focus:border-emerald-400 pr-12 ${errors.price && touchedFields.price ? "border-red-400" : ""}`}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium pointer-events-none">DA</span>
+                  </div>
                   <FieldError   msgKey={touchedFields.price ? errors.price   : null} lang={lang} />
                   <FieldWarning msgKey={warnings.price} lang={lang} />
                   {LISTING_CONFIG.ALLOW_HIDE_PRICE && (
-                    <label className="flex items-center gap-2 mt-3 cursor-pointer">
-                      <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-purple-600 w-4 h-4" />
-                      <span className="text-xs text-purple-700 font-medium">{lang === "ar" ? "إخفاء السعر" : lang === "fr" ? "Masquer le prix" : "Hide price"}</span>
+                    <label className="flex items-center gap-2 mt-4 cursor-pointer">
+                      <input type="checkbox" checked={form.hide_price} onChange={e => set("hide_price", e.target.checked)} className="accent-emerald-600 w-4 h-4" />
+                      <span className="text-sm text-gray-700 font-medium">{lang === "ar" ? "إخفاء السعر" : lang === "fr" ? "Masquer le prix" : "Hide price"}</span>
                     </label>
                   )}
-                  <label className="flex items-start gap-2 mt-3 cursor-pointer bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5">
-                    <input type="checkbox" checked={form.is_exclusive} onChange={e => set("is_exclusive", e.target.checked)} className="accent-purple-600 w-4 h-4 mt-0.5" />
+                </div>
+
+                {/* Mandat Exclusif — Moved outside price block */}
+                <div className="border border-amber-100 rounded-xl p-4 bg-amber-50">
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox" checked={form.is_exclusive} onChange={e => set("is_exclusive", e.target.checked)} className="accent-emerald-600 w-4 h-4 mt-0.5" />
                     <div>
-                      <span className="text-xs text-purple-800 font-semibold block">{lang === "ar" ? "تفويض حصري" : lang === "fr" ? "Mandat exclusif" : "Exclusive Mandate"}</span>
-                      <span className="text-xs text-purple-600">{lang === "ar" ? "هذا العقار مسجل حصرياً لدى وكالتك، ولا يجب تسويقه من طرف وكالات أخرى." : lang === "fr" ? "Ce bien est en mandat exclusif avec votre agence. Il ne doit pas être commercialisé par d'autres agences." : "This property is under exclusive mandate with your agency and should not be marketed by other agents."}</span>
+                      <span className="text-sm font-semibold text-gray-800 block">{lang === "ar" ? "تفويض حصري" : lang === "fr" ? "Mandat exclusif" : "Exclusive Mandate"}</span>
+                      <span className="text-xs text-gray-600 mt-1 block">{lang === "ar" ? "هذا العقار مسجل حصرياً لدى وكالتك فقط." : lang === "fr" ? "Ce bien ne doit être commercialisé que par votre agence." : "This property is listed exclusively with your agency only."}</span>
                     </div>
                   </label>
                 </div>
 
                 {/* Property Details — DynamicFormRenderer is the ONLY source */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                    <h3 className="text-xs font-bold text-gray-600 uppercase tracking-wider">
-                      {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}
-                    </h3>
-                  </div>
-                  <div className="p-4">
-                    <DynamicFormRenderer
-                      propertyType={form.property_type}
-                      listingType={form.listing_type}
-                      value={form.attributes || {}}
-                      onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
-                      errors={errors}
-                      warnings={warnings}
-                      lang={lang}
-                    />
-                  </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">
+                    {lang === "ar" ? "تفاصيل العقار" : lang === "fr" ? "Détails du bien" : "Property Details"}
+                  </h3>
+                  <DynamicFormRenderer
+                    propertyType={form.property_type}
+                    listingType={form.listing_type}
+                    value={form.attributes || {}}
+                    onChange={(key, val) => setForm(f => ({ ...f, attributes: { ...f.attributes, [key]: val } }))}
+                    errors={errors}
+                    warnings={warnings}
+                    lang={lang}
+                  />
                 </div>
 
 
