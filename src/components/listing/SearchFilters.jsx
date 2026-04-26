@@ -238,22 +238,6 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
             </div>
           )}
 
-          {/* Agency office wilaya filter */}
-          <div>
-            <label className="text-xs text-gray-500 font-medium mb-2 block">
-              {lang === "ar" ? "وكالات لها مكاتب في" : lang === "fr" ? "Agences avec bureaux dans" : "Agencies with offices in"}
-            </label>
-            <Select value={filters.agency_office_wilaya || "all"} onValueChange={v => update("agency_office_wilaya", v === "all" ? "" : v)}>
-              <SelectTrigger className="border-gray-200 rounded-xl bg-white dark:bg-gray-800 h-9 text-sm">
-                <SelectValue placeholder={lang === "ar" ? "أي ولاية" : lang === "fr" ? "Toutes wilayas" : "Any wilaya"} />
-              </SelectTrigger>
-              <SelectContent className="max-h-64">
-                <SelectItem value="all">{lang === "ar" ? "أي ولاية" : lang === "fr" ? "Toutes wilayas" : "Any wilaya"}</SelectItem>
-                {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-
           {/* Dynamic type-specific filters */}
           <DynamicSearchFilters
             propertyType={filters.property_type}

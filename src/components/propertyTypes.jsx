@@ -223,10 +223,11 @@ export const PROPERTY_TYPE_DEFS = [
         group: "amenities", showInSearchFilter: false, showInListingCard: false 
       })),
       { key: "year_built",   type: "number",  required: false,                       label: { en: "Year Built",       fr: "Année de constr.",      ar: "سنة البناء"           },             min: 1900, max: 2030,               group: "construction",    showInSearchFilter: false, showInListingCard: false },
-  },
+      ],
+      },
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // LAND — IMPROVED
+      // ─────────────────────────────────────────────────────────────────────────────
+      // LAND — IMPROVED
   // ─────────────────────────────────────────────────────────────────────────────
   {
     key: "land",
