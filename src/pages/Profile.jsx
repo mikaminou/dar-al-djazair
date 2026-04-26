@@ -17,6 +17,7 @@ import VerifiedBadge from "../components/trust/VerifiedBadge";
 import VerificationSection from "../components/trust/VerificationSection";
 import ReviewsSection from "../components/trust/ReviewsSection";
 import MobileHeader from "../components/MobileHeader";
+import WilayaMultiSelect from "../components/WilayaMultiSelect";
 
 const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block";
@@ -325,36 +326,12 @@ export default function ProfilePage() {
                     {isProfessional && <span className="ml-1 text-gray-400 font-normal">{lang === "ar" ? "— اختر متعددة" : lang === "fr" ? "— sélection multiple" : "— multi-select"}</span>}
                   </label>
                   {isProfessional ? (
-                    <div>
-                      {/* Selected tags */}
-                      {form.wilayas.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mb-2">
-                          {form.wilayas.map(v => {
-                            const w = WILAYAS.find(x => x.value === v);
-                            return (
-                              <span key={v} className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium px-2 py-0.5 rounded-full">
-                                {w ? (w.label[lang] || w.label.fr) : v}
-                                <button type="button" onClick={() => setForm(p => ({ ...p, wilayas: p.wilayas.filter(x => x !== v) }))} className="hover:text-red-500">×</button>
-                              </span>
-                            );
-                          })}
-                        </div>
-                      )}
-                      <select
-                        className={`${selectCls} h-36`}
-                        multiple
-                        value={form.wilayas}
-                        onChange={e => {
-                          const selected = Array.from(e.target.selectedOptions).map(o => o.value);
-                          setForm(p => ({ ...p, wilayas: selected }));
-                        }}
-                      >
-                        {WILAYAS.map(w => (
-                          <option key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</option>
-                        ))}
-                      </select>
-                      <p className="text-xs text-gray-400 mt-1">{lang === "ar" ? "اضغط مع Ctrl/Cmd لاختيار أكثر من ولاية" : lang === "fr" ? "Maintenez Ctrl/Cmd pour sélectionner plusieurs wilayas" : "Hold Ctrl/Cmd to select multiple wilayas"}</p>
-                    </div>
+                    <WilayaMultiSelect
+                      options={WILAYAS}
+                      value={form.wilayas}
+                      onChange={wilayas => setForm(p => ({ ...p, wilayas }))}
+                      lang={lang}
+                    />
                   ) : (
                     <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
                       <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
