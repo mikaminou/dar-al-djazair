@@ -134,7 +134,7 @@ export default function ListingsPage() {
 
   async function loadListings() {
     setLoading(true);
-    const query = { status: "active", owner_is_verified: true };
+    const query = { status: "active" };
     if (filters.listing_type)  query.listing_type  = filters.listing_type;
     if (filters.property_type) query.property_type = filters.property_type;
     if (filters.wilaya)        query.wilaya        = filters.wilaya;
