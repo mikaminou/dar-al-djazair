@@ -21,6 +21,7 @@ import FullscreenGallery from "../components/listing/FullscreenGallery";
 import BookingWidget from "../components/booking/BookingWidget";
 import { LISTING_CONFIG } from "../components/listing.config";
 import WaitlistBanner from "../components/listing/WaitlistBanner";
+import { computeAgencyExperience } from "../utils/computeAgencyExperience";
 
 export default function ListingDetailPage() {
   const { t, lang } = useLang();
@@ -374,10 +375,15 @@ export default function ListingDetailPage() {
                   {(ownerName || listing.contact_name || listing.created_by)?.[0]?.toUpperCase() || "?"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-sm text-gray-900 truncate">{ownerName || listing.contact_name || listing.created_by}</div>
-                  <div className="text-xs text-emerald-600">
-                    {lang === "ar" ? "عرض الملف الشخصي" : lang === "fr" ? "Voir le profil" : "View profile"}
-                  </div>
+                <div className="font-semibold text-sm text-gray-900 truncate">{ownerName || listing.contact_name || listing.created_by}</div>
+                {(() => {
+                  const exp = computeAgencyExperience(ownerData?.founded_year, lang);
+                  return exp ? (
+                    <div className="text-xs text-emerald-700 font-medium">{exp.label}</div>
+                  ) : (
+                    <div className="text-xs text-emerald-600">{lang === "ar" ? "عرض الملف الشخصي" : lang === "fr" ? "Voir le profil" : "View profile"}</div>
+                  );
+                })()}
                 </div>
               </Link>
             )}

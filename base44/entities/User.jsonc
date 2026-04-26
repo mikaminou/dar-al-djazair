@@ -30,8 +30,9 @@
         "promoteur"
       ]
     },
-    "years_of_experience": {
-      "type": "number"
+    "founded_year": {
+      "type": "integer",
+      "description": "Year the agency was founded. Experience is computed from this."
     },
     "wilaya": {
       "type": "string"
@@ -120,5 +121,6 @@
         }
       }
     }
-  }
+  },
+  "required": []
 }

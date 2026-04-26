@@ -9,7 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2, Camera, Mail } from "lucide-react";
+import { User, Phone, MapPin, Globe, Building2, Edit2, Save, X, Home, Trash2, Camera, Mail, Award } from "lucide-react";
+import { computeAgencyExperience } from "../utils/computeAgencyExperience";
 import UserAvatar from "../components/UserAvatar";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import ListingCard from "../components/listing/ListingCard";
@@ -69,7 +70,11 @@ export default function ProfilePage() {
       agency_name: userInfo?.agency_name || "",
       owner_full_name: userInfo?.owner_full_name || "",
       professional_type: userInfo?.professional_type || "",
-      years_of_experience: userInfo?.years_of_experience ?? "",
+      founded_year: userInfo?.founded_year ?? (
+        userInfo?.years_of_experience
+          ? Math.max(1950, new Date().getFullYear() - parseInt(userInfo.years_of_experience, 10))
+          : ""
+      ),
       wilaya: userInfo?.wilaya || (Array.isArray(userInfo?.wilayas) ? "" : ""),
       wilayas: Array.isArray(userInfo?.wilayas) ? userInfo.wilayas : (userInfo?.wilaya ? [userInfo.wilaya] : []),
       website: userInfo?.website || "",
@@ -100,8 +105,10 @@ export default function ProfilePage() {
   }
 
   async function saveProfile() {
+    if (form._founded_year_err) return;
     setSaving(true);
-    const dataToSave = { ...form };
+    const { _founded_year_err, ...dataToSave } = form;
+    if (dataToSave.founded_year) dataToSave.founded_year = parseInt(dataToSave.founded_year, 10);
     if (profileUser?.role === "professional") {
       // For professionals, also set wilaya to the first selected for backward compat
       dataToSave.wilaya = form.wilayas[0] || "";
@@ -199,15 +206,31 @@ export default function ProfilePage() {
                     )}
                   </div>
                   {isProfessional && profileUser.is_verified && (
-                    <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 mt-1">
-                      <Building2 className="w-3 h-3 mr-1" />
-                      {profileUser.professional_type === 'agence_immobiliere'
-                        ? (lang === 'ar' ? 'وكالة عقارية' : lang === 'fr' ? 'Agence immobilière' : 'Real Estate Agency')
-                        : profileUser.professional_type === 'promoteur'
-                        ? (lang === 'ar' ? 'مرقي عقاري' : lang === 'fr' ? 'Promoteur immobilier' : 'Property Developer')
-                        : (lang === 'ar' ? 'محترف عقاري' : lang === 'fr' ? 'Professionnel immobilier' : 'Real Estate Professional')}
-                      {profileUser.years_of_experience ? ` · ${profileUser.years_of_experience} ${lang === 'ar' ? 'سنة' : lang === 'fr' ? 'ans' : 'yrs'}` : ''}
-                    </Badge>
+                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                      <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                        <Building2 className="w-3 h-3 mr-1" />
+                        {profileUser.professional_type === 'agence_immobiliere'
+                          ? (lang === 'ar' ? 'وكالة عقارية' : lang === 'fr' ? 'Agence immobilière' : 'Real Estate Agency')
+                          : profileUser.professional_type === 'promoteur'
+                          ? (lang === 'ar' ? 'مرقي عقاري' : lang === 'fr' ? 'Promoteur immobilier' : 'Property Developer')
+                          : (lang === 'ar' ? 'محترف عقاري' : lang === 'fr' ? 'Professionnel immobilier' : 'Real Estate Professional')}
+                      </Badge>
+                      {(() => {
+                        const exp = computeAgencyExperience(profileUser.founded_year, lang);
+                        if (!exp) return null;
+                        return (
+                          <span className="flex items-center gap-1.5 text-sm text-emerald-700 dark:text-emerald-400 font-medium">
+                            {exp.isLongEstablished && <Award className="w-3.5 h-3.5" />}
+                            {exp.label}
+                            {exp.isLongEstablished && (
+                              <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 text-[10px]">
+                                {lang === "ar" ? "وكالة عريقة" : lang === "fr" ? "Établi de longue date" : "Long established"}
+                              </Badge>
+                            )}
+                          </span>
+                        );
+                      })()}
+                    </div>
                   )}
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
                     {(Array.isArray(profileUser.wilayas) && profileUser.wilayas.length > 0) ? (
@@ -317,9 +340,31 @@ export default function ProfilePage() {
                     </div>
                     <div>
                       <label className={labelCls}>
-                        {lang === "ar" ? "سنوات الخبرة" : lang === "fr" ? "Années d'expérience" : "Years of Experience"}
+                        {lang === "ar" ? "سنة التأسيس" : lang === "fr" ? "Année de création" : "Year founded"}
                       </label>
-                      <Input type="number" min="0" max="60" value={form.years_of_experience} onChange={e => setForm(p => ({ ...p, years_of_experience: e.target.value }))} placeholder="0" className={inputCls} />
+                      <Input
+                        type="number"
+                        min="1950"
+                        max={new Date().getFullYear()}
+                        value={form.founded_year}
+                        onChange={e => {
+                          const val = e.target.value;
+                          const year = parseInt(val, 10);
+                          const currentYear = new Date().getFullYear();
+                          let err = "";
+                          if (val && (isNaN(year) || val.length !== 4)) err = lang === "ar" ? "يجب أن يكون 4 أرقام" : lang === "fr" ? "4 chiffres requis" : "Must be 4 digits";
+                          else if (year > currentYear) err = lang === "ar" ? "لا يمكن أن يكون في المستقبل" : lang === "fr" ? "Ne peut pas être dans le futur" : "Cannot be in the future";
+                          setForm(p => ({ ...p, founded_year: val, _founded_year_err: err }));
+                        }}
+                        placeholder={`${new Date().getFullYear() - 10}`}
+                        className={`${inputCls} ${form._founded_year_err ? "border-red-400" : ""}`}
+                      />
+                      {form._founded_year_err
+                        ? <p className="text-xs text-red-500 mt-1">{form._founded_year_err}</p>
+                        : form.founded_year && parseInt(form.founded_year) < 1950
+                        ? <p className="text-xs text-amber-500 mt-1">{lang === "ar" ? "تاريخ غير معتاد، يرجى التحقق" : lang === "fr" ? "Date inhabituelle, vérifiez svp" : "Unusual date, please verify"}</p>
+                        : <p className="text-xs text-gray-400 mt-1">{lang === "ar" ? "سنحسب خبرتك تلقائياً من هذا التاريخ." : lang === "fr" ? "Nous calculerons automatiquement vos années d'expérience." : "We'll automatically calculate your years of experience from this."}</p>
+                      }
                     </div>
                   </>
                 )}
