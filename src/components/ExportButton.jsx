@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Table, Loader2 } from "lucide-react";
+import { getFieldsForType, getPropertyType } from "@/components/propertyTypes.config";
+import { resolveAttributes, formatAttributeValue } from "@/utils/listingAttributes";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -94,49 +96,65 @@ async function exportListingsPDF(listings, lang) {
   const L = {
     title: { fr: "Mes Annonces", en: "My Listings", ar: "إعلاناتي" },
     sub: { fr: `${listings.length} annonce(s)`, en: `${listings.length} listing(s)`, ar: `${listings.length} إعلان` },
-    cols: {
-      fr: ["Titre", "Type de bien", "Opération", "Wilaya", "Prix", "Surface", "Statut", "Date"],
-      en: ["Title", "Property Type", "Type", "Wilaya", "Price", "Area", "Status", "Date"],
-      ar: ["العنوان", "نوع العقار", "العملية", "الولاية", "السعر", "المساحة", "الحالة", "التاريخ"],
-    },
   };
   const t = k => L[k][lang] || L[k].fr;
 
   const doc = await buildBrandedPDF(t("title"), t("sub"), (doc, startY, W) => {
-    const cols = t("cols");
-    const colWidths = [50, 28, 20, 22, 32, 18, 24, 22];
     let y = startY;
 
-    // Header row
-    doc.setFillColor(240, 253, 244);
-    doc.rect(14, y, W - 28, 8, "F");
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(6, 95, 70);
-    let x = 14;
-    cols.forEach((c, i) => { doc.text(c, x + 1, y + 5.5); x += colWidths[i]; });
+    listings.forEach((listing, idx) => {
+      if (y > 240) { doc.addPage(); y = 20; }
 
-    y += 10;
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(30, 30, 30);
+      // ── Universal section ────────────────────────────────────────────────────
+      if (idx % 2 === 0) { doc.setFillColor(240, 253, 244); doc.rect(14, y - 2, W - 28, 10, "F"); }
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(6, 95, 70);
+      doc.text((listing.title || "").slice(0, 60), 14, y + 5);
+      y += 10;
 
-    listings.forEach((l, idx) => {
-      if (y > 270) { doc.addPage(); y = 20; }
-      if (idx % 2 === 0) { doc.setFillColor(249, 250, 251); doc.rect(14, y, W - 28, 8, "F"); }
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(7.5);
-      x = 14;
-      const row = [
-        (l.title || "").slice(0, 35),
-        (l.property_type || "").replace(/_/g, " "),
-        l.listing_type === "sale" ? (lang === "ar" ? "بيع" : lang === "fr" ? "Vente" : "Sale") : (lang === "ar" ? "إيجار" : "Location"),
-        l.wilaya || "—",
-        formatPriceDZD(l.price, lang),
-        l.area ? `${l.area} m²` : "—",
-        STATUS_LABEL[l.status]?.[lang] || l.status || "—",
-        l.created_date ? new Date(l.created_date).toLocaleDateString() : "—",
-      ];
-      row.forEach((v, i) => { doc.text(String(v), x + 1, y + 5.5); x += colWidths[i]; });
+      doc.setTextColor(80, 80, 80);
+
+      const universalRow = [
+        `${lang === "fr" ? "Type" : "Type"}: ${(listing.property_type || "").replace(/_/g, " ")}`,
+        `${lang === "fr" ? "Opération" : "Type"}: ${listing.listing_type === "sale" ? (lang === "ar" ? "بيع" : "Vente") : (lang === "ar" ? "إيجار" : "Location")}`,
+        `Wilaya: ${listing.wilaya || "—"}`,
+        `${lang === "fr" ? "Prix" : "Price"}: ${formatPriceDZD(listing.price, lang)}`,
+        `${lang === "fr" ? "Statut" : "Status"}: ${STATUS_LABEL[listing.status]?.[lang] || listing.status || "—"}`,
+      ].join("   ");
+      doc.text(universalRow, 14, y + 4);
       y += 8;
+
+      // ── Dynamic attributes section ───────────────────────────────────────────
+      const attrs = resolveAttributes(listing);
+      const fields = getFieldsForType(listing.property_type || "");
+      const attrParts = [];
+      for (const field of fields) {
+        const raw = attrs[field.key];
+        if (raw === null || raw === undefined || raw === "") continue;
+        const formatted = formatAttributeValue(raw, field, lang);
+        if (!formatted) continue;
+        const label = field.label[lang] || field.label.fr || field.key;
+        attrParts.push(`${label}: ${formatted}`);
+      }
+      if (attrParts.length > 0) {
+        doc.setTextColor(50, 50, 50);
+        // Wrap into lines of ~100 chars
+        const attrLine = attrParts.join("  ·  ");
+        const wrapped = doc.splitTextToSize(attrLine, W - 28);
+        wrapped.forEach(line => {
+          if (y > 270) { doc.addPage(); y = 20; }
+          doc.text(line, 14, y + 4);
+          y += 6;
+        });
+      }
+
+      y += 4; // gap between listings
+      doc.setDrawColor(220, 220, 220);
+      doc.line(14, y, W - 14, y);
+      y += 4;
     });
     return y;
   }, lang);
@@ -145,18 +163,58 @@ async function exportListingsPDF(listings, lang) {
 }
 
 function exportListingsCSV(listings, lang) {
-  const H = {
-    fr: ["Titre", "Type de bien", "Opération", "Wilaya", "Prix (DZD)", "Surface (m²)", "Chambres", "Salles de bain", "Statut", "Date de création"],
-    en: ["Title", "Property Type", "Listing Type", "Wilaya", "Price (DZD)", "Area (m²)", "Bedrooms", "Bathrooms", "Status", "Created Date"],
-    ar: ["العنوان", "نوع العقار", "نوع العملية", "الولاية", "السعر (دج)", "المساحة (م²)", "غرف النوم", "الحمامات", "الحالة", "تاريخ الإضافة"],
+  // Universal columns
+  const universalKeys = ["id", "title", "property_type", "listing_type", "wilaya", "commune", "price", "status", "created_date"];
+  const universalHeaders = {
+    id: "id", title: "title", property_type: "property_type", listing_type: "listing_type",
+    wilaya: "wilaya", commune: "commune", price: "price_DZD", status: "status", created_date: "created_date",
   };
-  const rows = listings.map(l => [
-    l.title, l.property_type, l.listing_type, l.wilaya, l.price,
-    l.area, l.bedrooms, l.bathrooms,
-    STATUS_LABEL[l.status]?.[lang] || l.status,
-    l.created_date ? new Date(l.created_date).toLocaleDateString() : "",
-  ]);
-  downloadCSV(rows, H[lang] || H.fr, `listings_${new Date().toISOString().slice(0, 10)}.csv`);
+
+  // Collect union of all dynamic field keys across all listings
+  const dynamicKeySet = new Set();
+  const fieldDefMap = {}; // key → fieldDef (from first type that defines it)
+  for (const listing of listings) {
+    const fields = getFieldsForType(listing.property_type || "");
+    for (const f of fields) {
+      dynamicKeySet.add(f.key);
+      if (!fieldDefMap[f.key]) fieldDefMap[f.key] = f;
+    }
+  }
+  const dynamicKeys = [...dynamicKeySet];
+
+  // Build headers row
+  const headers = [
+    ...universalKeys.map(k => universalHeaders[k]),
+    ...dynamicKeys.map(k => {
+      const fd = fieldDefMap[k];
+      const unit = fd?.unit ? `_${fd.unit.replace(/[^a-z0-9]/gi, "")}` : "";
+      return `${k}${unit}`;
+    }),
+  ];
+
+  // Build data rows
+  const rows = listings.map(listing => {
+    const attrs = resolveAttributes(listing);
+    const universalCells = universalKeys.map(k => {
+      if (k === "status") return STATUS_LABEL[listing.status]?.[lang] || listing.status || "";
+      if (k === "created_date") return listing.created_date ? new Date(listing.created_date).toLocaleDateString() : "";
+      return listing[k] ?? "";
+    });
+    const dynamicCells = dynamicKeys.map(k => {
+      const fd = fieldDefMap[k];
+      // Only populate if this field exists for this listing's property type
+      const typeFields = getFieldsForType(listing.property_type || "");
+      const fieldExistsForType = typeFields.some(f => f.key === k);
+      if (!fieldExistsForType) return "";
+      const raw = attrs[k];
+      if (raw === null || raw === undefined || raw === "") return "";
+      if (fd) return formatAttributeValue(raw, fd, lang) ?? raw;
+      return raw;
+    });
+    return [...universalCells, ...dynamicCells];
+  });
+
+  downloadCSV(rows, headers, `listings_${new Date().toISOString().slice(0, 10)}.csv`);
 }
 
 // ── ANALYTICS DASHBOARD ──────────────────────────────────────────────────────

@@ -10,6 +10,7 @@ import ListingCard from "../components/listing/ListingCard";
 import SearchFilters from "../components/listing/SearchFilters";
 import CompareBar from "../components/listing/CompareBar";
 import { useLang } from "../components/LanguageContext";
+import { applyDynamicFilters } from "@/utils/matchesSearch";
 
 const SORT_OPTIONS = [
   { value: "-created_date", labelKey: "newest" },
@@ -19,29 +20,7 @@ const SORT_OPTIONS = [
   { value: "-views_count",  labelKey: "mostViewed" },
 ];
 
-function applyClientFilters(data, filters) {
-  return data.filter(l => {
-    if (filters.min_price && l.price < Number(filters.min_price)) return false;
-    if (filters.max_price && l.price > Number(filters.max_price)) return false;
-    if (filters.min_area  && l.area  < Number(filters.min_area))  return false;
-    if (filters.max_area  && l.area  > Number(filters.max_area))  return false;
-    if (filters.bedrooms) {
-      const n = parseInt(filters.bedrooms);
-      const isPlus = filters.bedrooms.endsWith("+");
-      if (isPlus ? (l.bedrooms || 0) < n : (l.bedrooms || 0) !== n) return false;
-    }
-    if (filters.bathrooms) {
-      const n = parseInt(filters.bathrooms);
-      const isPlus = filters.bathrooms.endsWith("+");
-      if (isPlus ? (l.bathrooms || 0) < n : (l.bathrooms || 0) !== n) return false;
-    }
-    if (filters.furnished && l.furnished !== filters.furnished) return false;
-    if (filters.features?.length) {
-      if (!filters.features.every(f => (l.features || []).includes(f))) return false;
-    }
-    return true;
-  });
-}
+// applyClientFilters is replaced by applyDynamicFilters (config-driven, imported above)
 
 export default function ListingsPage() {
   const { t, lang } = useLang();
@@ -118,7 +97,7 @@ export default function ListingsPage() {
     if (filters.wilaya)        query.wilaya        = filters.wilaya;
 
     let data = await base44.entities.Listing.filter(query, sortBy, 100);
-    data = applyClientFilters(data, filters);
+    data = applyDynamicFilters(data, filters);
 
     // Agency office wilaya filter — post-filter by fetching agency users
     if (filters.agency_office_wilaya) {
@@ -225,7 +204,7 @@ export default function ListingsPage() {
       if (filters.property_type) query.property_type = filters.property_type;
       if (filters.wilaya)        query.wilaya        = filters.wilaya;
       const candidates = await base44.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
-      const matched = applyClientFilters(candidates, filters);
+      const matched = applyDynamicFilters(candidates, filters);
       // Create one lead per distinct agent (avoid spamming same agent for multiple listings)
       const seenAgents = new Set();
       for (const listing of matched) {
