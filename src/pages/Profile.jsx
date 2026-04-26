@@ -276,99 +276,119 @@ export default function ProfilePage() {
 
           {/* Edit Form */}
           {editing && (
-            <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="mt-6 border-t border-gray-100 dark:border-gray-700 pt-6">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-5">
+                {lang === "ar" ? "تعديل الملف" : lang === "fr" ? "Modifier le profil" : "Edit profile"}
+              </h3>
+
+              <div className="space-y-4">
+                {/* Card 1: Owner Name + Business Name */}
                 {isProfessional && (
-                  <>
-                    <div>
-                      <label className={labelCls}>
-                        {lang === "ar" ? "اسم المالك" : lang === "fr" ? "Nom du propriétaire" : "Owner Name"}
-                      </label>
-                      <Input value={form.owner_full_name} onChange={e => setForm(p => ({ ...p, owner_full_name: e.target.value }))} className={inputCls} />
+                  <div className="bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                          {lang === "ar" ? "اسم المالك" : lang === "fr" ? "Nom du propriétaire" : "Owner Name"}
+                        </label>
+                        <Input value={form.owner_full_name} onChange={e => setForm(p => ({ ...p, owner_full_name: e.target.value }))} className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                          {lang === "ar" ? "اسم النشاط التجاري" : lang === "fr" ? "Nom de l'entreprise" : "Business Name"}
+                        </label>
+                        <Input value={form.agency_name} onChange={e => setForm(p => ({ ...p, agency_name: e.target.value }))} className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                      </div>
                     </div>
-                    <div>
-                      <label className={labelCls}>
-                        {lang === "ar" ? "اسم النشاط التجاري" : lang === "fr" ? "Nom de l'entreprise" : "Business Name"}
-                      </label>
-                      <Input value={form.agency_name} onChange={e => setForm(p => ({ ...p, agency_name: e.target.value }))} className={inputCls} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>
-                        {lang === "ar" ? "نوع المحترف" : lang === "fr" ? "Type de professionnel" : "Professional Type"}
-                      </label>
-                      <select
-                        value={form.professional_type}
-                        onChange={e => setForm(p => ({ ...p, professional_type: e.target.value }))}
-                        className={selectCls}
-                      >
-                        <option value="">—</option>
-                        <option value="agence_immobiliere">{lang === "ar" ? "وكالة عقارية" : lang === "fr" ? "Agence immobilière" : "Real Estate Agency"}</option>
-                        <option value="promoteur">{lang === "ar" ? "مرقي عقاري" : lang === "fr" ? "Promoteur immobilier" : "Property Developer"}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className={labelCls}>
-                        {lang === "ar" ? "سنوات الخبرة" : lang === "fr" ? "Années d'expérience" : "Years of Experience"}
-                      </label>
-                      <Input type="number" min="0" max="60" value={form.years_of_experience} onChange={e => setForm(p => ({ ...p, years_of_experience: e.target.value }))} placeholder="0" className={inputCls} />
-                    </div>
-                  </>
+                  </div>
                 )}
-                <div>
-                  <label className={labelCls}>
-                    {lang === "ar" ? "رقم الهاتف" : lang === "fr" ? "Téléphone" : "Phone"}
-                  </label>
-                  <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+213 ..." className={inputCls} />
-                </div>
-                <div className={isProfessional ? "sm:col-span-2" : ""}>
-                  <label className={labelCls}>
-                    {lang === "ar" ? "الولاية (الولايات)" : lang === "fr" ? "Wilaya(s)" : "Wilaya(s)"}
-                    {isProfessional && <span className="ml-1 text-gray-400 font-normal">{lang === "ar" ? "— اختر متعددة" : lang === "fr" ? "— sélection multiple" : "— multi-select"}</span>}
-                  </label>
-                  {isProfessional ? (
-                    <WilayaMultiSelect
-                      options={WILAYAS}
-                      value={form.wilayas}
-                      onChange={wilayas => setForm(p => ({ ...p, wilayas }))}
-                      lang={lang}
-                    />
-                  ) : (
-                    <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
-                      <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
-                        <SelectValue placeholder="..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-                <div>
-                  <label className={labelCls}>
-                    {lang === "ar" ? "الموقع الإلكتروني" : lang === "fr" ? "Site web" : "Website"}
-                  </label>
-                  <Input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." className={inputCls} />
+
+                {/* Card 2: Professional Type + Years of Experience */}
+                {isProfessional && (
+                  <div className="bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                          {lang === "ar" ? "نوع المحترف" : lang === "fr" ? "Type de professionnel" : "Professional Type"}
+                        </label>
+                        <select
+                          value={form.professional_type}
+                          onChange={e => setForm(p => ({ ...p, professional_type: e.target.value }))}
+                          className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-[#13161c] text-gray-900 dark:text-gray-100 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        >
+                          <option value="">—</option>
+                          <option value="agence_immobiliere">{lang === "ar" ? "وكالة عقارية" : lang === "fr" ? "Agence immobilière" : "Real Estate Agency"}</option>
+                          <option value="promoteur">{lang === "ar" ? "مرقي عقاري" : lang === "fr" ? "Promoteur immobilier" : "Property Developer"}</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                          {lang === "ar" ? "سنوات الخبرة" : lang === "fr" ? "Années d'expérience" : "Years of Experience"}
+                        </label>
+                        <Input type="number" min="0" max="60" value={form.years_of_experience} onChange={e => setForm(p => ({ ...p, years_of_experience: e.target.value }))} placeholder="0" className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Card 3: Phone, Wilaya(s), Website, Bio */}
+                <div className="bg-white dark:bg-[#1a1d24] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                        {lang === "ar" ? "رقم الهاتف" : lang === "fr" ? "Téléphone" : "Phone"}
+                      </label>
+                      <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+213 ..." className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                        {lang === "ar" ? "الولاية (الولايات)" : lang === "fr" ? "Wilaya(s)" : "Wilaya(s)"}
+                      </label>
+                      {isProfessional ? (
+                        <WilayaMultiSelect
+                          options={WILAYAS}
+                          value={form.wilayas}
+                          onChange={wilayas => setForm(p => ({ ...p, wilayas }))}
+                          lang={lang}
+                        />
+                      ) : (
+                        <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
+                          <SelectTrigger className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                            <SelectValue placeholder="..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                        {lang === "ar" ? "الموقع الإلكتروني" : lang === "fr" ? "Site web" : "Website"}
+                      </label>
+                      <Input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." className="rounded-full bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-2">
+                        {lang === "ar" ? "نبذة عنك" : lang === "fr" ? "Bio" : "Bio"}
+                      </label>
+                      <Textarea
+                        value={form.bio}
+                        onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
+                        rows={4}
+                        placeholder={lang === "ar" ? "اكتب نبذة عنك..." : lang === "fr" ? "Décrivez-vous..." : "Tell us about yourself..."}
+                        className="resize-none bg-white dark:bg-[#13161c] border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded-xl"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className={labelCls}>
-                  {lang === "ar" ? "نبذة عنك" : lang === "fr" ? "Présentation" : "Bio"}
-                </label>
-                <Textarea
-                  value={form.bio}
-                  onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
-                  rows={3}
-                  placeholder={lang === "ar" ? "اكتب نبذة عنك..." : lang === "fr" ? "Décrivez-vous..." : "Tell us about yourself..."}
-                  className={`resize-none ${inputCls}`}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={saveProfile} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700 gap-2">
-                  <Save className="w-4 h-4" />
+
+              {/* Actions */}
+              <div className="flex justify-end gap-3 mt-5">
+                <Button onClick={saveProfile} disabled={saving} className="bg-white dark:bg-[#1a1d24] border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-[#13161c] font-semibold px-6 rounded-full shadow-sm">
                   {saving ? "..." : (lang === "ar" ? "حفظ" : lang === "fr" ? "Enregistrer" : "Save")}
                 </Button>
-                <Button variant="outline" onClick={() => { setEditing(false); setAvatarPreview(''); }} className="gap-2">
-                  <X className="w-4 h-4" />
+                <Button variant="ghost" onClick={() => { setEditing(false); setAvatarPreview(''); }} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium px-4 rounded-full">
                   {lang === "ar" ? "إلغاء" : lang === "fr" ? "Annuler" : "Cancel"}
                 </Button>
               </div>
