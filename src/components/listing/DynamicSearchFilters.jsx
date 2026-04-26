@@ -51,27 +51,62 @@ function BooleanChipField({ field, filters, onChange, lang }) {
 }
 
 function EnumField({ field, filters, onChange, lang }) {
-  const key = field.key;
-  return (
-    <div>
-      <label className="text-xs text-gray-500 font-medium mb-1.5 block">
-        {field.label?.[lang] || field.label?.fr}
-      </label>
-      <Select value={filters[key] || "all"} onValueChange={v => onChange(key, v === "all" ? "" : v)}>
-        <SelectTrigger className="border-gray-200 bg-white dark:bg-gray-800 h-9 text-xs rounded-lg">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">{lang === "ar" ? "الكل" : lang === "fr" ? "Tous" : "Any"}</SelectItem>
-          {(field.options || []).map(opt => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label?.[lang] || opt.label?.fr || opt.value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
+   const key = field.key;
+   return (
+     <div>
+       <label className="text-xs text-gray-500 font-medium mb-1.5 block">
+         {field.label?.[lang] || field.label?.fr}
+       </label>
+       <Select value={filters[key] || "all"} onValueChange={v => onChange(key, v === "all" ? "" : v)}>
+         <SelectTrigger className="border-gray-200 bg-white dark:bg-gray-800 h-9 text-xs rounded-lg">
+           <SelectValue />
+         </SelectTrigger>
+         <SelectContent>
+           <SelectItem value="all">{lang === "ar" ? "الكل" : lang === "fr" ? "Tous" : "Any"}</SelectItem>
+           {(field.options || []).map(opt => (
+             <SelectItem key={opt.value} value={opt.value}>
+               {opt.label?.[lang] || opt.label?.fr || opt.value}
+             </SelectItem>
+           ))}
+         </SelectContent>
+       </Select>
+     </div>
+   );
+}
+
+function MultiEnumField({ field, filters, onChange, lang }) {
+   const key = field.key;
+   const selectedValues = filters[key] ? (Array.isArray(filters[key]) ? filters[key] : [filters[key]]) : [];
+
+   const toggle = (val) => {
+     const newVals = selectedValues.includes(val)
+       ? selectedValues.filter(v => v !== val)
+       : [...selectedValues, val];
+     onChange(key, newVals.length > 0 ? newVals : "");
+   };
+
+   return (
+     <div>
+       <label className="text-xs text-gray-500 font-medium mb-1.5 block">
+         {field.label?.[lang] || field.label?.fr}
+       </label>
+       <div className="flex flex-wrap gap-2">
+         {(field.options || []).map(opt => (
+           <button
+             key={opt.value}
+             onClick={() => toggle(opt.value)}
+             className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+               selectedValues.includes(opt.value)
+                 ? "bg-emerald-600 text-white border-emerald-600"
+                 : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-emerald-400"
+             }`}
+           >
+             {opt.label?.[lang] || opt.label?.fr || opt.value}
+           </button>
+         ))}
+       </div>
+     </div>
+   );
 }
 
 function NumberRangeField({ field, filters, onChange, lang }) {
@@ -197,26 +232,30 @@ export default function DynamicSearchFilters({ propertyType, filters, onChange, 
   const handleChange = (key, val) => onChange({ ...filters, [key]: val });
 
   return (
-    <div className="space-y-4">
-      {fields.map(field => {
-        if (field.type === "boolean") {
-          return <BooleanChipField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
-        }
-        if (field.type === "enum") {
-          return <EnumField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
-        }
-        if (field.type === "unit_number") {
-          return <UnitNumberRangeField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
-        }
-        if (field.type === "number") {
-          // Render as range (min+max) for area-type fields, min-only for counts
-          const isCountField = field.key === "bedrooms" || field.key === "bathrooms" || field.key === "floor" || field.key === "total_units" || field.key === "total_floors" || field.key === "frontage_meters";
-          return isCountField
-            ? <NumberMinField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />
-            : <NumberRangeField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
-        }
-        return null;
-      })}
-    </div>
-  );
+     <div className="space-y-4">
+       {fields.map(field => {
+         if (field.type === "boolean") {
+           return <BooleanChipField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
+         }
+         if (field.type === "enum") {
+           return <EnumField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
+         }
+         if (field.type === "multi_enum") {
+           return <MultiEnumField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
+         }
+         if (field.type === "unit_number") {
+           return <UnitNumberRangeField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
+         }
+         if (field.type === "number") {
+           // Count fields (bedrooms, bathrooms, etc.) get min-only; areas get range
+           const countFields = ["bedrooms", "bathrooms", "floor", "total_units", "total_floors", "rooms", "levels"];
+           const isCountField = countFields.includes(field.key);
+           return isCountField
+             ? <NumberMinField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />
+             : <NumberRangeField key={field.key} field={field} filters={filters} onChange={(k, v) => handleChange(k, v)} lang={lang} />;
+         }
+         return null;
+       })}
+     </div>
+   );
 }
