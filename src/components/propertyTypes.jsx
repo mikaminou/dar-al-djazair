@@ -33,26 +33,25 @@
 
 // ─── Shared Enums ─────────────────────────────────────────────────────────────
 import { ORIENTATION_OPTIONS } from "../config/enums/orientation";
-import { VIEW_OPTIONS } from "../config/enums/viewTypes";
+import { VIEW_TYPE_OPTIONS, VILLA_VIEW_OPTIONS } from "../config/enums/viewTypes";
 import { TITLE_TYPES } from "../config/enums/titleTypes";
 import { IRRIGATION_TYPES } from "../config/enums/irrigationType";
 import { CROP_OPTIONS } from "../config/enums/crops";
 import { SOIL_TYPES } from "../config/enums/soilTypes";
 import { OFFICE_LAYOUT_OPTIONS } from "../config/enums/officeLayout";
 import { PARKING_TYPES } from "../config/enums/parkingType";
+import { HEATING_TYPE_OPTIONS } from "../config/enums/heatingTypes";
 
 // ─── Shared option sets ───────────────────────────────────────────────────────
 // ─── Universal amenities (relevant to most types) ────────────────────────────
 const UNIVERSAL_AMENITIES = [
   { value: "security",       label: { en: "Security",       fr: "Sécurité",        ar: "أمان"          } },
   { value: "air_conditioning",label: { en: "Air Conditioning", fr: "Climatisation", ar: "تكييف هواء"  } },
-  { value: "heating",        label: { en: "Heating",        fr: "Chauffage",       ar: "التدفئة"      } },
   { value: "solar_panels",   label: { en: "Solar Panels",   fr: "Panneaux solaires",ar: "ألواح شمسية" } },
   { value: "well",           label: { en: "Well",           fr: "Puits",           ar: "بئر"           } },
   { value: "intercom",       label: { en: "Intercom",       fr: "Interphone",      ar: "جرس باب"      } },
   { value: "double_glazing", label: { en: "Double Glazing", fr: "Double vitrage",  ar: "زجاج مزدوج"   } },
   { value: "generator",      label: { en: "Generator",      fr: "Générateur",      ar: "مولد كهرباء" } },
-  { value: "water_tank",     label: { en: "Water Tank",     fr: "Citerne d'eau",   ar: "خزان ماء"    } },
 ];
 
 const FURNISHED_OPTIONS = [
@@ -86,10 +85,14 @@ export const PROPERTY_TYPE_DEFS = [
         showAsCardBadge: true, cardBadgePriority: 11, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
         cardBadgeLabel: { en: { true: "Top Floor" }, fr: { true: "Dernier étage" }, ar: { true: "الطابق الأخير" } } },
       { key: "orientation",  type: "multi_enum", required: false,                           label: { en: "Orientation", fr: "Orientation", ar: "التوجيه" }, options: ORIENTATION_OPTIONS, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
-      { key: "view_type",    type: "multi_enum", required: false,                           label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VIEW_OPTIONS, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "view_type",    type: "multi_enum", required: false,                           label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VIEW_TYPE_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
       { key: "furnished",    type: "enum",    required: { whenListingType: "rent" },        label: { en: "Furnished",    fr: "Ameublement",    ar: "التأثيث"         }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "rent_only",
         cardBadgeLabel: { en: { furnished: "Furnished" }, fr: { furnished: "Meublé" }, ar: { furnished: "مفروش" } } },
+      { key: "heating_type",  type: "enum",    required: false,                            label: { en: "Heating type", fr: "Type de chauffage", ar: "نوع التدفئة" }, options: HEATING_TYPE_OPTIONS, group: "amenities", showInSearchFilter: true, showInListingCard: false },
+      { key: "water_tank",   type: "boolean", required: false,                              label: { en: "Water tank",   fr: "Réservoir / Bâche à eau", ar: "خزان ماء"    }, group: "amenities", showInSearchFilter: true, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 6, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Water tank" }, fr: { true: "Bâche à eau" }, ar: { true: "خزان ماء" } } },
       { key: "balcony",      type: "boolean", required: false,                              label: { en: "Balcony",      fr: "Balcon",         ar: "شرفة"            }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
          showAsCardBadge: true, cardBadgePriority: 12, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
          cardBadgeLabel: { en: { true: "Balcony" }, fr: { true: "Balcon" }, ar: { true: "شرفة" } } },
@@ -135,11 +138,19 @@ export const PROPERTY_TYPE_DEFS = [
       { key: "bathrooms",  type: "number",  required: true,                        label: { en: "Bathrooms",        fr: "Salles de bain",        ar: "الحمامات"             },             min: 0, max: 10,                      group: "characteristics", showInSearchFilter: true,  showInListingCard: true,  cardOrder: 5, cardIcon: "bath", cardFormat: "icon_value" },
       { key: "levels",     type: "number",  required: true,                        label: { en: "Levels / Floors",  fr: "Niveaux",               ar: "الطوابق"              },             min: 1, max: 10,                      group: "characteristics", showInSearchFilter: false, showInListingCard: false },
       { key: "orientation",  type: "multi_enum", required: false,                  label: { en: "Orientation", fr: "Orientation", ar: "التوجيه" }, options: ORIENTATION_OPTIONS, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
-      { key: "view_type",    type: "multi_enum", required: false,                  label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VIEW_OPTIONS, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "view_type",    type: "multi_enum", required: false,                  label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VIEW_TYPE_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
       { key: "furnished",  type: "enum",    required: { whenListingType: "rent" }, label: { en: "Furnished",        fr: "Ameublement",           ar: "التأثيث"              }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "has_basement",  type: "boolean", required: false,                    label: { en: "Basement",        fr: "Sous-sol",           ar: "قبو"                 }, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "heating_type",  type: "enum",    required: false,                    label: { en: "Heating type", fr: "Type de chauffage", ar: "نوع التدفئة" }, options: HEATING_TYPE_OPTIONS, group: "amenities", showInSearchFilter: true, showInListingCard: false },
+      { key: "water_tank",   type: "boolean", required: false,                     label: { en: "Water tank",   fr: "Réservoir / Bâche à eau", ar: "خزان ماء"    }, group: "amenities", showInSearchFilter: true, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 6, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Water tank" }, fr: { true: "Bâche à eau" }, ar: { true: "خزان ماء" } } },
       { key: "garden",     type: "boolean", required: false,                       label: { en: "Garden",           fr: "Jardin",                ar: "حديقة"                }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
         cardBadgeLabel: { en: { true: "Garden" }, fr: { true: "Jardin" }, ar: { true: "حديقة" } } },
+      { key: "pool",     type: "boolean", required: false,                         label: { en: "Pool",             fr: "Piscine",               ar: "مسبح"                 }, group: "amenities",        showInSearchFilter: true, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 10, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Pool" }, fr: { true: "Piscine" }, ar: { true: "مسبح" } } },
       { key: "garage",     type: "boolean", required: false,                       label: { en: "Garage",           fr: "Garage",                ar: "مرآب"                 }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 7, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
         cardBadgeLabel: { en: { true: "Garage" }, fr: { true: "Garage" }, ar: { true: "مرآب" } } },
@@ -194,8 +205,13 @@ export const PROPERTY_TYPE_DEFS = [
       { key: "is_gated_community", type: "boolean", required: false,                label: { en: "Gated Community",  fr: "Résidence sécurisée",   ar: "مجمع آمن"             }, group: "characteristics", showInSearchFilter: false, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 11, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
         cardBadgeLabel: { en: { true: "Gated" }, fr: { true: "Sécurisée" }, ar: { true: "آمن" } } },
-      { key: "view_type",    type: "multi_enum", required: false,                  label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VIEW_OPTIONS, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
+      { key: "view_type",    type: "multi_enum", required: false,                  label: { en: "View",        fr: "Vue",           ar: "الإطلالة"         }, options: VILLA_VIEW_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
       { key: "furnished",    type: "enum",    required: { whenListingType: "rent" }, label: { en: "Furnished",        fr: "Ameublement",           ar: "التأثيث"              }, options: FURNISHED_OPTIONS, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "has_basement",  type: "boolean", required: false,                    label: { en: "Basement",        fr: "Sous-sol",           ar: "قبو"                 }, group: "characteristics", showInSearchFilter: true, showInListingCard: false },
+      { key: "heating_type",  type: "enum",    required: false,                    label: { en: "Heating type", fr: "Type de chauffage", ar: "نوع التدفئة" }, options: HEATING_TYPE_OPTIONS, group: "amenities", showInSearchFilter: true, showInListingCard: false },
+      { key: "water_tank",   type: "boolean", required: false,                     label: { en: "Water tank",   fr: "Réservoir / Bâche à eau", ar: "خزان ماء"    }, group: "amenities", showInSearchFilter: true, showInListingCard: false,
+        showAsCardBadge: true, cardBadgePriority: 6, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
+        cardBadgeLabel: { en: { true: "Water tank" }, fr: { true: "Bâche à eau" }, ar: { true: "خزان ماء" } } },
       { key: "garden",       type: "boolean", required: false,                       label: { en: "Garden",           fr: "Jardin",                ar: "حديقة"                }, group: "amenities",        showInSearchFilter: false, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 8, cardBadgeStyle: "positive", cardBadgeCondition: "if_true",
         cardBadgeLabel: { en: { true: "Garden" }, fr: { true: "Jardin" }, ar: { true: "حديقة" } } },
@@ -339,6 +355,7 @@ export const PROPERTY_TYPE_DEFS = [
       { key: "total_area",       type: "number",  required: true,  label: { en: "Total Area (m²)",  fr: "Surface totale (m²)", ar: "المساحة الإجمالية (م²)" }, unit: "m²", min: 1, warnBelow: 100, warnAbove: 50000, group: "surfaces",        showInSearchFilter: true,  showInListingCard: true,  cardOrder: 3, cardIcon: "ruler",    cardFormat: "value_unit" },
       { key: "total_floors",     type: "number",  required: true,  label: { en: "Total Floors",     fr: "Nombre d'étages",     ar: "إجمالي الطوابق"         }, min: 1, max: 100, group: "characteristics", showInSearchFilter: false, showInListingCard: true,  cardOrder: 2, cardIcon: "floors",   cardFormat: "icon_value" },
       { key: "total_units",      type: "number",  required: true,  label: { en: "Total Units",      fr: "Nombre d'unités",     ar: "إجمالي الوحدات"         }, min: 1, max: 1000, group: "characteristics", showInSearchFilter: false, showInListingCard: true, cardOrder: 1, cardIcon: "building", cardFormat: "icon_value" },
+      { key: "units_breakdown",  type: "structured", required: true, label: { en: "Building composition", fr: "Composition de l'immeuble", ar: "تركيبة العمارة" }, group: "characteristics", showInSearchFilter: true, filterMode: "multi_enum", validationRule: "units_breakdown_sum_match_total_units" },
       { key: "title_type",       type: "enum",    required: false, label: { en: "Title Type",       fr: "Type d'acte",         ar: "نوع العقد"              }, options: TITLE_TYPES, group: "characteristics", showInSearchFilter: false, showInListingCard: false },
       { key: "is_under_lease",   type: "boolean", required: false, label: { en: "Currently Leased",  fr: "Actuellement loué",   ar: "مؤجر حالياً"             }, group: "characteristics", showInSearchFilter: false, showInListingCard: false,
         showAsCardBadge: true, cardBadgePriority: 9, cardBadgeStyle: "neutral", cardBadgeCondition: "if_true",
