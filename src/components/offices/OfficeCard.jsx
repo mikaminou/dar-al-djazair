@@ -32,7 +32,7 @@ export default function OfficeCard({ office, lang, editable, onEdit, onDelete, o
         <div className="space-y-1">
           <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <MapPin className="w-3 h-3 flex-shrink-0" />
-            <span>{wilayaLabel}{office.commune ? `, ${office.commune}` : ""}</span>
+            <span>{wilayaLabel}</span>
           </div>
           {office.address && (
             <p className="text-xs text-gray-500 dark:text-gray-400 pl-4">{office.address}</p>

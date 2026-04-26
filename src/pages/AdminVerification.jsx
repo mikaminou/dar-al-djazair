@@ -594,8 +594,7 @@ export default function AdminVerification() {
                               </div>
                               <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
                                 <MapPin className="w-2.5 h-2.5" />
-                                {wilayaLabel}{office.commune ? `, ${office.commune}` : ""}
-                                {office.address ? ` — ${office.address}` : ""}
+                                {wilayaLabel}{office.address ? ` — ${office.address}` : ""}
                               </p>
                             </div>
                             <button

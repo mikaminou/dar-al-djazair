@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WILAYAS } from "../constants";
-import { COMMUNES_BY_WILAYA } from "../communesData";
+import WilayaSingleSelect from "../WilayaSingleSelect";
 import { Save, X } from "lucide-react";
 
 const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
@@ -12,7 +10,6 @@ const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 bloc
 export default function OfficeForm({ office, lang, onSave, onCancel, isPrimary: forcePrimary = false }) {
   const [form, setForm] = useState({
     wilaya: office?.wilaya || "",
-    commune: office?.commune || "",
     address: office?.address || "",
     phone: office?.phone || "",
     email: office?.email || "",
@@ -20,8 +17,6 @@ export default function OfficeForm({ office, lang, onSave, onCancel, isPrimary: 
     is_primary: office?.is_primary ?? forcePrimary,
   });
   const [errors, setErrors] = useState({});
-
-  const communes = form.wilaya ? (COMMUNES_BY_WILAYA[form.wilaya] || []) : [];
 
   function validate() {
     const e = {};
@@ -46,39 +41,24 @@ export default function OfficeForm({ office, lang, onSave, onCancel, isPrimary: 
         {/* Wilaya */}
         <div>
           <label className={labelCls}>{lbl("Wilaya", "Wilaya", "الولاية")} <span className="text-red-500">*</span></label>
-          <Select
+          <WilayaSingleSelect
             value={form.wilaya}
-            onValueChange={v => setForm(p => ({ ...p, wilaya: v, commune: "" }))}
-          >
-            <SelectTrigger className={`${inputCls} ${errors.wilaya ? "border-red-400" : ""}`}>
-              <SelectValue placeholder="..." />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {WILAYAS.map(w => (
-                <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={v => setForm(p => ({ ...p, wilaya: v }))}
+            lang={lang}
+            hasError={!!errors.wilaya}
+          />
           {errors.wilaya && <p className="text-xs text-red-500 mt-1">{lbl("Required", "Requis", "مطلوب")}</p>}
         </div>
 
-        {/* Commune */}
+        {/* Office Label */}
         <div>
-          <label className={labelCls}>{lbl("Commune", "Commune", "البلدية")}</label>
-          <Select
-            value={form.commune}
-            onValueChange={v => setForm(p => ({ ...p, commune: v }))}
-            disabled={!form.wilaya}
-          >
-            <SelectTrigger className={inputCls}>
-              <SelectValue placeholder={form.wilaya ? "..." : lbl("Select wilaya first", "Choisir wilaya d'abord", "اختر الولاية أولاً")} />
-            </SelectTrigger>
-            <SelectContent className="max-h-64">
-              {communes.map(c => (
-                <SelectItem key={c} value={c}>{c}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <label className={labelCls}>{lbl("Office Label", "Nom du bureau", "اسم المكتب")}</label>
+          <Input
+            value={form.office_label}
+            onChange={e => setForm(p => ({ ...p, office_label: e.target.value }))}
+            placeholder={lbl("e.g. Head Office, Annaba Branch", "ex. Siège Social, Antenne Annaba", "مثال: المقر الرئيسي، فرع عنابة")}
+            className={inputCls}
+          />
         </div>
 
         {/* Address */}
@@ -117,17 +97,6 @@ export default function OfficeForm({ office, lang, onSave, onCancel, isPrimary: 
             className={`${inputCls} ${errors.email ? "border-red-400" : ""}`}
           />
           {errors.email && <p className="text-xs text-red-500 mt-1">{lbl("Invalid email", "Email invalide", "بريد إلكتروني غير صالح")}</p>}
-        </div>
-
-        {/* Office Label */}
-        <div>
-          <label className={labelCls}>{lbl("Office Label", "Nom du bureau", "اسم المكتب")}</label>
-          <Input
-            value={form.office_label}
-            onChange={e => setForm(p => ({ ...p, office_label: e.target.value }))}
-            placeholder={lbl("e.g. Head Office, Annaba Branch", "ex. Siège Social, Antenne Annaba", "مثال: المقر الرئيسي، فرع عنابة")}
-            className={inputCls}
-          />
         </div>
 
         {/* Is Primary */}
