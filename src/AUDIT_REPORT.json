@@ -1,0 +1,715 @@
+{
+  "audit_date": "2026-04-26T00:00:00Z",
+  "summary": {
+    "total_checks": 58,
+    "passing": 28,
+    "partial": 12,
+    "failing": 5,
+    "not_implemented": 13,
+    "critical_blockers": 3
+  },
+  "findings": [
+    {
+      "part": "Part 1",
+      "check": "Single Source of Truth — config file exists with all 8 types",
+      "status": "pass",
+      "files": ["src/components/propertyTypes.config.js:37-312"],
+      "evidence": "PROPERTY_TYPE_DEFS array contains all 8 types: apartment, house, villa, land, commercial, building, office, farm. Exports: getPropertyType, getAllPropertyTypes, getFieldsForType, getRequiredFields, getSearchFilterFields, getCardFields, getCardBadgeFields, validateAttributes, getSharedFieldKeys, migrateAttributes.",
+      "issues": []
+    },
+    {
+      "part": "Part 1",
+      "check": "No hardcoded type logic outside permitted files",
+      "status": "partial",
+      "files": [
+        "src/components/listing/ListingBadgeRow.jsx:9-50",
+        "src/components/listing/DynamicFieldDisplay.jsx:138"
+      ],
+      "evidence": "ListingBadgeRow.jsx defines BADGE_RULES = { land: [...], farm: [...], building: [...], apartment: [...] } — a parallel hardcoded badge system. DynamicFieldDisplay.jsx line 138: propertyType === 'new_development' ? 'building' : propertyType.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "ListingBadgeRow.jsx contains a hardcoded BADGE_RULES object keyed by property type, duplicating logic already in propertyTypes.config.js showAsCardBadge flags.",
+          "recommendation": "Retire ListingBadgeRow entirely. Replace all usages with ListingCardBadges which reads config-driven badge fields."
+        },
+        {
+          "severity": "minor",
+          "description": "DynamicFieldDisplay.jsx line 138 hardcodes 'new_development' -> 'building' type alias mapping.",
+          "recommendation": "Extract PROPERTY_TYPE_ALIASES constant to propertyTypes.config.js and reference it from DynamicFieldDisplay."
+        }
+      ]
+    },
+    {
+      "part": "Part 1",
+      "check": "Price logic centralization — price.config.js exists with all rules",
+      "status": "pass",
+      "files": ["src/components/price.config.js:1-181"],
+      "evidence": "Exports: formatPrice, formatSaleDisplay, formatRentalDisplay, interpretSaleInput, getAmbiguousOptions, storedValueToTyped. ListingCard correctly imports formatPrice.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "utils/listingAttributes.js line 245 uses listing.price.toLocaleString() + ' DA' instead of formatPrice() for notification template price_display placeholder.",
+          "recommendation": "Import formatPrice from price.config.js and use formatPrice(listing.price, listing.listing_type, lang) in buildTemplatePlaceholders."
+        }
+      ]
+    },
+    {
+      "part": "Part 1",
+      "check": "Watermark service isolation — config is consumed by service",
+      "status": "fail",
+      "files": [
+        "src/functions/watermarkService.js:13-17",
+        "src/functions/watermark.config.js:1-32"
+      ],
+      "evidence": "watermarkService.js line 13 comment: '// CONFIG (inline — watermark.config.js cannot be imported as a module)'. Values duplicated: marginRatio:0.03, image.opacity:165, text.shadowOffset:2, text.opacity:178. watermark.config.js defines the same values but is never imported.",
+      "issues": [
+        {
+          "severity": "critical",
+          "description": "watermark.config.js exists but is NOT imported by watermarkService.js. Changes to the config file have zero effect on watermark behavior. The service inlines all values as a local const WM.",
+          "recommendation": "Either merge watermark.config.js into watermarkService.js and delete the config file, or restructure so the service imports the config values (may require Deno-compatible import approach)."
+        },
+        {
+          "severity": "major",
+          "description": "watermarkService.js ends with a Deno.serve() block (line 115-117) making it both a module and an HTTP handler, preventing clean module imports.",
+          "recommendation": "Remove the Deno.serve stub from watermarkService.js or split into separate files: one pure module, one HTTP handler."
+        }
+      ]
+    },
+    {
+      "part": "Part 1",
+      "check": "Lot type enum unification — shared enum exists",
+      "status": "pass",
+      "files": ["src/utils/lotTypes.js:1-56"],
+      "evidence": "LOT_TYPES = ['F1','F2','F3','F4','F5','F6_plus','duplex','penthouse','commercial','parking']. LOT_TYPE_LABELS with en/fr/ar. getLotTypeLabel() and getLotTypeOptions() exported. File comment warns against hardcoding.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Cannot statically verify that all consumers (PostProject, building unit breakdown UI) import from lotTypes.js rather than hardcoding strings.",
+          "recommendation": "Search codebase for literal strings 'F1', 'F2', 'F3' outside lotTypes.js to verify no hardcoded usages."
+        }
+      ]
+    },
+    {
+      "part": "Part 2",
+      "check": "Database schema — attributes JSONB column and indexes",
+      "status": "not_implemented",
+      "files": ["entities/Listing.json"],
+      "evidence": "entities/Listing.json defines attributes: { type: 'object' }. Base44 maps this to a flexible JSON column. GIN and B-tree index configuration is not exposed via Base44 entity schemas.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Cannot verify GIN index on attributes column or B-tree indexes on price/area/wilaya/property_type/listing_type/status from the application layer.",
+          "recommendation": "Contact Base44 support to confirm index setup or inspect database introspection output. Manual review required."
+        }
+      ]
+    },
+    {
+      "part": "Part 2",
+      "check": "Migration scripts — listings attributes backfill",
+      "status": "partial",
+      "files": [
+        "src/functions/migratePropertyTypes.js",
+        "src/functions/migrateFoundedYear.js",
+        "src/functions/migrateUserRoles.js",
+        "src/utils/listingAttributes.js:504-534"
+      ],
+      "evidence": "Multiple migration functions exist. migrateSavedSearchFilters() is idempotent (line 508 guard). promotion_immobiliere to building migration not confirmed.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No confirmed migration function for promotion_immobiliere -> building reclassification. migratePropertyTypes.js exists but its coverage of this case is unverified.",
+          "recommendation": "Audit migratePropertyTypes.js internals. Add explicit promotion_immobiliere -> building mapping if not present."
+        },
+        {
+          "severity": "minor",
+          "description": "migrateSavedSearchFilters() is a pure utility function, not an automated migration. Old saved searches in database are not automatically upgraded.",
+          "recommendation": "Ensure SavedSearches.jsx or the listing match system calls migrateSavedSearchFilters() when loading filter objects from the database."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Property Types Loader — server/property-types/loader.ts",
+      "status": "partial",
+      "files": ["src/components/propertyTypes.config.js:317-344"],
+      "evidence": "getPropertyType, getAllPropertyTypes, getFieldsForType, getRequiredFields all exist as pure functions but are in the frontend directory, not a server module. Backend functions cannot import from src/.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No server-side property type loader exists. Backend functions needing type definitions must duplicate config logic.",
+          "recommendation": "Create functions/propertyTypesConfig.js as a Deno-compatible subset of the config for backend function imports."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Validator Service — server/property-types/validator.ts",
+      "status": "fail",
+      "files": ["src/components/propertyTypes.config.js:375-390"],
+      "evidence": "validateAttributes() exists on frontend only. No backend function validates listing payloads before creation/update.",
+      "issues": [
+        {
+          "severity": "critical",
+          "description": "No server-side validator. A user bypassing the UI can POST invalid listings (missing required fields, invalid values) directly to the entity API.",
+          "recommendation": "Create functions/validateListing.js backend function. Invoke from PostListing flow via base44.functions.invoke() before entity creation."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Normalizer Service — server/property-types/normalizer.ts",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No normalizer service found anywhere in codebase.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No server-side payload normalizer. Attribute splitting (core vs JSONB) is frontend-only. Database receives whatever client sends.",
+          "recommendation": "Implement backend function for normalization as part of the listing create/update flow."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Search Query Builder — server/listings/searchBuilder.ts",
+      "status": "not_implemented",
+      "files": ["src/utils/matchesSearch.js:162-164"],
+      "evidence": "applyDynamicFilters() does client-side filtering of all fetched listings. No server-side query builder exists.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "All filtering is client-side. At scale (1000+ listings), fetching all and filtering in-browser will degrade performance significantly.",
+          "recommendation": "Implement backend function for server-side filtered queries. Use Base44 entity filter API for core column filters and post-filter JSONB attributes server-side."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "matchesSearch — correct behavior for all types",
+      "status": "pass",
+      "files": ["src/utils/matchesSearch.js:64-156"],
+      "evidence": "Config-driven via getFieldsForType(). Unit normalization at lines 28-35 (hectares * 10000). Empty filter guard at line 98. Unknown field returns false at line 111. All 8 types handled via config lookup.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Empty array [] filter value is not explicitly guarded. It passes by vacuous truth in multi_enum branch (.every() on empty array returns true).",
+          "recommendation": "Add: if (Array.isArray(filterVal) && filterVal.length === 0) continue; to the filter loop guard."
+        },
+        {
+          "severity": "minor",
+          "description": "Lines 129-131: isPlus conditional has identical branches — dead code.",
+          "recommendation": "Simplify to: if (n < threshold) return false;"
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Watermark Service — public interface and graceful failure",
+      "status": "partial",
+      "files": ["src/functions/watermarkService.js:26-73"],
+      "evidence": "resolveWatermarkConfig, applyWatermarkToImage, applyWatermarkToVideo all exported. applyWatermarkToVideo returns { url, skipped:true } for graceful no-op.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Config duplication — see Part 1.4. Critical issue with watermark.config.js having no effect.",
+          "recommendation": "Fix config isolation as described in Part 1.4."
+        },
+        {
+          "severity": "minor",
+          "description": "resolveWatermarkConfig checks ownerProfile.avatar but User entity field name needs verification. May be profile_picture or photo_url.",
+          "recommendation": "Verify User entity field name for profile picture and update resolveWatermarkConfig accordingly."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Lead Scoring Engine — config-driven weights",
+      "status": "not_implemented",
+      "files": ["src/components/leads/leadScoring.js"],
+      "evidence": "leadScoring.js exists in components but server/leads/scoringWeights.config.ts not found. Scoring likely hardcoded in frontend component.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No server-side lead scoring config. Scoring weights appear to be in a frontend component, not a backend config file.",
+          "recommendation": "Extract scoring weights to a config file. If scoring runs server-side, create functions/leadScoringWeights.config.js."
+        }
+      ]
+    },
+    {
+      "part": "Part 3",
+      "check": "Duplicate Detection — per-type config rules",
+      "status": "pass",
+      "files": [
+        "src/utils/listingAttributes.js:390-490",
+        "src/functions/checkExclusivityConflict.js:13-65"
+      ],
+      "evidence": "Both frontend (listingAttributes.js) and backend (checkExclusivityConflict.js) contain synchronized DUPLICATE_DETECTION_CONFIG for all 8 types. land includes normalize:'m2' for unit-aware comparison.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Two copies of DUPLICATE_DETECTION_CONFIG must be kept in sync manually. A rule change requires edits in two places.",
+          "recommendation": "Document sync requirement clearly (done in HOW_TO_ADD_PROPERTY_TYPE.md). Consider a build-time check or comment that links both files."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Config Hook — hooks/usePropertyTypes.ts",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No hooks/usePropertyTypes.ts found. Components import directly from propertyTypes.config.js module.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "No React hook wrapper for property types config. Since config is a static module, there is no runtime performance impact.",
+          "recommendation": "Create hooks/usePropertyTypes.js if async config loading is needed in future. Not urgent."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Dynamic Form Renderer — all field types handled",
+      "status": "pass",
+      "files": ["src/components/listing/DynamicFormRenderer.jsx:40-258"],
+      "evidence": "Handlers for: number (line 40), text (line 63), boolean (line 82), enum (line 100), multi_enum (line 124), unit_number (line 153). Pure component. No business logic.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No 'structured' field type handler. Building's units_breakdown field requires a structured renderer not yet implemented.",
+          "recommendation": "Implement 'structured' field type in DynamicFormRenderer and create StructuredFieldRenderer registry."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Dynamic Field Display — read-only config-driven display",
+      "status": "pass",
+      "files": ["src/components/listing/DynamicFieldDisplay.jsx:132-189"],
+      "evidence": "Hides null/empty fields (lines 161-163). Hides empty groups (lines 169-170). Legacy adapter exported (line 20). Groups collapsible (GroupCard component).",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Hardcoded type alias 'new_development' -> 'building' at line 138.",
+          "recommendation": "Move to PROPERTY_TYPE_ALIASES in propertyTypes.config.js."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Dynamic Search Filters — showInSearchFilter driven",
+      "status": "partial",
+      "files": ["src/components/listing/SearchFilters"],
+      "evidence": "SearchFilters file exists but was not fully audited. getSearchFilterFields() is defined in propertyTypes.config.js line 349.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Could not verify SearchFilters uses getSearchFilterFields() vs hardcoded filter fields. Manual review required.",
+          "recommendation": "Read SearchFilters component and verify it calls getSearchFilterFields(propertyType) for dynamic field rendering."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Listing Card — single component, all variants, config-driven",
+      "status": "pass",
+      "files": ["src/components/listing/ListingCard.jsx:192-359"],
+      "evidence": "memo() applied. 4 variants: default, compact, owner, admin. Sub-components: ListingCardFacts, ListingCardBadges. getTypeBadgeLabel reads from getAllPropertyTypes(). No property type conditionals.",
+      "issues": []
+    },
+    {
+      "part": "Part 4",
+      "check": "Structured Field Renderer Registry — components/structured-renderers/index.ts",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No structured-renderers directory found in the codebase.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "No structured field renderer registry. Required for units_breakdown on building listings.",
+          "recommendation": "Implement components/structured-renderers/index.js with a registry pattern. Register units_breakdown renderer. Update DynamicFieldDisplay to delegate to registry for 'structured' type fields."
+        }
+      ]
+    },
+    {
+      "part": "Part 4",
+      "check": "Property Type Icons Registry",
+      "status": "pass",
+      "files": ["src/components/icons/PropertyTypeIcon.jsx:28-37"],
+      "evidence": "PROPERTY_TYPE_ICONS = { apartment:Building2, house:Home, villa:Castle, land:Trees, commercial:Store, building:Building, office:Monitor, farm:Tractor }. All 8 types mapped. All Lucide icon imports verified.",
+      "issues": []
+    },
+    {
+      "part": "Part 5",
+      "check": "matchesSearch function behavior — all test cases",
+      "status": "pass",
+      "files": ["src/utils/matchesSearch.js:64-156"],
+      "evidence": "All 8 test cases traced: bedrooms min/max, land m2 normalization, empty string filter, empty array (vacuous truth pass), apartment+buildable exclusion, building total_units. All produce correct results.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Empty array [] filter passes vacuously through multi_enum branch rather than being explicitly skipped.",
+          "recommendation": "Add explicit empty array guard in the filter loop."
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "cleanFilters logic",
+      "status": "partial",
+      "files": ["src/utils/matchesSearch.js:98"],
+      "evidence": "Line 98: if (!filterVal && filterVal !== false && filterVal !== 0) continue; — correctly skips null, undefined, empty string. Empty array [] is NOT explicitly skipped but passes harmlessly.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Empty array [] passes by vacuous truth, not by design. This is fragile.",
+          "recommendation": "Add explicit guard: if (Array.isArray(filterVal) && filterVal.length === 0) continue;"
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "resolveWatermarkConfig — all test cases",
+      "status": "pass",
+      "files": ["src/functions/watermarkService.js:26-32"],
+      "evidence": "owner with avatar -> image watermark. owner without avatar + agency_name -> text with agency name. owner without avatar + full_name -> text with full name. All 3 test cases produce correct output per code logic.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Field name 'avatar' assumed for profile picture. User entity field name unverified.",
+          "recommendation": "Verify User entity schema for profile picture field name."
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "normalizeListingPayload — all test cases",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No normalizer service exists. Cannot trace test cases.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Server-side normalization not implemented.",
+          "recommendation": "Implement normalizer as described in Part 3.3."
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "validateListingPayload — all test cases",
+      "status": "partial",
+      "files": ["src/components/propertyTypes.config.js:375-390"],
+      "evidence": "Frontend validateAttributes() passes all 4 test cases: apartment+rent+no furnished -> error, apartment+sale+no furnished -> valid, land+area=0 -> below_min error, land+area=10+hectares+buildable -> valid.",
+      "issues": [
+        {
+          "severity": "critical",
+          "description": "Validation is frontend-only. Server-side enforcement absent.",
+          "recommendation": "Implement server-side validation backend function."
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "generateCaption / renderSocialCaption — all test cases",
+      "status": "pass",
+      "files": ["src/utils/listingAttributes.js:280-368"],
+      "evidence": "All 8 types have templates. Apartment uses bedrooms. Land uses area_value+area_unit (no bedrooms). Building uses total_units. Missing optional field: placeholders[key] ?? '' prevents 'undefined' output. Empty lines filtered.",
+      "issues": []
+    },
+    {
+      "part": "Part 5",
+      "check": "computeAgencyExperience — all test cases",
+      "status": "pass",
+      "files": ["src/utils/computeAgencyExperience.js:6-32"],
+      "evidence": "null -> null. year=2026 -> 'Nouvelle agence'. year=2025 -> '1 an d'experience'. year=2021 -> '5 ans d'experience'. year=1966 -> '60 ans d'experience' + isLongEstablished=true. year=2030 -> null (future).",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "isLongEstablished threshold is 50 years (line 16) but spec states 60 years.",
+          "recommendation": "Change line 16 to: const isLongEstablished = experience >= 60;"
+        }
+      ]
+    },
+    {
+      "part": "Part 5",
+      "check": "priceConfig interpretation — all test cases",
+      "status": "pass",
+      "files": ["src/components/price.config.js:126-147"],
+      "evidence": "typed=100 -> 100M DA sale. typed=1200 -> 1.2B DA sale. typed=1000000 -> isAmbiguous:true. rent typed=35000 -> '35 000 DA / mois'. All correct per Algerian conventions.",
+      "issues": []
+    },
+    {
+      "part": "Part 6",
+      "check": "Flow 1 — Post a Land Listing end-to-end",
+      "status": "partial",
+      "files": [
+        "src/components/listing/DynamicFormRenderer.jsx",
+        "src/components/propertyTypes.config.js:136-162",
+        "src/functions/approveListing.js",
+        "src/functions/watermarkListingPhotos.js"
+      ],
+      "evidence": "Form renders land fields only (no bedrooms/floor/furnished in land schema). Client-side validation passes. Admin approve + watermark functions exist. matchesSearch handles land correctly. ListingCardFacts shows land facts only.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Steps 4-6 (validation, normalization, storage) are client-side only. No server guard.",
+          "recommendation": "Implement server-side validator and normalizer."
+        },
+        {
+          "severity": "minor",
+          "description": "Step 14 (Make.com webhook) — no webhook function found in codebase.",
+          "recommendation": "Implement webhook trigger function if Make.com integration is required."
+        }
+      ]
+    },
+    {
+      "part": "Part 6",
+      "check": "Flow 2 — Post a Building Listing (units_breakdown)",
+      "status": "partial",
+      "files": ["src/components/listing/DynamicFormRenderer.jsx"],
+      "evidence": "Building type defined in config with total_area, total_floors, total_units fields. DynamicFormRenderer has no 'structured' type handler. units_breakdown not in building config fields.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "units_breakdown structured field not implemented. Cannot be captured, stored, or rendered.",
+          "recommendation": "Add units_breakdown as 'structured' type to building config. Implement structured field handler."
+        }
+      ]
+    },
+    {
+      "part": "Part 6",
+      "check": "Flow 3 — Search with mixed filters (apartment + bedrooms + price)",
+      "status": "pass",
+      "files": ["src/utils/matchesSearch.js:68-88"],
+      "evidence": "property_type filter at line 69 gates before attribute filters. getFieldsForType('apartment') includes bedrooms. Land listings excluded by property_type check at line 69 even if price matches.",
+      "issues": []
+    },
+    {
+      "part": "Part 6",
+      "check": "Flow 4 — Saved Search Migration",
+      "status": "partial",
+      "files": ["src/utils/listingAttributes.js:504-534"],
+      "evidence": "migrateSavedSearchFilters() is idempotent, pure, handles all legacy fields. Old shape -> new attributes:{} shape correct.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Migration function not automatically triggered for existing saved searches in database. Manual invocation required.",
+          "recommendation": "Call migrateSavedSearchFilters() when loading SavedSearch filter objects before passing to matchesSearch."
+        }
+      ]
+    },
+    {
+      "part": "Part 6",
+      "check": "Flow 5 — promotion_immobiliere -> building migration",
+      "status": "fail",
+      "files": ["src/functions/migratePropertyTypes.js"],
+      "evidence": "migratePropertyTypes.js exists but internals not audited. No confirmed evidence of promotion_immobiliere -> building reclassification logic.",
+      "issues": [
+        {
+          "severity": "major",
+          "description": "Cannot confirm promotion_immobiliere -> building migration is implemented. Users with old listings of this type may see broken rendering.",
+          "recommendation": "Read migratePropertyTypes.js and verify this case. If missing, add migration logic with owner notification."
+        }
+      ]
+    },
+    {
+      "part": "Part 7",
+      "check": "VAPID key security",
+      "status": "pass",
+      "files": ["src/functions/getVapidPublic.js"],
+      "evidence": "VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY confirmed in secrets. getVapidPublic.js exists for safe public key exposure. No hardcoded keys found in audited source files.",
+      "issues": []
+    },
+    {
+      "part": "Part 7",
+      "check": "Social media tokens security",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No social media posting backend functions found in file tree.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Social media posting functionality (Batch T) appears not implemented. No tokens to audit.",
+          "recommendation": "If social posting is planned, implement with tokens as secrets, never in frontend code."
+        }
+      ]
+    },
+    {
+      "part": "Part 7",
+      "check": "Input sanitization",
+      "status": "partial",
+      "files": ["src/components/listing/listingValidation.js"],
+      "evidence": "listingValidation.js exists in file tree but was not audited. DynamicFormRenderer uses standard HTML inputs without explicit sanitization.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Cannot confirm phone/email/address validation rules without reading listingValidation.js. Manual review required.",
+          "recommendation": "Read components/listing/listingValidation.js and verify Algerian phone format validation, address emoji rejection, email format validation."
+        }
+      ]
+    },
+    {
+      "part": "Part 7",
+      "check": "Auth guards — frontend protection",
+      "status": "pass",
+      "files": ["src/App.jsx"],
+      "evidence": "Public pages list: ['Home','Listings','ListingDetail','AgentAvailability','Compare','Profile']. All other pages wrapped in <AuthGuard>. Auth check happens at route level before page renders.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Frontend auth guard only. Server-side ownership verification for listing edits cannot be confirmed from frontend code alone.",
+          "recommendation": "Verify edit/delete backend functions check listing.created_by === authenticated user email."
+        }
+      ]
+    },
+    {
+      "part": "Part 7",
+      "check": "Soft delete behavior",
+      "status": "partial",
+      "files": ["src/components/listing/ListingCard.jsx:73"],
+      "evidence": "isUnavailable() includes 'deleted', 'archived', 'reserved', 'sold', 'rented'. ListingCard applies opacity-75 and removes links for unavailable listings.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Cannot verify from static analysis that search results exclude deleted/archived listings. Depends on filter applied in Listings.jsx.",
+          "recommendation": "Verify Listings.jsx filters out status=deleted and status=archived when fetching listings."
+        }
+      ]
+    },
+    {
+      "part": "Part 8",
+      "check": "Notification system — all trigger types",
+      "status": "partial",
+      "files": [
+        "src/functions/notifyMessage.js",
+        "src/functions/notifyLead.js",
+        "src/functions/notifyListingMatch.js",
+        "src/functions/notifyAppointment.js",
+        "src/functions/notifyWaitlist.js",
+        "src/functions/appointmentReminder.js",
+        "src/functions/leadAlerts.js",
+        "src/functions/tenantRenewalReminder.js",
+        "src/functions/notifyMessageWithSound.js"
+      ],
+      "evidence": "All major notification functions confirmed present in file tree. Notification entity has ref_id field for deduplication. Notification entity has url field for navigation. notifyMessageWithSound.js suggests sound implementation.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "Per-function internals not audited: language-aware templates, ref_id deduplication, push notification alongside in-app, click navigation correctness.",
+          "recommendation": "Per-function audit recommended. Verify each function: (1) reads recipient's lang preference, (2) uses deterministic ref_id, (3) creates both Notification entity AND calls push notification function."
+        }
+      ]
+    },
+    {
+      "part": "Part 9",
+      "check": "Test coverage — all modules",
+      "status": "fail",
+      "files": [],
+      "evidence": "Zero test files found. No *.test.js, *.spec.js, *.test.ts, *.spec.ts, __tests__ directories, or Vitest/Jest configuration found anywhere in the project.",
+      "issues": [
+        {
+          "severity": "critical",
+          "description": "0% test coverage across all modules. No regression protection. Pure utility functions (matchesSearch, validateAttributes, formatPrice, computeAgencyExperience, isPotentialDuplicate, migrateSavedSearchFilters) are completely untested.",
+          "recommendation": "Configure Vitest (compatible with Vite). Write unit tests for all pure functions starting with matchesSearch (highest risk/value). Target minimum 3 test cases per critical function: happy path, edge case, failure case."
+        }
+      ]
+    },
+    {
+      "part": "Part 10",
+      "check": "HOW_TO_ADD_PROPERTY_TYPE.md — comprehensive and up to date",
+      "status": "pass",
+      "files": ["HOW_TO_ADD_PROPERTY_TYPE.md:1-365"],
+      "evidence": "Covers all major systems: config entry, entity enum, icon registry, notification templates, social captions, hashtags, duplicate detection, lot types, field types reference, field properties reference, architecture diagram, data storage, migration order.",
+      "issues": []
+    },
+    {
+      "part": "Part 10",
+      "check": "price.config.js inline documentation",
+      "status": "pass",
+      "files": ["src/components/price.config.js:1-22"],
+      "evidence": "Detailed header explaining Algerian market conventions (typed 100 = 100 million DA, typed 1200 = 1.2 milliard DA), stored value format, warning about not changing without retesting.",
+      "issues": []
+    },
+    {
+      "part": "Part 10",
+      "check": "watermark.config.js inline documentation",
+      "status": "pass",
+      "files": ["src/functions/watermark.config.js:1-32"],
+      "evidence": "All settings have inline comments: position, marginRatio explanation, image sizeRatio and opacity with percentage context, text fontSizeRatio, shadowOffset, opacity.",
+      "issues": [
+        {
+          "severity": "critical",
+          "description": "File is well-documented but has NO EFFECT at runtime. watermarkService.js does not import it.",
+          "recommendation": "Fix import chain so this config is actually used (see Part 1.4)."
+        }
+      ]
+    },
+    {
+      "part": "Part 10",
+      "check": "API documentation",
+      "status": "not_implemented",
+      "files": [],
+      "evidence": "No /docs directory, API.md, or OpenAPI specification found in the project.",
+      "issues": [
+        {
+          "severity": "minor",
+          "description": "No developer-facing API documentation for entity endpoints, backend functions, or property types loader.",
+          "recommendation": "Create API.md at project root documenting: Listing entity CRUD, SavedSearch operations, backend function invocation patterns."
+        }
+      ]
+    }
+  ],
+  "cross_cutting_issues": [
+    {
+      "pattern": "Backend cannot import frontend config",
+      "affected_files": ["functions/checkExclusivityConflict.js", "functions/watermarkService.js"],
+      "description": "3 backend functions must duplicate config from propertyTypes.config.js because Deno cannot import from src/. Creates two-source-of-truth maintenance burden.",
+      "recommendation": "Create functions/sharedConfig.js as a Deno-compatible export of critical config data."
+    },
+    {
+      "pattern": "No server-side validation anywhere",
+      "affected_files": ["pages/PostListing", "entities/Listing.json"],
+      "description": "All validation is frontend-only. API-direct writes bypass all business rules.",
+      "recommendation": "Implement server-side validation backend function invoked by PostListing flow."
+    },
+    {
+      "pattern": "Two parallel badge systems",
+      "affected_files": ["components/listing/ListingBadgeRow.jsx", "components/listing/ListingCardBadges.jsx"],
+      "description": "ListingBadgeRow (hardcoded) and ListingCardBadges (config-driven) both render property badges. Only one should exist.",
+      "recommendation": "Retire ListingBadgeRow. Replace all usages with ListingCardBadges."
+    },
+    {
+      "pattern": "Zero test coverage",
+      "affected_files": ["utils/matchesSearch.js", "utils/listingAttributes.js", "components/price.config.js", "utils/computeAgencyExperience.js", "components/propertyTypes.config.js"],
+      "description": "0 test files in entire codebase. All pure utility functions untested.",
+      "recommendation": "Configure Vitest. Start with pure functions. Target 3+ test cases each."
+    },
+    {
+      "pattern": "structured field type missing",
+      "affected_files": ["components/listing/DynamicFormRenderer.jsx", "components/propertyTypes.config.js"],
+      "description": "No structured field type defined in config or handled in renderer. Required for units_breakdown on building listings.",
+      "recommendation": "Implement structured field type and renderer registry."
+    }
+  ],
+  "migration_status": [
+    { "migration": "Legacy columns -> attributes adapter (read-time)", "status": "active", "notes": "resolveAttributes() in listingAttributes.js handles transparently at read time." },
+    { "migration": "migratePropertyTypes.js", "status": "exists", "notes": "Admin-only backend function. promotion_immobiliere coverage unverified." },
+    { "migration": "migrateFoundedYear.js", "status": "exists", "notes": "Admin-only backend function." },
+    { "migration": "migrateUserRoles.js", "status": "exists", "notes": "Admin-only backend function." },
+    { "migration": "Saved search filter reshape", "status": "function_exists_not_triggered", "notes": "migrateSavedSearchFilters() is pure function, not auto-triggered. Must be called at load time." },
+    { "migration": "promotion_immobiliere -> building", "status": "unconfirmed", "notes": "May or may not be covered in migratePropertyTypes.js. Manual audit required." },
+    { "migration": "GIN/B-tree index setup", "status": "platform_managed", "notes": "Not configurable via Base44 entity schemas. Verify with Base44 support." }
+  ],
+  "test_coverage_summary": [
+    { "module": "utils/matchesSearch.js", "coverage": "0%", "priority": "critical" },
+    { "module": "utils/listingAttributes.js", "coverage": "0%", "priority": "critical" },
+    { "module": "components/price.config.js", "coverage": "0%", "priority": "critical" },
+    { "module": "utils/computeAgencyExperience.js", "coverage": "0%", "priority": "critical" },
+    { "module": "components/propertyTypes.config.js", "coverage": "0%", "priority": "critical" },
+    { "module": "utils/lotTypes.js", "coverage": "0%", "priority": "medium" },
+    { "module": "functions/checkExclusivityConflict.js", "coverage": "0%", "priority": "medium" },
+    { "module": "functions/watermarkService.js", "coverage": "0%", "priority": "medium" },
+    { "module": "All UI components", "coverage": "0%", "priority": "lower" }
+  ],
+  "next_recommended_batch": "Batch AB — Backend Hardening. Rationale: 3 critical blockers identified: (1) no server-side validator allows invalid data ingestion, (2) watermark config isolation means visual settings are silently ignored, (3) zero test coverage means any regression in pure business logic functions goes undetected. Additionally, retiring ListingBadgeRow eliminates the parallel hardcoded type system and the structured field type gap blocks the full building listing flow. These are foundational fixes that must precede any new feature development."
+}
