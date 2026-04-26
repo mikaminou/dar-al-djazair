@@ -320,7 +320,13 @@ export default function ProfilePage() {
                   </label>
                   <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+213 ..." className={inputCls} />
                 </div>
-                <div className={isProfessional ? "sm:col-span-2" : ""}>
+                <div>
+                  <label className={labelCls}>
+                    {lang === "ar" ? "الموقع الإلكتروني" : lang === "fr" ? "Site web" : "Website"}
+                  </label>
+                  <Input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." className={inputCls} />
+                </div>
+                <div className="sm:col-span-2">
                   <label className={labelCls}>
                     {lang === "ar" ? "الولاية (الولايات)" : lang === "fr" ? "Wilaya(s)" : "Wilaya(s)"}
                     {isProfessional && <span className="ml-1 text-gray-400 font-normal">{lang === "ar" ? "— اختر متعددة" : lang === "fr" ? "— sélection multiple" : "— multi-select"}</span>}
@@ -342,12 +348,6 @@ export default function ProfilePage() {
                       </SelectContent>
                     </Select>
                   )}
-                </div>
-                <div>
-                  <label className={labelCls}>
-                    {lang === "ar" ? "الموقع الإلكتروني" : lang === "fr" ? "Site web" : "Website"}
-                  </label>
-                  <Input value={form.website} onChange={e => setForm(p => ({ ...p, website: e.target.value }))} placeholder="https://..." className={inputCls} />
                 </div>
               </div>
               <div>
