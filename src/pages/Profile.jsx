@@ -67,7 +67,8 @@ export default function ProfilePage() {
       owner_full_name: userInfo?.owner_full_name || "",
       professional_type: userInfo?.professional_type || "",
       years_of_experience: userInfo?.years_of_experience ?? "",
-      wilaya: userInfo?.wilaya || "",
+      wilaya: userInfo?.wilaya || (Array.isArray(userInfo?.wilayas) ? "" : ""),
+      wilayas: Array.isArray(userInfo?.wilayas) ? userInfo.wilayas : (userInfo?.wilaya ? [userInfo.wilaya] : []),
       website: userInfo?.website || "",
       avatar_url: userInfo?.avatar_url || "",
     });
@@ -95,8 +96,13 @@ export default function ProfilePage() {
 
   async function saveProfile() {
     setSaving(true);
-    await base44.auth.updateMe(form);
-    setProfileUser(prev => ({ ...prev, ...form }));
+    const dataToSave = { ...form };
+    if (profileUser?.role === "professional") {
+      // For professionals, also set wilaya to the first selected for backward compat
+      dataToSave.wilaya = form.wilayas[0] || "";
+    }
+    await base44.auth.updateMe(dataToSave);
+    setProfileUser(prev => ({ ...prev, ...dataToSave }));
     setAvatarPreview('');
     setEditing(false);
     setSaving(false);
@@ -199,9 +205,17 @@ export default function ProfilePage() {
                     </Badge>
                   )}
                   <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                    {profileUser.wilaya && (
+                    {(Array.isArray(profileUser.wilayas) && profileUser.wilayas.length > 0) ? (
+                      <span className="flex items-center gap-1 flex-wrap">
+                        <MapPin className="w-4 h-4 flex-shrink-0" />
+                        {profileUser.wilayas.map((v, i) => {
+                          const w = WILAYAS.find(x => x.value === v);
+                          return <span key={v}>{(w ? (w.label[lang] || w.label.fr) : v)}{i < profileUser.wilayas.length - 1 ? ", " : ""}</span>;
+                        })}
+                      </span>
+                    ) : profileUser.wilaya ? (
                       <span className="flex items-center gap-1"><MapPin className="w-4 h-4" />{profileUser.wilaya}</span>
-                    )}
+                    ) : null}
                     {profileUser.phone && (
                       <a href={`tel:${profileUser.phone}`} className="flex items-center gap-1 hover:text-emerald-600">
                         <Phone className="w-4 h-4" />{profileUser.phone}
@@ -305,18 +319,52 @@ export default function ProfilePage() {
                   </label>
                   <Input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+213 ..." className={inputCls} />
                 </div>
-                <div>
+                <div className={isProfessional ? "sm:col-span-2" : ""}>
                   <label className={labelCls}>
-                    {lang === "ar" ? "الولاية" : lang === "fr" ? "Wilaya" : "Wilaya"}
+                    {lang === "ar" ? "الولاية (الولايات)" : lang === "fr" ? "Wilaya(s)" : "Wilaya(s)"}
+                    {isProfessional && <span className="ml-1 text-gray-400 font-normal">{lang === "ar" ? "— اختر متعددة" : lang === "fr" ? "— sélection multiple" : "— multi-select"}</span>}
                   </label>
-                  <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
-                    <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
-                      <SelectValue placeholder="..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                  {isProfessional ? (
+                    <div>
+                      {/* Selected tags */}
+                      {form.wilayas.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mb-2">
+                          {form.wilayas.map(v => {
+                            const w = WILAYAS.find(x => x.value === v);
+                            return (
+                              <span key={v} className="inline-flex items-center gap-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 text-xs font-medium px-2 py-0.5 rounded-full">
+                                {w ? (w.label[lang] || w.label.fr) : v}
+                                <button type="button" onClick={() => setForm(p => ({ ...p, wilayas: p.wilayas.filter(x => x !== v) }))} className="hover:text-red-500">×</button>
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <select
+                        className={`${selectCls} h-36`}
+                        multiple
+                        value={form.wilayas}
+                        onChange={e => {
+                          const selected = Array.from(e.target.selectedOptions).map(o => o.value);
+                          setForm(p => ({ ...p, wilayas: selected }));
+                        }}
+                      >
+                        {WILAYAS.map(w => (
+                          <option key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</option>
+                        ))}
+                      </select>
+                      <p className="text-xs text-gray-400 mt-1">{lang === "ar" ? "اضغط مع Ctrl/Cmd لاختيار أكثر من ولاية" : lang === "fr" ? "Maintenez Ctrl/Cmd pour sélectionner plusieurs wilayas" : "Hold Ctrl/Cmd to select multiple wilayas"}</p>
+                    </div>
+                  ) : (
+                    <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
+                      <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
+                        <SelectValue placeholder="..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
                 <div>
                   <label className={labelCls}>
