@@ -135,7 +135,7 @@ function BooleanField({ field, value, onChange, lang }) {
         onClick={() => onChange(field.key, !active)}
         className={`px-3.5 py-2.5 rounded-full text-xs font-semibold border-2 transition-all cursor-pointer ${
           active
-            ? "border-emerald-500 bg-emerald-600 text-white shadow-sm"
+            ? "border-emerald-500 bg-emerald-50 text-emerald-700"
             : "border-gray-200 bg-white text-gray-700 hover:border-emerald-300 hover:bg-emerald-50/40"
         }`}
       >
