@@ -173,7 +173,7 @@ export const PROPERTY_TYPE_DEFS = [
       { key: "fiber_internet",type: "boolean", required: false,                       label: { en: "Fiber Internet",   fr: "Fibre optique",       ar: "ألياف بصرية"         }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
        ...UNIVERSAL_AMENITIES.map(opt => ({ 
          key: opt.value, type: "boolean", required: false, label: opt.label, 
-         group: "amenities", showInSearchFilter: false, showInListingCard: false 
+         group: "amenities", showInSearchFilter: true, showInListingCard: false 
        })),
        { key: "year_built", type: "number",  required: false,                       label: { en: "Year Built",       fr: "Année de constr.",      ar: "سنة البناء"           },             min: 1900, max: 2030,               group: "construction",    showInSearchFilter: false, showInListingCard: false },
        ],
@@ -238,7 +238,7 @@ export const PROPERTY_TYPE_DEFS = [
       { key: "fiber_internet",type: "boolean", required: false,                       label: { en: "Fiber Internet",   fr: "Fibre optique",       ar: "ألياف بصرية"         }, group: "amenities",        showInSearchFilter: false, showInListingCard: false },
       ...UNIVERSAL_AMENITIES.map(opt => ({ 
         key: opt.value, type: "boolean", required: false, label: opt.label, 
-        group: "amenities", showInSearchFilter: false, showInListingCard: false 
+        group: "amenities", showInSearchFilter: true, showInListingCard: false 
       })),
       { key: "year_built",   type: "number",  required: false,                       label: { en: "Year Built",       fr: "Année de constr.",      ar: "سنة البناء"           },             min: 1900, max: 2030,               group: "construction",    showInSearchFilter: false, showInListingCard: false },
       ],
