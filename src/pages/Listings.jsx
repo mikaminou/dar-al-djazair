@@ -73,6 +73,7 @@ export default function ListingsPage() {
       bathrooms:      "",
       furnished:      "",
       features:       [],
+      agency_office_wilaya: "",
     };
   });
 
@@ -118,6 +119,18 @@ export default function ListingsPage() {
 
     let data = await base44.entities.Listing.filter(query, sortBy, 100);
     data = applyClientFilters(data, filters);
+
+    // Agency office wilaya filter — post-filter by fetching agency users
+    if (filters.agency_office_wilaya) {
+      const agencyUsers = await base44.entities.User.filter({ role: "professional" }, null, 500).catch(() => []);
+      const matchingEmails = new Set(
+        agencyUsers
+          .filter(u => Array.isArray(u.agency_offices) && u.agency_offices.some(o => o.wilaya === filters.agency_office_wilaya))
+          .map(u => u.email)
+      );
+      data = data.filter(l => matchingEmails.has(l.created_by));
+    }
+
     setListings(data);
 
     const me = await base44.auth.me().catch(() => null);

@@ -15,7 +15,7 @@ const FURNISHED_OPTIONS = [
   { value: "unfurnished",    label: { en: "Unfurnished", fr: "Non meublé", ar: "غير مفروش" } },
 ];
 
-const EMPTY_ADVANCED = { bedrooms: "", bathrooms: "", min_area: "", max_area: "", furnished: "", features: [] };
+const EMPTY_ADVANCED = { bedrooms: "", bathrooms: "", min_area: "", max_area: "", furnished: "", features: [], agency_office_wilaya: "" };
 
 export default function SearchFilters({ filters, onChange, onSearch, compact = false }) {
   const { t, lang } = useLang();
@@ -34,6 +34,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     filters.bathrooms && `${filters.bathrooms} ${lang === "ar" ? "حمام" : lang === "fr" ? "sdb" : "bath"}`,
     (filters.min_area || filters.max_area) && `${filters.min_area || 0}–${filters.max_area || "∞"} m²`,
     filters.furnished && FURNISHED_OPTIONS.find(f => f.value === filters.furnished)?.label[lang],
+    filters.agency_office_wilaya && (WILAYAS.find(w => w.value === filters.agency_office_wilaya)?.label[lang] || filters.agency_office_wilaya),
     ...(filters.features || []).map(fv => FEATURES_LIST.find(f => f.value === fv)?.label[lang] || fv),
   ].filter(Boolean);
 
@@ -286,6 +287,22 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* Agency office wilaya filter */}
+          <div>
+            <label className="text-xs text-gray-500 font-medium mb-2 block">
+              {lang === "ar" ? "وكالات لها مكاتب في" : lang === "fr" ? "Agences avec bureaux dans" : "Agencies with offices in"}
+            </label>
+            <Select value={filters.agency_office_wilaya || "all"} onValueChange={v => update("agency_office_wilaya", v === "all" ? "" : v)}>
+              <SelectTrigger className="border-gray-200 rounded-xl bg-white dark:bg-gray-800 h-9 text-sm">
+                <SelectValue placeholder={lang === "ar" ? "أي ولاية" : lang === "fr" ? "Toutes wilayas" : "Any wilaya"} />
+              </SelectTrigger>
+              <SelectContent className="max-h-64">
+                <SelectItem value="all">{lang === "ar" ? "أي ولاية" : lang === "fr" ? "Toutes wilayas" : "Any wilaya"}</SelectItem>
+                {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Amenities */}

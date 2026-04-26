@@ -4,8 +4,10 @@ import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
   MapPin, Maximize2, BedDouble, Bath, Heart, Share2, Phone, Mail,
-  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown, Star
+  ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown, Star,
+  Building2, Navigation
 } from "lucide-react";
+import { WILAYAS } from "../components/constants";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +40,7 @@ export default function ListingDetailPage() {
   const [msgSent, setMsgSent] = useState(false);
   const [user, setUser] = useState(null);
   const [ownerName, setOwnerName] = useState(null);
+  const [ownerData, setOwnerData] = useState(null);
   const [canGoBack, setCanGoBack] = useState(false);
 
   useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
@@ -77,7 +80,10 @@ export default function ListingDetailPage() {
       setSimilar(sim.filter(l => l.id !== data[0].id).slice(0, 4));
       if (data[0].created_by) {
         base44.entities.User.filter({ email: data[0].created_by }).then(users => {
-          if (users.length > 0 && users[0].full_name) setOwnerName(users[0].full_name);
+          if (users.length > 0) {
+            setOwnerName(users[0].agency_name || users[0].full_name || null);
+            setOwnerData(users[0]);
+          }
         }).catch(() => {});
       }
     }
@@ -375,6 +381,47 @@ export default function ListingDetailPage() {
                 </div>
               </Link>
             )}
+            {/* Agency office matching listing wilaya */}
+            {ownerData?.agency_offices?.length > 0 && (() => {
+              const offices = ownerData.agency_offices;
+              const matchingOffice = offices.find(o => o.wilaya === listing.wilaya) || offices.find(o => o.is_primary);
+              if (!matchingOffice) return null;
+              const wilayaObj = WILAYAS.find(w => w.value === matchingOffice.wilaya);
+              const wilayaLabel = wilayaObj ? (wilayaObj.label[lang] || wilayaObj.label.fr) : matchingOffice.wilaya;
+              return (
+                <div className="px-5 py-3 bg-emerald-50 dark:bg-emerald-900/20 border-b border-emerald-100 dark:border-emerald-800">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-1.5">
+                    <Building2 className="w-3.5 h-3.5" />
+                    {matchingOffice.office_label || (lang === "ar" ? "مكتب " : lang === "fr" ? "Bureau " : "Office ") + wilayaLabel}
+                  </div>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+                      <MapPin className="w-3 h-3 flex-shrink-0 text-emerald-600" />
+                      {wilayaLabel}{matchingOffice.commune ? `, ${matchingOffice.commune}` : ""}
+                    </div>
+                    {matchingOffice.address && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 pl-4">{matchingOffice.address}</p>
+                    )}
+                    {matchingOffice.phone && (
+                      <a href={`tel:${matchingOffice.phone}`} className="flex items-center gap-1 text-xs text-emerald-700 dark:text-emerald-400 hover:underline">
+                        <Phone className="w-3 h-3" />{matchingOffice.phone}
+                      </a>
+                    )}
+                    {matchingOffice.coordinates?.lat && matchingOffice.coordinates?.lng && (
+                      <a
+                        href={`https://www.google.com/maps?q=${matchingOffice.coordinates.lat},${matchingOffice.coordinates.lng}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                      >
+                        <Navigation className="w-3 h-3" />
+                        {lang === "ar" ? "الحصول على الاتجاهات" : lang === "fr" ? "Obtenir l'itinéraire" : "Get Directions"}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
             <div className="p-5 space-y-3">
               {listing.contact_phone && (
                 <a

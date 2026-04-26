@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { useLang } from "../components/LanguageContext";
-import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown, RefreshCw } from "lucide-react";
+import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown, RefreshCw, MapPin } from "lucide-react";
+import { WILAYAS } from "../components/constants";
 import ExclusivityConflictView from "../components/admin/ExclusivityConflictView";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -545,31 +546,83 @@ export default function AdminVerification() {
                 {lang === "ar" ? "لا يوجد محترفون" : lang === "fr" ? "Aucun professionnel" : "No professionals found"}
               </div>
             ) : pros.map(pro => (
-              <div key={pro.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4 flex-wrap">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                    <span className="font-semibold text-sm text-gray-900">{pro.full_name || pro.email}</span>
-                    {pro.agency_name && <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{pro.agency_name}</span>}
-                    {pro.is_verified
-                      ? <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><BadgeCheck className="w-3 h-3" />{lang === "ar" ? "موثق" : lang === "fr" ? "Vérifié" : "Verified"}</span>
-                      : <span className="flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><BadgeX className="w-3 h-3" />{lang === "ar" ? "غير موثق" : lang === "fr" ? "Non vérifié" : "Not verified"}</span>
-                    }
+              <div key={pro.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <span className="font-semibold text-sm text-gray-900">{pro.full_name || pro.email}</span>
+                      {pro.agency_name && <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{pro.agency_name}</span>}
+                      {pro.is_verified
+                        ? <span className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full"><BadgeCheck className="w-3 h-3" />{lang === "ar" ? "موثق" : lang === "fr" ? "Vérifié" : "Verified"}</span>
+                        : <span className="flex items-center gap-1 text-xs text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full"><BadgeX className="w-3 h-3" />{lang === "ar" ? "غير موثق" : lang === "fr" ? "Non vérifié" : "Not verified"}</span>
+                      }
+                    </div>
+                    <p className="text-xs text-gray-400">{pro.email}</p>
                   </div>
-                  <p className="text-xs text-gray-400">{pro.email}</p>
+                  <button
+                    onClick={() => toggleVerified(pro)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                      pro.is_verified
+                        ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
+                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                    }`}
+                  >
+                    {pro.is_verified
+                      ? <><XCircle className="w-3.5 h-3.5" />{lang === "ar" ? "إلغاء التوثيق" : lang === "fr" ? "Retirer vérif." : "Remove Verification"}</>
+                      : <><CheckCircle className="w-3.5 h-3.5" />{lang === "ar" ? "توثيق" : lang === "fr" ? "Vérifier" : "Verify"}</>
+                    }
+                  </button>
                 </div>
-                <button
-                  onClick={() => toggleVerified(pro)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                    pro.is_verified
-                      ? "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200"
-                      : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
-                  }`}
-                >
-                  {pro.is_verified
-                    ? <><XCircle className="w-3.5 h-3.5" />{lang === "ar" ? "إلغاء التوثيق" : lang === "fr" ? "Retirer vérif." : "Remove Verification"}</>
-                    : <><CheckCircle className="w-3.5 h-3.5" />{lang === "ar" ? "توثيق" : lang === "fr" ? "Vérifier" : "Verify"}</>
-                  }
-                </button>
+                {/* Agency offices — admin can verify each office */}
+                {Array.isArray(pro.agency_offices) && pro.agency_offices.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-gray-50">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      {lang === "ar" ? "المكاتب المُعلنة" : lang === "fr" ? "Bureaux déclarés" : "Declared Offices"} ({pro.agency_offices.length})
+                    </p>
+                    <div className="space-y-1.5">
+                      {pro.agency_offices.map(office => {
+                        const wilayaObj = WILAYAS.find(w => w.value === office.wilaya);
+                        const wilayaLabel = wilayaObj ? (wilayaObj.label[lang] || wilayaObj.label.fr) : office.wilaya;
+                        return (
+                          <div key={office.id} className="flex items-center justify-between gap-2 bg-gray-50 rounded-lg px-3 py-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-xs font-medium text-gray-700">{office.office_label || wilayaLabel}</span>
+                                {office.is_primary && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">{lang === "fr" ? "Principal" : lang === "ar" ? "رئيسي" : "Primary"}</span>}
+                                {office.is_verified && <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">{lang === "fr" ? "Vérifié" : lang === "ar" ? "موثق" : "Verified"}</span>}
+                              </div>
+                              <p className="text-[10px] text-gray-400 flex items-center gap-1 mt-0.5">
+                                <MapPin className="w-2.5 h-2.5" />
+                                {wilayaLabel}{office.commune ? `, ${office.commune}` : ""}
+                                {office.address ? ` — ${office.address}` : ""}
+                              </p>
+                            </div>
+                            <button
+                              onClick={async () => {
+                                const updatedOffices = pro.agency_offices.map(o =>
+                                  o.id === office.id ? { ...o, is_verified: !o.is_verified } : o
+                                );
+                                await base44.entities.User.update(pro.id, { agency_offices: updatedOffices });
+                                setPros(prev => prev.map(p => p.id === pro.id ? { ...p, agency_offices: updatedOffices } : p));
+                              }}
+                              className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md border font-medium transition-colors flex-shrink-0 ${
+                                office.is_verified
+                                  ? "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                                  : "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
+                              }`}
+                            >
+                              {office.is_verified
+                                ? <><XCircle className="w-3 h-3" />{lang === "fr" ? "Retirer" : lang === "ar" ? "إلغاء" : "Unverify"}</>
+                                : <><CheckCircle className="w-3 h-3" />{lang === "fr" ? "Vérifier" : lang === "ar" ? "توثيق" : "Verify"}</>
+                              }
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

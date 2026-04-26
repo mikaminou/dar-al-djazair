@@ -18,6 +18,8 @@ import VerificationSection from "../components/trust/VerificationSection";
 import ReviewsSection from "../components/trust/ReviewsSection";
 import MobileHeader from "../components/MobileHeader";
 import WilayaMultiSelect from "../components/WilayaMultiSelect";
+import OfficesManager from "../components/offices/OfficesManager";
+import OfficesDisplay from "../components/offices/OfficesDisplay";
 
 const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block";
@@ -73,6 +75,7 @@ export default function ProfilePage() {
       website: userInfo?.website || "",
       contact_email: userInfo?.contact_email || "",
       avatar_url: userInfo?.avatar_url || "",
+      agency_offices: Array.isArray(userInfo?.agency_offices) ? userInfo.agency_offices : [],
     });
 
     const data = await base44.entities.Listing.filter({ created_by: targetEmail, status: "active" }, "-created_date", 20);
@@ -332,19 +335,11 @@ export default function ProfilePage() {
                   </label>
                   <Input type="email" value={form.contact_email} onChange={e => setForm(p => ({ ...p, contact_email: e.target.value }))} placeholder="contact@..." className={inputCls} />
                 </div>
-                <div className="sm:col-span-2">
-                  <label className={labelCls}>
-                    {lang === "ar" ? "الولاية (الولايات)" : lang === "fr" ? "Wilaya(s)" : "Wilaya(s)"}
-                    {isProfessional && <span className="ml-1 text-gray-400 font-normal">{lang === "ar" ? "— اختر متعددة" : lang === "fr" ? "— sélection multiple" : "— multi-select"}</span>}
-                  </label>
-                  {isProfessional ? (
-                    <WilayaMultiSelect
-                      options={WILAYAS}
-                      value={form.wilayas}
-                      onChange={wilayas => setForm(p => ({ ...p, wilayas }))}
-                      lang={lang}
-                    />
-                  ) : (
+                {!isProfessional && (
+                  <div className="sm:col-span-2">
+                    <label className={labelCls}>
+                      {lang === "ar" ? "الولاية" : lang === "fr" ? "Wilaya" : "Wilaya"}
+                    </label>
                     <Select value={form.wilaya} onValueChange={v => setForm(p => ({ ...p, wilaya: v }))}>
                       <SelectTrigger className="bg-white text-gray-900 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100">
                         <SelectValue placeholder="..." />
@@ -353,9 +348,17 @@ export default function ProfilePage() {
                         {WILAYAS.map(w => <SelectItem key={w.value} value={w.value}>{w.label[lang] || w.label.fr}</SelectItem>)}
                       </SelectContent>
                     </Select>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
+
+              {isProfessional && (
+                <OfficesManager
+                  offices={form.agency_offices}
+                  lang={lang}
+                  onChange={offices => setForm(p => ({ ...p, agency_offices: offices }))}
+                />
+              )}
               <div>
                 <label className={labelCls}>
                   {lang === "ar" ? "نبذة عنك" : lang === "fr" ? "Présentation" : "Bio"}
@@ -381,6 +384,11 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+
+        {/* Offices — public display */}
+        {!editing && isProfessional && (
+          <OfficesDisplay offices={profileUser.agency_offices} lang={lang} />
+        )}
 
         {/* Reviews */}
         <ReviewsSection userEmail={profileUser.email} lang={lang} />

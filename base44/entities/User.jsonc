@@ -5,31 +5,11 @@
     "role": {
       "type": "string",
       "enum": [
-        "admin",
         "user",
-        "professional"
+        "professional",
+        "admin"
       ],
-      "default": "user",
-      "description": "Permission role. 'user' = individual, 'professional' = real estate professional/agency"
-    },
-    "plan": {
-      "type": "string",
-      "enum": [
-        "free",
-        "premium"
-      ],
-      "default": "free",
-      "description": "Subscription plan. 'free' = regular user, 'premium' = verified professional with listing rights"
-    },
-    "first_name": {
-      "type": "string"
-    },
-    "last_name": {
-      "type": "string"
-    },
-    "owner_full_name": {
-      "type": "string",
-      "description": "Full name of the owner/contact person for professional accounts"
+      "default": "user"
     },
     "phone": {
       "type": "string"
@@ -38,26 +18,34 @@
       "type": "string"
     },
     "agency_name": {
-      "type": "string",
-      "description": "Business/agency name for professional accounts"
+      "type": "string"
+    },
+    "owner_full_name": {
+      "type": "string"
     },
     "professional_type": {
       "type": "string",
       "enum": [
         "agence_immobiliere",
         "promoteur"
-      ],
-      "description": "Type of professional: real estate agency or property developer"
+      ]
     },
     "years_of_experience": {
-      "type": "number",
-      "minimum": 0,
-      "description": "Years of experience for professional accounts"
+      "type": "number"
     },
     "wilaya": {
       "type": "string"
     },
+    "wilayas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
     "website": {
+      "type": "string"
+    },
+    "contact_email": {
       "type": "string"
     },
     "avatar_url": {
@@ -65,28 +53,72 @@
     },
     "is_verified": {
       "type": "boolean",
-      "default": false,
-      "description": "Set to true only after admin approval. Defaults to false."
+      "default": false
     },
     "verification_type": {
       "type": "string",
       "enum": [
-        "professional",
+        "agency",
         "individual"
       ]
     },
-    "lang": {
-      "type": "string",
-      "enum": [
-        "fr",
-        "en",
-        "ar"
-      ],
-      "default": "fr",
-      "description": "User's preferred language for notifications and UI"
+    "first_name": {
+      "type": "string"
+    },
+    "agency_offices": {
+      "type": "array",
+      "description": "List of physical office locations for professional/agency accounts",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "wilaya": {
+            "type": "string"
+          },
+          "commune": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "office_label": {
+            "type": "string"
+          },
+          "coordinates": {
+            "type": "object",
+            "properties": {
+              "lat": {
+                "type": "number"
+              },
+              "lng": {
+                "type": "number"
+              }
+            }
+          },
+          "is_primary": {
+            "type": "boolean",
+            "default": false
+          },
+          "is_verified": {
+            "type": "boolean",
+            "default": false
+          },
+          "created_at": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string"
+          }
+        }
+      }
     }
-  },
-  "required": [
-    "first_name"
-  ]
+  }
 }
