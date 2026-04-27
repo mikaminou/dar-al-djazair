@@ -1,0 +1,32 @@
+[functions.watermark-listing-media]
+verify_jwt = false
+
+[functions.social-media-post]
+verify_jwt = false
+
+[functions.social-post-status-callback]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.generate-pdf-receipt]
+verify_jwt = true
+
+[functions.list-property-types]
+verify_jwt = false
+
+[functions.list-quick-chips]
+verify_jwt = false
+
+[functions.scheduled-digest-emails]
+verify_jwt = false
+
+[functions.scheduled-renewal-reminders]
+verify_jwt = false
+
+[functions.scheduled-archive-social-posts]
+verify_jwt = false
+
+[functions.scheduled-token-refresh]
+verify_jwt = false
