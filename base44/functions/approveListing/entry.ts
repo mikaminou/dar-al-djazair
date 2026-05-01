@@ -54,13 +54,13 @@ function getSupabase() {
   return createClient(url, Deno.env.get('supabase_secret_key'), { auth: { persistSession: false } });
 }
 
-// Update listing status + admin_note (admin_note lives in attributes JSONB).
+// Update listing status + admin_note + active_since (last two live in attributes JSONB).
 async function updateListingStatus(sb, listingId, { status, admin_note, active_since }) {
   const { data: existing } = await sb.from('listings').select('attributes').eq('id', listingId).maybeSingle();
   const attributes = { ...(existing?.attributes || {}) };
   if (admin_note !== undefined) attributes.admin_note = admin_note;
+  if (active_since) attributes.active_since = active_since;
   const row = { status, attributes, updated_at: new Date().toISOString() };
-  if (active_since) row.active_since = active_since;
   const { error } = await sb.from('listings').update(row).eq('id', listingId);
   if (error) throw error;
 }
