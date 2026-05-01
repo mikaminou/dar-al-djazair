@@ -48,8 +48,35 @@ const ENTITY_TO_FUNCTION = {
   UpgradeRequest: 'upgradeRequestCrud',
 };
 
+// Map Base44 field names → Supabase column names for sort/query params.
+// Base44 uses created_date / updated_date; Supabase tables use created_at / updated_at.
+const FIELD_MAP = {
+  created_date: 'created_at',
+  updated_date: 'updated_at',
+  '-created_date': '-created_at',
+  '-updated_date': '-updated_at',
+};
+
+function mapSort(sort) {
+  if (!sort) return sort;
+  return FIELD_MAP[sort] || sort;
+}
+
+function mapQuery(query) {
+  if (!query || typeof query !== 'object') return query;
+  const out = {};
+  for (const [k, v] of Object.entries(query)) {
+    const mappedKey = FIELD_MAP[k] || k;
+    out[mappedKey] = v;
+  }
+  return out;
+}
+
 async function invokeCrud(funcName, payload) {
-  const res = await base44Raw.functions.invoke(funcName, payload);
+  const mappedPayload = { ...payload };
+  if (mappedPayload.sort) mappedPayload.sort = mapSort(mappedPayload.sort);
+  if (mappedPayload.query) mappedPayload.query = mapQuery(mappedPayload.query);
+  const res = await base44Raw.functions.invoke(funcName, mappedPayload);
   // Axios-style response: data is in res.data
   return res?.data;
 }
@@ -96,11 +123,11 @@ function makeEntityProxy(funcName) {
 // Listing has dedicated functions (listingList/Get/Create/Update/Delete)
 const listingProxy = {
   async list(sort, limit) {
-    const res = await base44Raw.functions.invoke('listingList', { sort, limit });
+    const res = await base44Raw.functions.invoke('listingList', { sort: mapSort(sort), limit });
     return res?.data;
   },
   async filter(query, sort, limit) {
-    const res = await base44Raw.functions.invoke('listingList', { query, sort, limit });
+    const res = await base44Raw.functions.invoke('listingList', { query: mapQuery(query), sort: mapSort(sort), limit });
     return res?.data;
   },
   async get(id) {
