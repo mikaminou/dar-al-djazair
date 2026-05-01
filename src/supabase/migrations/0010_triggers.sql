@@ -40,21 +40,9 @@ create trigger trg_listings_normalize_area
 before insert or update of area_value, area_unit on public.listings
 for each row execute function public.compute_normalized_area_m2();
 
--- Auto-create profile on auth signup
-create or replace function public.handle_new_auth_user()
-returns trigger language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.profiles (id, email, language_preference)
-  values (new.id, new.email, 'fr')
-  on conflict (id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists trg_on_auth_user_created on auth.users;
-create trigger trg_on_auth_user_created
-after insert on auth.users
-for each row execute function public.handle_new_auth_user();
+-- NOTE: Path 1 architecture — Base44 owns auth, Supabase Auth is unused.
+-- Profiles are created on first call from a Base44 backend function via
+-- ensureProfileForEmail() helper. No auth.users trigger needed.
 
 -- tenants.end_date
 create or replace function public.compute_tenant_end_date()

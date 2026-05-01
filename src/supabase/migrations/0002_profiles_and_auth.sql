@@ -3,9 +3,11 @@
 -- Profiles (1:1 with auth.users) and agency offices.
 -- =====================================================================
 
+-- Path 1 architecture: Base44 owns auth. profiles.id is a self-generated UUID,
+-- NOT linked to auth.users. Email is the bridge between Base44 sessions and DB rows.
 create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
-  email text unique,
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
   account_type text not null default 'individual'
     check (account_type in ('individual','agency','promoteur','admin')),
   first_name text,

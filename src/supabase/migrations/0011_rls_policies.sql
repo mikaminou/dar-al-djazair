@@ -2,6 +2,12 @@
 -- 0011_rls_policies.sql
 -- Enable RLS and define policies for every table.
 -- Admin = JWT claim role='admin' via public.is_admin().
+--
+-- NOTE: In Path 1 (Base44-owned auth), all DB access goes through
+-- Base44 backend functions using the Supabase service role key, which
+-- BYPASSES RLS entirely. These policies remain as defense-in-depth so
+-- that if the anon/authenticated key were ever used, no data leaks.
+-- They are NOT the security boundary — backend functions are.
 -- =====================================================================
 
 alter table public.profiles               enable row level security;
