@@ -109,10 +109,10 @@ Deno.serve(async (req) => {
         active_since: new Date().toISOString(),
       });
 
-      // Step 2: Trigger watermarking
+      // Step 2: Trigger watermarking (user-scoped invoke — preserves admin auth context)
       let watermarkNote = null;
       try {
-        const wmRes = await base44.asServiceRole.functions.invoke("watermarkListingPhotos", { listing_id });
+        const wmRes = await base44.functions.invoke("watermarkListingPhotos", { listing_id });
         if (wmRes?.data?.adminNote) watermarkNote = wmRes.data.adminNote;
       } catch (wmErr) {
         watermarkNote = `Watermarking failed to run: ${wmErr.message}`;

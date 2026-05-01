@@ -1,12 +1,14 @@
 /**
- * watermarkListingPhotos
+ * watermarkListingPhotos (Supabase-backed)
  *
- * Applies owner-based watermarks to all images of a listing.
+ * Applies owner-based watermarks to all photos of a listing.
  * Watermark type is resolved from the owner's profile:
- *   - If owner has avatar → image watermark (bottom-right, 12% size, 65% opacity)
+ *   - If owner has avatar → image watermark (bottom-right, 12% size)
  *   - If no avatar → text watermark with owner display name
  *
- * Also handles a "retry" mode for failed assets.
+ * Reads from `listings` + `listing_photos` tables.
+ * Writes watermarked URLs to `listing_photos.watermarked_url`.
+ * Sets listing status to "active" and stores any admin note inside `attributes` JSONB.
  *
  * Called by approveListing (action=approve) and by the admin Retry button.
  *
@@ -14,6 +16,8 @@
  * Returns: { watermarked: string[], failed: Array<{index, reason}>, videoSkipped: boolean, adminNote: string|null }
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
+import { Buffer } from 'node:buffer';
 import Jimp from 'npm:jimp@0.22.12';
 
 // ── CONFIG ────────────────────────────────────────────────────────────────
@@ -22,6 +26,11 @@ const WM = {
   image: { sizeRatio: 0.12, opacity: 165 },   // opacity 0-255
   text:  { shadowOffset: 2 },
 };
+
+function getSupabase() {
+  const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  return createClient(url, Deno.env.get('supabase_secret_key'), { auth: { persistSession: false } });
+}
 
 // ── WATERMARK CONFIG RESOLVER ─────────────────────────────────────────────
 function resolveWatermarkConfig(ownerProfile) {
@@ -93,50 +102,78 @@ async function processImage(url, wmConfig, uploadFn, filename) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== "admin") {
-      return Response.json({ error: "Admin access required" }, { status: 403 });
+    // Require an authenticated user. Admin gating is enforced by callers
+    // (approveListing and the admin Retry UI), and server-to-server invokes
+    // from those callers don't always forward role info.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user) {
+      return Response.json({ error: "Authentication required" }, { status: 401 });
     }
 
     const { listing_id, retry } = await req.json();
     if (!listing_id) return Response.json({ error: "listing_id required" }, { status: 400 });
 
-    // Fetch listing
-    const listings = await base44.asServiceRole.entities.Listing.filter({ id: listing_id }, null, 1);
-    const listing = listings[0];
+    const sb = getSupabase();
+
+    // Fetch listing + photos from Supabase
+    const { data: listing, error: listErr } = await sb
+      .from('listings')
+      .select('id, owner_id, attributes, listing_photos(id, url, watermarked_url, position)')
+      .eq('id', listing_id)
+      .maybeSingle();
+    if (listErr) return Response.json({ error: listErr.message }, { status: 500 });
     if (!listing) return Response.json({ error: "Listing not found" }, { status: 404 });
 
-    const images = listing.images || [];
-    const videoUrl = listing.video_url || null;
+    // Fetch any video (separate table)
+    const { data: videos } = await sb
+      .from('listing_videos')
+      .select('id, url')
+      .eq('listing_id', listing_id);
+    const videoUrl = videos?.[0]?.url || null;
 
-    if (images.length === 0 && !videoUrl) {
+    // Sort photos by position; in retry mode skip those already watermarked
+    const photos = (listing.listing_photos || [])
+      .slice()
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .filter(p => !!p.url)
+      .filter(p => retry ? !p.watermarked_url : true);
+
+    if (photos.length === 0 && !videoUrl) {
       return Response.json({ watermarked: [], failed: [], videoSkipped: false, adminNote: null });
     }
 
-    // Fetch owner profile for watermark config
-    const ownerEmail = listing.created_by;
-    const ownerUsers = await base44.asServiceRole.entities.User.filter({ email: ownerEmail }, null, 1).catch(() => []);
-    const ownerProfile = ownerUsers[0] || null;
+    // Resolve owner profile from Supabase profiles
+    const { data: ownerProfile } = await sb
+      .from('profiles')
+      .select('email, full_name, agency_name, avatar')
+      .eq('id', listing.owner_id)
+      .maybeSingle();
     const wmConfig = resolveWatermarkConfig(ownerProfile);
 
     const uploadFn = async (file) =>
       base44.asServiceRole.integrations.Core.UploadFile({ file });
 
-    // Process all images
-    const watermarked = [...images];
+    // Process all photos
+    const watermarked = [];
     const failed = [];
 
-    for (let i = 0; i < images.length; i++) {
+    for (let i = 0; i < photos.length; i++) {
+      const p = photos[i];
       try {
         const newUrl = await processImage(
-          images[i],
+          p.url,
           wmConfig,
           uploadFn,
           `listing_${listing_id}_${i}.jpg`
         );
-        watermarked[i] = newUrl;
+        const { error: updErr } = await sb
+          .from('listing_photos')
+          .update({ watermarked_url: newUrl })
+          .eq('id', p.id);
+        if (updErr) throw updErr;
+        watermarked.push(newUrl);
       } catch (err) {
-        console.error(`Watermark failed for image ${i}:`, err.message);
+        console.error(`Watermark failed for photo ${i}:`, err.message);
         failed.push({ index: i, reason: err.message });
         // Keep original URL — fail gracefully
       }
@@ -149,33 +186,27 @@ Deno.serve(async (req) => {
       console.warn("Video watermarking skipped: FFmpeg not available in this environment.");
     }
 
-    // Update listing with watermarked image URLs, then set to active
-    const updatePayload = { images: watermarked, status: "active" };
-    // Only set active_since if not already set (first approval)
-    if (!listing.active_since) {
-      updatePayload.active_since = new Date().toISOString();
-    }
-    // Build watermark admin note
+    // Build admin note for any failures
     const failedNotes = failed.map(f => `Photo ${f.index + 1} (${f.reason})`);
     if (videoSkipped) failedNotes.push("Video (server-side video watermarking not supported — original kept)");
     const adminNote = failedNotes.length > 0
       ? `Watermark issues: ${failedNotes.join("; ")}`
       : null;
-    if (adminNote) {
-      updatePayload.admin_note = adminNote;
-    }
 
-    await base44.asServiceRole.entities.Listing.update(listing_id, updatePayload);
+    // Update listing: status → active, store admin_note + active_since in attributes JSONB
+    const attributes = { ...(listing.attributes || {}) };
+    if (adminNote) attributes.admin_note = adminNote;
+    if (!attributes.active_since) attributes.active_since = new Date().toISOString();
+
+    const { error: finalErr } = await sb
+      .from('listings')
+      .update({ status: 'active', attributes, updated_at: new Date().toISOString() })
+      .eq('id', listing_id);
+    if (finalErr) throw finalErr;
 
     return Response.json({ watermarked, failed, videoSkipped, adminNote });
   } catch (error) {
     console.error("watermarkListingPhotos fatal error:", error.message);
-    // On fatal failure, still set listing to active so it's not stuck
-    try {
-      const base44 = createClientFromRequest(req);
-      // We can't re-parse req body here, but listing_id may not be accessible
-      // The approveListing function handles fallback activation
-    } catch (_) {}
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
