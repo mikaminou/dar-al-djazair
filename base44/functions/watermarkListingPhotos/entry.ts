@@ -27,18 +27,23 @@ const WM = {
   text:  { shadowOffset: 2 },
 };
 
+// App's own logo — used as fallback when the agency hasn't uploaded one
+const APP_LOGO_URL = "https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png";
+
 function getSupabase() {
   const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
   return createClient(url, Deno.env.get('supabase_secret_key'), { auth: { persistSession: false } });
 }
 
 // ── WATERMARK CONFIG RESOLVER ─────────────────────────────────────────────
+// Priority:
+//   1. Agency / owner uploaded logo (profile.avatar)
+//   2. App's own logo (APP_LOGO_URL)
+//   3. Text fallback with owner display name (only if both image sources fail)
 function resolveWatermarkConfig(ownerProfile) {
-  if (ownerProfile?.avatar) {
-    return { type: "image", source: ownerProfile.avatar };
-  }
-  const name = ownerProfile?.agency_name || ownerProfile?.full_name || ownerProfile?.email || "Dar El Djazair";
-  return { type: "text", content: name };
+  const source = ownerProfile?.avatar || APP_LOGO_URL;
+  const fallbackText = ownerProfile?.agency_name || ownerProfile?.full_name || ownerProfile?.email || "Dar El Djazair";
+  return { type: "image", source, fallbackText };
 }
 
 // ── IMAGE WATERMARK ───────────────────────────────────────────────────────
@@ -89,7 +94,13 @@ async function processImage(url, wmConfig, sb, listingId, index) {
   const margin = Math.round(shorter * WM.marginRatio);
 
   if (wmConfig.type === "image") {
-    await applyImageWatermark(img, wmConfig.source, w, h, shorter, margin);
+    try {
+      await applyImageWatermark(img, wmConfig.source, w, h, shorter, margin);
+    } catch (err) {
+      // Last-resort: image fetch/decode failed → text watermark
+      console.warn(`Image watermark failed, using text fallback:`, err.message);
+      await applyTextWatermark(img, wmConfig.fallbackText, w, h, shorter, margin);
+    }
   } else {
     await applyTextWatermark(img, wmConfig.content, w, h, shorter, margin);
   }
