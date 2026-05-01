@@ -14,17 +14,25 @@ import React, { useState } from "react";
 import { getPropertyType } from "../propertyTypes.config";
 import { ChevronDown } from "lucide-react";
 
-// ─── Legacy attributes adapter ────────────────────────────────────────────────
-// For listings created before the attributes refactor, map top-level columns
-// into the attributes shape so DynamicFieldDisplay renders them.
+// ─── Attributes adapter ───────────────────────────────────────────────────────
+// All type-specific fields now live as top-level columns. We merge any legacy
+// `attributes` object with config-defined top-level keys so this component
+// keeps working for both old and new listings.
 export function legacyAttributesAdapter(listing) {
   if (!listing) return {};
   const attrs = { ...(listing.attributes || {}) };
-  const legacyFields = ["area", "rooms", "bedrooms", "bathrooms", "floor", "total_floors", "furnished", "year_built"];
-  for (const key of legacyFields) {
-    if (listing[key] !== undefined && listing[key] !== null && listing[key] !== "" && attrs[key] === undefined) {
-      attrs[key] = listing[key];
+  const typeDef = getPropertyType(
+    listing.property_type === "new_development" ? "building" : listing.property_type
+  );
+  if (typeDef) {
+    for (const f of typeDef.fields) {
+      if (attrs[f.key] === undefined && listing[f.key] !== undefined && listing[f.key] !== null && listing[f.key] !== "") {
+        attrs[f.key] = listing[f.key];
+      }
     }
+  }
+  if (attrs.area === undefined && listing.area !== undefined && listing.area !== null && listing.area !== "") {
+    attrs.area = listing.area;
   }
   return attrs;
 }

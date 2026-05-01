@@ -11,34 +11,28 @@
  */
 import { getPropertyType, getFieldsForType } from "@/components/propertyTypes.config";
 
-// ─── Legacy adapter ───────────────────────────────────────────────────────────
+// ─── Attributes resolver ─────────────────────────────────────────────────────
+// All type-specific fields now live as top-level columns on the listing
+// object (the `attributes` JSONB blob has been flattened on the DB side).
+// We still expose `resolveAttributes` so existing callers keep working —
+// it merges any legacy `attributes` object with the flat top-level fields
+// driven by the property type config.
 
-/**
- * Legacy top-level columns that may be on old listings.
- * Maps column name → attribute key.
- */
-const LEGACY_COLUMN_MAP = {
-  area:          "area",
-  rooms:         "rooms",
-  bedrooms:      "bedrooms",
-  bathrooms:     "bathrooms",
-  floor:         "floor",
-  total_floors:  "total_floors",
-  furnished:     "furnished",
-  year_built:    "year_built",
-};
+import { getFieldsForType as _getFieldsForType } from "@/components/propertyTypes.config";
 
-/**
- * Returns a merged attributes object: config-driven attributes take priority,
- * legacy columns fill in missing values.
- * This keeps backward compatibility without DB migration.
- */
 export function resolveAttributes(listing) {
+  if (!listing) return {};
   const attrs = { ...(listing.attributes || {}) };
-  for (const [col, attrKey] of Object.entries(LEGACY_COLUMN_MAP)) {
-    if (attrs[attrKey] === undefined && listing[col] !== undefined && listing[col] !== null) {
-      attrs[attrKey] = listing[col];
+  // Pull every config-defined field from the top-level listing.
+  const fields = _getFieldsForType(listing.property_type || "");
+  for (const f of fields) {
+    if (attrs[f.key] === undefined && listing[f.key] !== undefined && listing[f.key] !== null) {
+      attrs[f.key] = listing[f.key];
     }
+  }
+  // `area` is mapped to a real column (area_value on the DB) but exposed as `area` on the API.
+  if (attrs.area === undefined && listing.area !== undefined && listing.area !== null) {
+    attrs.area = listing.area;
   }
   return attrs;
 }

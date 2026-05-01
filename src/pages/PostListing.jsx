@@ -284,23 +284,26 @@ export default function PostListingPage() {
 
   async function submit() {
     setSaving(true);
-    // Convert numeric attribute values to numbers before saving
+    // Convert numeric attribute values to numbers before saving.
     const coercedAttrs = {};
     for (const [k, v] of Object.entries(form.attributes || {})) {
+      if (typeof v === "boolean") { coercedAttrs[k] = v; continue; }
+      if (Array.isArray(v))       { coercedAttrs[k] = v; continue; }
+      if (v === "" || v === null || v === undefined) continue;
       const n = Number(v);
-      coercedAttrs[k] = (!isNaN(n) && v !== "" && v !== true && v !== false) ? n : v;
+      coercedAttrs[k] = (!isNaN(n) && typeof v !== "boolean") ? n : v;
     }
+    // Type-specific attributes are now real columns — spread them onto the
+    // top-level payload so they reach the DB. We keep `attributes` too for
+    // any legacy server still expecting it.
+    const { attributes: _ignore, ...formNoAttrs } = form;
     const payload = {
-      ...form,
-      price:      Number(form.price) || 0,
-      // Also write key entity columns for search/filter compatibility
-      area:       coercedAttrs.area      || coercedAttrs.total_area || undefined,
-      bedrooms:   coercedAttrs.bedrooms  || undefined,
-      bathrooms:  coercedAttrs.bathrooms || undefined,
-      floor:      coercedAttrs.floor     || undefined,
-      furnished:  coercedAttrs.furnished || undefined,
+      ...formNoAttrs,
+      ...coercedAttrs,
+      price: Number(form.price) || 0,
+      area:  coercedAttrs.area ?? coercedAttrs.total_area ?? undefined,
       attributes: coercedAttrs,
-      features:   [], // Clear legacy features array; all amenities now in attributes
+      features: [], // legacy field — amenities are columns now
     };
     if (editingId) {
       const existing = await base44.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);

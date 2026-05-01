@@ -1,21 +1,64 @@
 // listingList — query Supabase `listings`, return Base44-entity-shaped rows.
+// All type-specific fields are real columns now, so `query` keys map directly
+// onto column names (with a few aliases). Unknown keys are ignored.
+//
 // Payload: { query?: object, sort?: string, limit?: number }
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const ATTR_FIELDS = new Set([
-  'rooms', 'bedrooms', 'bathrooms', 'floor', 'total_floors', 'year_built',
-  'furnished', 'features', 'currency', 'hide_price', 'price_period',
-  'views_count', 'is_featured', 'admin_note', 'audit_log',
-  'agent_id', 'owner_is_verified', 'owner_verification_type', 'active_since',
-  'exclusivity_conflict', 'conflict_listing_id', 'hide_location',
-  'frontage_meters', 'total_units',
+const LISTING_COLUMNS = new Set([
+  'title','description','listing_type','property_type','price',
+  'wilaya','commune','address','status','is_exclusive',
+  'contact_name','contact_phone','contact_email',
+  'admin_note','active_since','is_featured','views_count',
+  'agent_id','owner_is_verified','owner_verification_type',
+  'exclusivity_conflict','conflict_listing_id',
+  'hide_price','hide_location','price_period','currency',
+  'land_area','total_area','buildable_area','house_area',
+  'rooms','bedrooms','bathrooms','floor','building_total_floors',
+  'total_floors','total_units','levels','garage_spots','parking_spots',
+  'frontage_meters','frontage_count','max_floors_allowed','entrance_count',
+  'ceiling_height','workstation_capacity','meeting_room_count',
+  'proximity_to_road_meters','monthly_revenue','building_age','year_built',
+  'is_top_floor','water_tank','balcony','parking','elevator','fiber_internet',
+  'terrace','cave','concierge','security','air_conditioning','solar_panels',
+  'well','intercom','double_glazing','generator','has_basement','pool','garden',
+  'garage','has_well','boundary_walls','has_summer_kitchen','has_summer_living_room',
+  'has_alarm','has_servant_quarters','is_gated_community','buildable','corner_plot',
+  'has_water_access','has_electricity','has_road_access','has_storefront',
+  'commercial_license_included','has_storage','has_water_meter','has_electricity_meter',
+  'has_gas','is_under_lease','has_concierge_apartment','has_elevator',
+  'has_collective_heating','has_reception_area','is_accessible','has_kitchen',
+  'has_archive_room','has_house','has_fencing','furnished','heating_type',
+  'parking_type','title_type','slope','zoning_type','office_layout',
+  'ground_floor_use','current_activity','water_source','irrigation_type','soil_type',
 ]);
 
+const ATTR_MIRROR_KEYS = [
+  'land_area','total_area','buildable_area','house_area',
+  'rooms','bedrooms','bathrooms','floor','building_total_floors',
+  'total_floors','total_units','levels','garage_spots','parking_spots',
+  'frontage_meters','frontage_count','max_floors_allowed','entrance_count',
+  'ceiling_height','workstation_capacity','meeting_room_count',
+  'proximity_to_road_meters','monthly_revenue','building_age','year_built',
+  'is_top_floor','water_tank','balcony','parking','elevator','fiber_internet',
+  'terrace','cave','concierge','security','air_conditioning','solar_panels',
+  'well','intercom','double_glazing','generator','has_basement','pool','garden',
+  'garage','has_well','boundary_walls','has_summer_kitchen','has_summer_living_room',
+  'has_alarm','has_servant_quarters','is_gated_community','buildable','corner_plot',
+  'has_water_access','has_electricity','has_road_access','has_storefront',
+  'commercial_license_included','has_storage','has_water_meter','has_electricity_meter',
+  'has_gas','is_under_lease','has_concierge_apartment','has_elevator',
+  'has_collective_heating','has_reception_area','is_accessible','has_kitchen',
+  'has_archive_room','has_house','has_fencing','furnished','heating_type',
+  'parking_type','title_type','slope','zoning_type','office_layout',
+  'ground_floor_use','current_activity','water_source','irrigation_type',
+  'soil_type','orientation','view_type','suitable_for','current_crops',
+  'equipment_included','livestock_included','units_breakdown',
+];
+
 function getSupabaseClient() {
-  let url = Deno.env.get('supabase_base_url') || '';
-  // Strip "/rest/v1/" or trailing slashes — supabase-js wants the project root
-  url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
   return createClient(url, Deno.env.get('supabase_secret_key'), {
     auth: { persistSession: false },
   });
@@ -25,58 +68,30 @@ function resolveSortColumn(field) {
   if (field === 'created_date') return 'created_at';
   if (field === 'updated_date') return 'updated_at';
   if (field === 'area') return 'normalized_area_m2';
-  if (['price', 'title', 'wilaya', 'commune', 'listing_type', 'property_type', 'status', 'created_at', 'updated_at'].includes(field)) {
+  if (LISTING_COLUMNS.has(field) || ['created_at', 'updated_at', 'normalized_area_m2'].includes(field)) {
     return field;
   }
   return 'created_at';
 }
 
 function flattenRow(row, ownerEmail) {
-  const attrs = row.attributes || {};
   const photos = (row.listing_photos || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+  const attributes = { area: row.area_value };
+  for (const k of ATTR_MIRROR_KEYS) {
+    if (row[k] !== null && row[k] !== undefined) attributes[k] = row[k];
+  }
   return {
+    ...row,
     id: row.id,
     created_date: row.created_at,
     updated_date: row.updated_at,
     created_by: ownerEmail,
-    title: row.title,
-    description: row.description,
-    listing_type: row.listing_type,
-    property_type: row.property_type,
-    price: row.price,
-    price_period: attrs.price_period || 'total',
-    currency: attrs.currency || 'DZD',
-    hide_price: attrs.hide_price || false,
     area: row.area_value,
-    rooms: attrs.rooms,
-    bedrooms: attrs.bedrooms,
-    bathrooms: attrs.bathrooms,
-    floor: attrs.floor,
-    total_floors: attrs.total_floors,
-    wilaya: row.wilaya,
-    commune: row.commune,
-    address: row.address,
-    hide_location: attrs.hide_location !== undefined ? attrs.hide_location : true,
     images: photos.map(p => p.watermarked_url || p.url),
-    features: attrs.features || [],
-    attributes: attrs,
-    status: row.status,
-    admin_note: attrs.admin_note,
-    is_featured: attrs.is_featured || false,
-    contact_name: row.contact_name,
-    contact_phone: row.contact_phone,
-    contact_email: row.contact_email,
-    agent_id: attrs.agent_id,
-    year_built: attrs.year_built,
-    furnished: attrs.furnished,
-    views_count: attrs.views_count || 0,
-    owner_is_verified: attrs.owner_is_verified || false,
-    owner_verification_type: attrs.owner_verification_type,
-    active_since: attrs.active_since,
-    is_exclusive: row.is_exclusive,
-    exclusivity_conflict: attrs.exclusivity_conflict || false,
-    conflict_listing_id: attrs.conflict_listing_id,
-    audit_log: attrs.audit_log || [],
+    features: row.features || [],
+    audit_log: row.audit_log || [],
+    attributes,
+    listing_photos: undefined,
   };
 }
 
@@ -100,12 +115,10 @@ Deno.serve(async (req) => {
         q = q.eq('owner_id', prof.id);
       } else if (key === 'id') {
         q = q.eq('id', value);
-      } else if (ATTR_FIELDS.has(key)) {
-        q = q.eq(`attributes->>${key}`, String(value));
-      } else if (['title', 'description', 'listing_type', 'property_type', 'wilaya', 'commune', 'status'].includes(key)) {
-        q = q.eq(key, value);
       } else if (key === 'area') {
         q = q.eq('area_value', value);
+      } else if (LISTING_COLUMNS.has(key)) {
+        q = q.eq(key, value);
       }
     }
 

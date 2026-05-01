@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     // Fetch listing + photos from Supabase
     const { data: listing, error: listErr } = await sb
       .from('listings')
-      .select('id, owner_id, attributes, listing_photos(id, url, watermarked_url, position)')
+      .select('id, owner_id, active_since, listing_photos(id, url, watermarked_url, position)')
       .eq('id', listing_id)
       .maybeSingle();
     if (listErr) return Response.json({ error: listErr.message }, { status: 500 });
@@ -193,14 +193,17 @@ Deno.serve(async (req) => {
       ? `Watermark issues: ${failedNotes.join("; ")}`
       : null;
 
-    // Update listing: status → active, store admin_note + active_since in attributes JSONB
-    const attributes = { ...(listing.attributes || {}) };
-    if (adminNote) attributes.admin_note = adminNote;
-    if (!attributes.active_since) attributes.active_since = new Date().toISOString();
+    // Update listing: status → active, set admin_note + active_since columns
+    const updateRow = {
+      status: 'active',
+      admin_note: adminNote,        // null clears prior failure note on retry
+      updated_at: new Date().toISOString(),
+    };
+    if (!listing.active_since) updateRow.active_since = new Date().toISOString();
 
     const { error: finalErr } = await sb
       .from('listings')
-      .update({ status: 'active', attributes, updated_at: new Date().toISOString() })
+      .update(updateRow)
       .eq('id', listing_id);
     if (finalErr) throw finalErr;
 
