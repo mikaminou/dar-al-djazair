@@ -196,7 +196,8 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/web
 const MAX_IMAGE_SIZE_MB    = 10;
 const MAX_IMAGES           = 20;
 
-const DZ_PHONE_RE = /^(05|06|07)\d{8}$|^\+213[567]\d{8}$/;
+// Accept any reasonable phone number format: digits with optional +, spaces, dashes, parens. Must contain at least 6 digits.
+const DZ_PHONE_RE = /^[+\d][\d\s\-().]{5,}$/;
 const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Derive type helpers from config field definitions
