@@ -1,16 +1,16 @@
 /**
  * approveListing
  *
- * Admin approval hook for listings.
+ * Admin approval hook for listings (Supabase-backed).
  * On "approve":
  *   1. Sets listing status to "watermarking" (hidden from public).
- *   2. Returns immediately to admin (non-blocking).
- *   3. Triggers watermarkListingPhotos in background — which sets status to "active" when done.
- *   4. If watermarking call fails entirely, falls back to setting status "active" directly.
+ *   2. Triggers watermarkListingPhotos — sets status to "active" when done.
+ *   3. If watermarking fails entirely, falls back to setting status "active" directly.
  *
- * On "decline" / "propose_changes": updates status and notifies owner as before.
+ * On "decline" / "propose_changes": updates status and notifies owner.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
 const T = {
   approved_title: {
@@ -49,6 +49,22 @@ const T = {
 };
 const t = (key, lang) => T[key]?.[lang] || T[key]?.en || "";
 
+function getSupabase() {
+  const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  return createClient(url, Deno.env.get('supabase_secret_key'), { auth: { persistSession: false } });
+}
+
+// Update listing status + admin_note (admin_note lives in attributes JSONB).
+async function updateListingStatus(sb, listingId, { status, admin_note, active_since }) {
+  const { data: existing } = await sb.from('listings').select('attributes').eq('id', listingId).maybeSingle();
+  const attributes = { ...(existing?.attributes || {}) };
+  if (admin_note !== undefined) attributes.admin_note = admin_note;
+  const row = { status, attributes, updated_at: new Date().toISOString() };
+  if (active_since) row.active_since = active_since;
+  const { error } = await sb.from('listings').update(row).eq('id', listingId);
+  if (error) throw error;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -62,30 +78,38 @@ Deno.serve(async (req) => {
       return Response.json({ error: "listing_id and action are required" }, { status: 400 });
     }
 
-    const listings = await base44.asServiceRole.entities.Listing.filter({ id: listing_id }, null, 1);
-    const listing = listings[0];
+    const sb = getSupabase();
+
+    // Fetch listing from Supabase
+    const { data: listing, error: fetchErr } = await sb
+      .from('listings')
+      .select('id, owner_id')
+      .eq('id', listing_id)
+      .maybeSingle();
+    if (fetchErr) return Response.json({ error: fetchErr.message }, { status: 500 });
     if (!listing) return Response.json({ error: "Listing not found" }, { status: 404 });
 
-    const ownerEmail = listing.created_by;
-    const ownerUsers = await base44.asServiceRole.entities.User.filter({ email: ownerEmail }, null, 1).catch(() => []);
-    const ownerLang = ownerUsers[0]?.lang || "fr";
+    // Resolve owner email via profiles
+    const { data: ownerProfile } = await sb
+      .from('profiles')
+      .select('email, lang')
+      .eq('id', listing.owner_id)
+      .maybeSingle();
+    const ownerEmail = ownerProfile?.email || null;
+    const ownerLang = ownerProfile?.lang || "fr";
     const baseUrl = Deno.env.get("BASE_URL") || "https://app.base44.com";
 
-    let newStatus, notifType, notifTitle, notifBody, emailSubject, emailBody, notifUrl;
+    let notifType, notifTitle, notifBody, emailSubject, emailBody, notifUrl;
 
     if (action === "approve") {
       // Step 1: Mark as "watermarking" — hides from public browse while watermark runs
-      const approvePayload = {
+      await updateListingStatus(sb, listing_id, {
         status: "watermarking",
-        admin_note: null,
+        admin_note: admin_note || null,
         active_since: new Date().toISOString(),
-      };
-      if (admin_note) approvePayload.admin_note = admin_note;
-      await base44.asServiceRole.entities.Listing.update(listing_id, approvePayload);
+      });
 
-      // Step 2: Trigger watermarking in background (fire & forget pattern)
-      // watermarkListingPhotos will set status to "active" when it completes.
-      // We do NOT await this — admin gets immediate response.
+      // Step 2: Trigger watermarking
       let watermarkNote = null;
       try {
         const wmRes = await base44.asServiceRole.functions.invoke("watermarkListingPhotos", { listing_id });
@@ -93,7 +117,7 @@ Deno.serve(async (req) => {
       } catch (wmErr) {
         watermarkNote = `Watermarking failed to run: ${wmErr.message}`;
         // Fallback: set listing active so it's not stuck in "watermarking" forever
-        await base44.asServiceRole.entities.Listing.update(listing_id, {
+        await updateListingStatus(sb, listing_id, {
           status: "active",
           admin_note: watermarkNote,
         }).catch(() => {});
@@ -107,18 +131,18 @@ Deno.serve(async (req) => {
       emailSubject = t("approved_title", ownerLang);
       emailBody = `<p>${t("approved_body", ownerLang)}</p><p><a href="${baseUrl}/ListingDetail?id=${listing_id}">${t("view_listing", ownerLang)}</a></p>`;
 
-      const refId = `listing_approve_${listing_id}_${Date.now()}`;
-      await base44.asServiceRole.entities.Notification.create({
-        user_email: ownerEmail,
-        type: notifType,
-        title: notifTitle,
-        body: notifBody,
-        url: notifUrl,
-        is_read: false,
-        ref_id: refId,
-      }).catch(() => {});
-
       if (ownerEmail) {
+        const refId = `listing_approve_${listing_id}_${Date.now()}`;
+        await sb.from('notifications').insert({
+          user_email: ownerEmail,
+          type: notifType,
+          title: notifTitle,
+          body: notifBody,
+          url: notifUrl,
+          is_read: false,
+          ref_id: refId,
+        }).then(() => {}, () => {});
+
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: ownerEmail,
           subject: emailSubject,
@@ -129,7 +153,6 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, new_status: "active", watermark_note: watermarkNote });
 
     } else if (action === "decline") {
-      newStatus = "declined";
       notifType = "listing_match";
       notifTitle = `❌ ${t("declined_title", ownerLang)}`;
       notifBody = admin_note ? `${t("declined_body", ownerLang)} ${t("reason", ownerLang)}: ${admin_note}` : t("declined_body", ownerLang);
@@ -137,8 +160,9 @@ Deno.serve(async (req) => {
       emailSubject = t("declined_title", ownerLang);
       emailBody = `<p>${t("declined_body", ownerLang)}</p>${admin_note ? `<p><strong>${t("reason", ownerLang)}:</strong> ${admin_note}</p>` : ""}`;
 
+      await updateListingStatus(sb, listing_id, { status: "declined", admin_note: admin_note || null });
+
     } else if (action === "propose_changes") {
-      newStatus = "changes_requested";
       notifType = "listing_match";
       notifTitle = `✏️ ${t("changes_title", ownerLang)}`;
       notifBody = admin_note ? `${t("changes_body", ownerLang)} "${admin_note}"` : t("changes_body", ownerLang);
@@ -146,27 +170,24 @@ Deno.serve(async (req) => {
       emailSubject = t("changes_title", ownerLang);
       emailBody = `<p>${t("changes_body", ownerLang)}</p>${admin_note ? `<p><strong>📝 ${admin_note}</strong></p>` : ""}<p><a href="${baseUrl}/PostListing?edit=${listing_id}">${t("edit_listing", ownerLang)}</a></p>`;
 
+      await updateListingStatus(sb, listing_id, { status: "changes_requested", admin_note: admin_note || null });
+
     } else {
       return Response.json({ error: "Invalid action" }, { status: 400 });
     }
 
-    // For decline / propose_changes
-    const updatePayload = { status: newStatus };
-    if (admin_note) updatePayload.admin_note = admin_note;
-    await base44.asServiceRole.entities.Listing.update(listing_id, updatePayload);
-
-    const refId = `listing_${action}_${listing_id}_${Date.now()}`;
-    await base44.asServiceRole.entities.Notification.create({
-      user_email: ownerEmail,
-      type: notifType,
-      title: notifTitle,
-      body: notifBody,
-      url: notifUrl,
-      is_read: false,
-      ref_id: refId,
-    }).catch(() => {});
-
     if (ownerEmail) {
+      const refId = `listing_${action}_${listing_id}_${Date.now()}`;
+      await sb.from('notifications').insert({
+        user_email: ownerEmail,
+        type: notifType,
+        title: notifTitle,
+        body: notifBody,
+        url: notifUrl,
+        is_read: false,
+        ref_id: refId,
+      }).then(() => {}, () => {});
+
       await base44.asServiceRole.integrations.Core.SendEmail({
         to: ownerEmail,
         subject: emailSubject,
@@ -174,7 +195,8 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
-    return Response.json({ ok: true, new_status: newStatus });
+    const finalStatus = action === "decline" ? "declined" : "changes_requested";
+    return Response.json({ ok: true, new_status: finalStatus });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
