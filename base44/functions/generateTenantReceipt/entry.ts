@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 import { jsPDF } from 'npm:jspdf@4.0.0';
+import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
+
+function getSupabase() {
+  const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+  return createClient(url, Deno.env.get('supabase_secret_key'), { auth: { persistSession: false } });
+}
 
 Deno.serve(async (req) => {
   try {
@@ -195,7 +201,26 @@ Deno.serve(async (req) => {
     doc.text(reference_number, W - 14, H - 8, { align: 'right' });
 
     const pdfBase64 = doc.output('datauristring');
-    return Response.json({ pdf_base64: pdfBase64, reference: reference_number });
+
+    // Upload to `receipts` bucket so we keep a permanent CDN URL
+    let pdf_url = null;
+    try {
+      const sb = getSupabase();
+      const arrayBuffer = doc.output('arraybuffer');
+      const path = `${(landlord_email || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_')}/${reference_number}.pdf`;
+      const { error: upErr } = await sb.storage.from('receipts').upload(path, new Uint8Array(arrayBuffer), {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+      if (!upErr) {
+        const { data } = sb.storage.from('receipts').getPublicUrl(path);
+        pdf_url = data.publicUrl;
+      }
+    } catch (e) {
+      console.warn('Receipt bucket upload failed, falling back to base64 only:', e?.message);
+    }
+
+    return Response.json({ pdf_base64: pdfBase64, pdf_url, reference: reference_number });
 
   } catch (error) {
     console.error('Error generating receipt:', error);

@@ -14,6 +14,7 @@ import { LISTING_CONFIG } from "../components/listing";
 import DynamicFormRenderer from "../components/listing/DynamicFormRenderer";
 
 import MobileHeader from "../components/MobileHeader";
+import { uploadToSupabase } from "@/lib/uploadToSupabase";
 import {
   validateStep0, validateStep1, validateStep2, validateStep3, validateStep4,
   validateImageFile, checkImageResolution, fullValidationPass, t as vt,
@@ -249,9 +250,8 @@ export default function PostListingPage() {
     try {
       const urls = [];
       for (const file of toUpload) {
-        const res = await base44.integrations.Core.UploadFile({ file });
-        const fileUrl = res?.file_url || res?.data?.file_url || res?.url;
-        if (fileUrl) urls.push(fileUrl);
+        const { url } = await uploadToSupabase(file, 'listing-photos');
+        if (url) urls.push(url);
       }
       if (urls.length > 0) setForm(f => ({ ...f, images: [...f.images, ...urls] }));
       else setUploadError(lang === "ar" ? "فشل رفع الصور" : lang === "fr" ? "Téléchargement échoué" : "Upload failed");

@@ -76,7 +76,9 @@ async function applyTextWatermark(img, text, w, h, shorter, margin) {
 }
 
 // ── PROCESS ONE IMAGE ─────────────────────────────────────────────────────
-async function processImage(url, wmConfig, uploadFn, filename) {
+// Uploads the watermarked output to the `watermarked-photos` Supabase bucket
+// and returns its public URL.
+async function processImage(url, wmConfig, sb, listingId, index) {
   const resp = await fetch(url);
   if (!resp.ok) throw new Error(`Image fetch failed (${resp.status}): ${url}`);
   const buffer = await resp.arrayBuffer();
@@ -93,9 +95,14 @@ async function processImage(url, wmConfig, uploadFn, filename) {
   }
 
   const outBuffer = await img.getBufferAsync(Jimp.MIME_JPEG);
-  const file = new File([outBuffer], filename, { type: "image/jpeg" });
-  const { file_url } = await uploadFn(file);
-  return file_url;
+  const path = `listing_${listingId}/${Date.now()}_${index}.jpg`;
+  const { error: upErr } = await sb.storage.from('watermarked-photos').upload(path, outBuffer, {
+    contentType: 'image/jpeg',
+    upsert: false,
+  });
+  if (upErr) throw new Error(`Watermarked upload failed: ${upErr.message}`);
+  const { data } = sb.storage.from('watermarked-photos').getPublicUrl(path);
+  return data.publicUrl;
 }
 
 // ── MAIN HANDLER ──────────────────────────────────────────────────────────
@@ -150,9 +157,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
     const wmConfig = resolveWatermarkConfig(ownerProfile);
 
-    const uploadFn = async (file) =>
-      base44.asServiceRole.integrations.Core.UploadFile({ file });
-
     // Process all photos
     const watermarked = [];
     const failed = [];
@@ -160,12 +164,7 @@ Deno.serve(async (req) => {
     for (let i = 0; i < photos.length; i++) {
       const p = photos[i];
       try {
-        const newUrl = await processImage(
-          p.url,
-          wmConfig,
-          uploadFn,
-          `listing_${listing_id}_${i}.jpg`
-        );
+        const newUrl = await processImage(p.url, wmConfig, sb, listing_id, i);
         const { error: updErr } = await sb
           .from('listing_photos')
           .update({ watermarked_url: newUrl })

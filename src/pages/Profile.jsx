@@ -21,6 +21,7 @@ import MobileHeader from "../components/MobileHeader";
 import WilayaMultiSelect from "../components/WilayaMultiSelect";
 import OfficesManager from "../components/offices/OfficesManager";
 import OfficesDisplay from "../components/offices/OfficesDisplay";
+import { uploadToSupabase } from "@/lib/uploadToSupabase";
 
 const inputCls = "bg-white text-gray-900 placeholder-gray-400 dark:bg-[#1a1d24] dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 const labelCls = "text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block";
@@ -99,8 +100,8 @@ export default function ProfilePage() {
     if (!file) return;
     setAvatarPreview(URL.createObjectURL(file));
     setUploadingAvatar(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm(p => ({ ...p, avatar_url: file_url }));
+    const { url } = await uploadToSupabase(file, 'profile-avatars');
+    setForm(p => ({ ...p, avatar_url: url }));
     setUploadingAvatar(false);
   }
 

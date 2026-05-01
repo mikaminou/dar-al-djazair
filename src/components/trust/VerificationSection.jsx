@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Shield, Upload, CheckCircle, Clock, XCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { uploadToSupabase } from "@/lib/uploadToSupabase";
 
 const STATUS_UI = {
   pending:  { Icon: Clock,        color: "text-amber-600",   bg: "bg-amber-50",   border: "border-amber-200"   },
@@ -70,17 +71,20 @@ export default function VerificationSection({ user, lang }) {
   async function handleSubmit() {
     if (!file) return;
     setUploading(true);
-    const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
+    const { url, path } = await uploadToSupabase(file, 'documents');
+    // Store the storage path so admins can re-sign on demand; keep `url` for immediate access.
+    const document_uri = path;
     const existing = request?.status === "rejected" ? request : null;
     if (existing) {
-      await base44.entities.VerificationRequest.update(existing.id, { document_uri: file_uri, status: "pending", admin_note: "" });
-      setRequest({ ...existing, document_uri: file_uri, status: "pending", admin_note: "" });
+      await base44.entities.VerificationRequest.update(existing.id, { document_uri, document_url: url, status: "pending", admin_note: "" });
+      setRequest({ ...existing, document_uri, document_url: url, status: "pending", admin_note: "" });
     } else {
       const req = await base44.entities.VerificationRequest.create({
         user_email:  user.email,
         user_name:   user.full_name || user.email,
         type:        isProfessional ? "professional" : "individual",
-        document_uri: file_uri,
+        document_uri,
+        document_url: url,
         agency_name: user.agency_name || "",
         status:      "pending",
       });
