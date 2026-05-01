@@ -41,8 +41,9 @@ function getSupabase() {
 //   2. App's own logo (APP_LOGO_URL)
 //   3. Text fallback with owner display name (only if both image sources fail)
 function resolveWatermarkConfig(ownerProfile) {
-  const source = ownerProfile?.avatar || APP_LOGO_URL;
-  const fallbackText = ownerProfile?.agency_name || ownerProfile?.full_name || ownerProfile?.email || "Dar El Djazair";
+  const source = ownerProfile?.avatar_url || APP_LOGO_URL;
+  const fullName = [ownerProfile?.first_name, ownerProfile?.last_name].filter(Boolean).join(' ').trim();
+  const fallbackText = ownerProfile?.agency_name || fullName || ownerProfile?.email || "Dar El Djazair";
   return { type: "image", source, fallbackText };
 }
 
@@ -163,7 +164,7 @@ Deno.serve(async (req) => {
     // Resolve owner profile from Supabase profiles
     const { data: ownerProfile } = await sb
       .from('profiles')
-      .select('email, full_name, agency_name, avatar')
+      .select('email, first_name, last_name, agency_name, avatar_url')
       .eq('id', listing.owner_id)
       .maybeSingle();
     const wmConfig = resolveWatermarkConfig(ownerProfile);
