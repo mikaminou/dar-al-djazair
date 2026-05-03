@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_project_lot_types';
+const TABLE = 'project_lot_types';
 
 function getSupabase() {
   let url = Deno.env.get('supabase_base_url') || '';
