@@ -10,40 +10,16 @@ import AppointmentProposalCard from "../components/appointments/AppointmentPropo
 import ProposeAppointmentModal from "../components/appointments/ProposeAppointmentModal";
 import UserProfilePanel from "../components/messages/UserProfilePanel";
 import ConversationFilters from "../components/messages/ConversationFilters";
-
-// --------------- helpers ---------------
-function getThreadId(listingId, emailA, emailB) {
-  return [listingId, ...[emailA, emailB].sort()].join("__");
-}
-
-function groupConversations(messages, userEmail) {
-  const threads = {};
-  messages.forEach(msg => {
-    const tid = msg.thread_id || getThreadId(msg.listing_id, msg.sender_email, msg.recipient_email);
-    if (!threads[tid]) {
-      threads[tid] = {
-        thread_id: tid,
-        messages: [],
-        listing_id: msg.listing_id,
-        other: msg.sender_email === userEmail ? msg.recipient_email : msg.sender_email,
-      };
-    }
-    threads[tid].messages.push(msg);
-  });
-  // sort each thread's messages oldest→newest, then sort threads by latest msg
-  return Object.values(threads)
-    .map(t => ({ ...t, messages: t.messages.sort((a, b) => new Date(a.created_date) - new Date(b.created_date)) }))
-    .sort((a, b) => {
-      const la = a.messages[a.messages.length - 1];
-      const lb = b.messages[b.messages.length - 1];
-      return new Date(lb.created_date) - new Date(la.created_date);
-    });
-}
-
-// unread = messages sent TO me that I haven't read yet
-function countUnread(conv, userEmail) {
-  return conv.messages.filter(m => !m.is_read && m.recipient_email === userEmail).length;
-}
+import {
+  getThreadId,
+  groupConversations,
+  countUnread,
+  getPresenceStatus,
+  getLastSeenLabel,
+  UNAVAILABLE_STATUSES,
+  CLOSED_STATUSES,
+  getUnavailableNoticeText,
+} from "@/lib/messaging";
 
 // --------------- typing presence via TypingStatus entity (real-time, cross-device)
 async function broadcastTyping(threadId, email, isTyping) {
@@ -572,7 +548,7 @@ export default function MessagesPage() {
   const conversations = allConversations.filter(conv => {
     const isArchived = archivedThreads.includes(conv.thread_id);
     const listingStatus = listingsStatusMap[conv.listing_id];
-    const isClosed = ["sold", "rented", "reserved"].includes(listingStatus); // NOTE: "deleted" not here — it's visible but disabled
+    const isClosed = CLOSED_STATUSES.includes(listingStatus); // NOTE: "deleted" not here — it's visible but disabled
     if (convFilter === "archived") return isArchived;
     if (isArchived) return false; // hide archived from other views
     if (convFilter === "open")   return !isClosed && listingStatus !== "deleted";
@@ -584,8 +560,8 @@ export default function MessagesPage() {
   // Note: "deleted" is NOT part of "closed" for badge count purposes; it's in "all" only
   const convCounts = {
     all:      allConversations.filter(c => !archivedThreads.includes(c.thread_id)).length,
-    open:     allConversations.filter(c => !archivedThreads.includes(c.thread_id) && !["sold","rented","reserved","deleted"].includes(listingsStatusMap[c.listing_id])).length,
-    closed:   allConversations.filter(c => !archivedThreads.includes(c.thread_id) && ["sold","rented","reserved"].includes(listingsStatusMap[c.listing_id])).length,
+    open:     allConversations.filter(c => !archivedThreads.includes(c.thread_id) && !UNAVAILABLE_STATUSES.includes(listingsStatusMap[c.listing_id])).length,
+    closed:   allConversations.filter(c => !archivedThreads.includes(c.thread_id) && CLOSED_STATUSES.includes(listingsStatusMap[c.listing_id])).length,
     archived: allConversations.filter(c => archivedThreads.includes(c.thread_id)).length,
   };
 
@@ -597,42 +573,12 @@ export default function MessagesPage() {
 
   // Is the active thread's listing unavailable for messaging?
   const activeListingStatus = activeThread ? listingsStatusMap[activeThread.listing_id] : null;
-  const UNAVAILABLE_STATUSES = ["reserved", "sold", "rented", "deleted"];
   const listingUnavailable = activeThread && UNAVAILABLE_STATUSES.includes(activeListingStatus);
   // Is the current user the owner of this listing?
   const isListingOwner = activeThread && listingOwnerMap[activeThread.listing_id] === user?.email;
   // Show notice and disable messaging for non-owners when listing is unavailable
   const showUnavailableNotice = listingUnavailable && !isListingOwner;
 
-  // Presence helper
-  function getPresenceStatus(presence) {
-    if (!presence?.last_seen) return "offline";
-    const diffMs = Date.now() - new Date(presence.last_seen).getTime();
-    if (diffMs < 2 * 60 * 1000) return "online";
-    if (diffMs < 10 * 60 * 1000) return "away";
-    return "offline";
-  }
-  function getLastSeenLabel(presence, lang) {
-    if (!presence?.last_seen) return null;
-    const diffMs = Date.now() - new Date(presence.last_seen).getTime();
-    const mins = Math.floor(diffMs / 60000);
-    const hrs = Math.floor(mins / 60);
-    const days = Math.floor(hrs / 24);
-    if (diffMs < 2 * 60 * 1000) return null; // online, no last seen needed
-    if (lang === "ar") {
-      if (mins < 60) return `آخر ظهور منذ ${mins} دقيقة`;
-      if (hrs < 24) return `آخر ظهور منذ ${hrs} ساعة`;
-      return `آخر ظهور منذ ${days} يوم`;
-    }
-    if (lang === "fr") {
-      if (mins < 60) return `Vu il y a ${mins} min`;
-      if (hrs < 24) return `Vu il y a ${hrs}h`;
-      return `Vu il y a ${days}j`;
-    }
-    if (mins < 60) return `Last seen ${mins}m ago`;
-    if (hrs < 24) return `Last seen ${hrs}h ago`;
-    return `Last seen ${days}d ago`;
-  }
   const presenceStatus = activeThread ? getPresenceStatus(otherPresence) : null;
   const presenceDot = { online: "bg-emerald-500", away: "bg-amber-400", offline: "bg-gray-300 dark:bg-gray-600" };
   const presenceLabel = {
@@ -640,13 +586,6 @@ export default function MessagesPage() {
     away:    { en: "Away", fr: "Absent", ar: "بعيد" },
     offline: null, // replaced by last seen text
   };
-
-  function getUnavailableNoticeText() {
-    if (activeListingStatus === "reserved") return lang === "ar" ? "هذا العقار محجوز حالياً." : lang === "fr" ? "Ce bien est actuellement réservé." : "This property is currently reserved.";
-    if (activeListingStatus === "sold") return lang === "ar" ? "تم بيع هذا العقار." : lang === "fr" ? "Ce bien a été vendu." : "This property has been sold.";
-    if (activeListingStatus === "rented") return lang === "ar" ? "تم تأجير هذا العقار." : lang === "fr" ? "Ce bien a été loué." : "This property has been rented.";
-    return lang === "ar" ? "هذا الإعلان لم يعد متاحاً." : lang === "fr" ? "Cette annonce n'est plus disponible." : "This listing is no longer available.";
-  }
 
   // total unread across all convs
   const totalUnread = conversations.reduce((sum, c) => sum + countUnread(c, user?.email || ""), 0);
@@ -899,7 +838,7 @@ export default function MessagesPage() {
               {showUnavailableNotice && (
                 <div className="mx-3 mb-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {getUnavailableNoticeText()}
+                  {getUnavailableNoticeText(activeListingStatus, lang)}
                 </div>
               )}
 
