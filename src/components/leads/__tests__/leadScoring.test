@@ -1,0 +1,117 @@
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { computePriority, FINANCIAL_STATE_SCORE } from '../leadScoring';
+
+// Freeze time so the recency bonus is deterministic.
+const FROZEN_NOW = new Date('2026-05-03T12:00:00Z').getTime();
+
+beforeAll(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(FROZEN_NOW);
+});
+
+afterAll(() => {
+  vi.useRealTimers();
+});
+
+const daysAgo = (n) => new Date(FROZEN_NOW - n * 86_400_000).toISOString();
+
+function lead(overrides = {}) {
+  return {
+    status: 'new',
+    created_date: daysAgo(0),
+    search_filters: { financial_state: 'unspecified' },
+    ...overrides,
+  };
+}
+
+describe('computePriority — status progression', () => {
+  it('new + no engagement + recency bonus → low', () => {
+    expect(computePriority(lead(), {})).toBe('low'); // 0 + 1 recency = 1
+  });
+
+  it('contacted alone is still low (1 status + 1 recency = 2)', () => {
+    expect(computePriority(lead({ status: 'contacted' }), {})).toBe('low');
+  });
+
+  it('viewing + recency reaches medium threshold (2 + 1 = 3)', () => {
+    expect(computePriority(lead({ status: 'viewing' }), {})).toBe('medium');
+  });
+
+  it('won + recency = 4+1 = medium', () => {
+    expect(computePriority(lead({ status: 'won' }), {})).toBe('medium');
+  });
+
+  it('lost / closed score 0 from status', () => {
+    expect(computePriority(lead({ status: 'lost' }), {})).toBe('low');
+    expect(computePriority(lead({ status: 'closed' }), {})).toBe('low');
+  });
+});
+
+describe('computePriority — engagement signals', () => {
+  it('messageCount caps at 4', () => {
+    // base 0 + capped 4 + recency 1 = 5 → medium
+    expect(computePriority(lead(), { messageCount: 100 })).toBe('medium');
+  });
+
+  it('appointment adds 2 points', () => {
+    // 0 status + 1 recency + 2 appt = 3 → medium
+    expect(computePriority(lead(), { hasAppointment: true })).toBe('medium');
+  });
+
+  it('favorite adds 1 point', () => {
+    // 0 + 1 recency + 1 fav = 2 → low
+    expect(computePriority(lead(), { hasFavorite: true })).toBe('low');
+  });
+
+  it('combined engagement reaches high', () => {
+    // contacted=1 + 4 msg + 2 appt + 1 fav + 1 recency = 9 → high
+    const out = computePriority(
+      lead({ status: 'contacted' }),
+      { messageCount: 4, hasAppointment: true, hasFavorite: true }
+    );
+    expect(out).toBe('high');
+  });
+});
+
+describe('computePriority — recency bonus', () => {
+  it('grants +1 within 7 days', () => {
+    // viewing (2) + recency (1) = 3 → medium
+    expect(computePriority(lead({ status: 'viewing', created_date: daysAgo(7) }), {})).toBe('medium');
+  });
+
+  it('does not grant the bonus past 7 days', () => {
+    // viewing (2) + 0 recency = 2 → low
+    expect(computePriority(lead({ status: 'viewing', created_date: daysAgo(8) }), {})).toBe('low');
+  });
+});
+
+describe('computePriority — financial state', () => {
+  it('cash buyer is the strongest financial signal', () => {
+    expect(FINANCIAL_STATE_SCORE.cash).toBeGreaterThan(FINANCIAL_STATE_SCORE.pre_approved);
+    expect(FINANCIAL_STATE_SCORE.pre_approved).toBeGreaterThan(FINANCIAL_STATE_SCORE.arranging);
+    expect(FINANCIAL_STATE_SCORE.unspecified).toBe(0);
+  });
+
+  it('cash buyer alone (3) + recency (1) → low (still under 3 threshold? actually 4 → medium)', () => {
+    // 0 status + 1 recency + 3 cash = 4 → medium
+    const l = lead({ search_filters: { financial_state: 'cash' } });
+    expect(computePriority(l, {})).toBe('medium');
+  });
+
+  it('cash + viewing + appt + recency = high', () => {
+    // viewing 2 + appt 2 + recency 1 + cash 3 = 8 → high
+    const l = lead({ status: 'viewing', search_filters: { financial_state: 'cash' } });
+    expect(computePriority(l, { hasAppointment: true })).toBe('high');
+  });
+
+  it('treats missing search_filters as unspecified', () => {
+    const l = lead({ search_filters: undefined });
+    expect(computePriority(l, {})).toBe('low'); // 0+1=1
+  });
+});
+
+describe('computePriority — defaults', () => {
+  it('uses sensible defaults for missing engagement options', () => {
+    expect(() => computePriority(lead(), {})).not.toThrow();
+  });
+});
