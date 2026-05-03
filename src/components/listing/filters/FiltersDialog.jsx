@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { X, Sparkles, Lock } from "lucide-react";
+import { Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getFilterSchema, countActiveTypeFilters } from "../perTypeFilterSchema";
 import { PROPERTY_TYPES } from "@/components/propertyTypes.config";
@@ -8,6 +8,7 @@ import RangeField from "./RangeField";
 import MinCountField from "./MinCountField";
 import BooleanToggle from "./BooleanToggle";
 import FilterChipGroup from "./FilterChipGroup";
+import ActiveFiltersBar from "./ActiveFiltersBar";
 
 function isFieldVisible(field, filters) {
   if (!field.dependsOn) return true;
@@ -77,8 +78,8 @@ export default function FiltersDialog({ open, onOpenChange, propertyType, filter
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl w-[95vw] p-0 gap-0 overflow-hidden max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
-          <DialogTitle className="text-base font-bold text-gray-900 dark:text-gray-100">
+        <div className="px-5 py-3.5 border-b border-gray-100 dark:border-gray-800">
+          <DialogTitle className="text-base font-bold text-gray-900 dark:text-gray-100 pr-8">
             {lang === "ar" ? "الفلاتر" : lang === "fr" ? "Filtres" : "Filters"}
             {activeCount > 0 && (
               <span className="ml-2 text-[10px] font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full align-middle">
@@ -86,10 +87,10 @@ export default function FiltersDialog({ open, onOpenChange, propertyType, filter
               </span>
             )}
           </DialogTitle>
-          <button onClick={() => onOpenChange(false)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-            <X className="w-4 h-4 text-gray-500" />
-          </button>
         </div>
+
+        {/* Active filter chips */}
+        <ActiveFiltersBar propertyType={propertyType} filters={filters} onChange={onChange} lang={lang} />
 
         {/* Body */}
         {!schema ? (
