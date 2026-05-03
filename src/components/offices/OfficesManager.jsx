@@ -1,84 +1,96 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { Plus, GripVertical, Building2 } from "lucide-react";
+import { Plus, GripVertical, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { base44 } from "@/api/base44Client";
 import OfficeCard from "./OfficeCard";
 import OfficeForm from "./OfficeForm";
 
-function generateId() {
-  return `off_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-}
+// Manages an agency's offices via the AgencyOffice entity (one row per office,
+// owned by the agency through agent_email -> profiles.id on the server).
+// Replaces the old JSON-blob-on-user model.
 
-export default function OfficesManager({ offices = [], lang, onChange }) {
+export default function OfficesManager({ agentEmail, lang }) {
+  const [offices, setOffices] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [busy, setBusy] = useState(false);
 
   const lbl = (en, fr, ar) => lang === "ar" ? ar : lang === "fr" ? fr : en;
 
-  function handleAdd(formData) {
-    const now = new Date().toISOString();
-    const newOffice = {
+  async function load() {
+    if (!agentEmail) { setLoading(false); return; }
+    const data = await base44.entities.AgencyOffice
+      .filter({ agent_email: agentEmail }, null, 100)
+      .catch(() => []);
+    setOffices(data || []);
+    setLoading(false);
+  }
+
+  useEffect(() => { load(); }, [agentEmail]);
+
+  async function handleAdd(formData) {
+    setBusy(true);
+    await base44.entities.AgencyOffice.create({
       ...formData,
-      id: generateId(),
-      is_verified: false,
-      created_at: now,
-      updated_at: now,
-    };
-
-    let updated = [...offices, newOffice];
-
-    // If first office or marked as primary, enforce single primary
-    if (newOffice.is_primary || updated.length === 1) {
-      updated = updated.map(o => ({ ...o, is_primary: o.id === newOffice.id }));
-    }
-
-    onChange(updated);
+      agent_email: agentEmail,
+      display_order: offices.length,
+    });
     setShowForm(false);
+    await load();
+    setBusy(false);
   }
 
-  function handleEdit(formData) {
-    const now = new Date().toISOString();
-    let updated = offices.map(o =>
-      o.id === editingId ? { ...o, ...formData, updated_at: now } : o
-    );
-
-    // Enforce single primary
-    if (formData.is_primary) {
-      updated = updated.map(o => ({ ...o, is_primary: o.id === editingId }));
-    }
-
-    // If no primary left, make first one primary
-    if (!updated.some(o => o.is_primary) && updated.length > 0) {
-      updated[0] = { ...updated[0], is_primary: true };
-    }
-
-    onChange(updated);
+  async function handleEdit(formData) {
+    setBusy(true);
+    await base44.entities.AgencyOffice.update(editingId, formData);
     setEditingId(null);
+    await load();
+    setBusy(false);
   }
 
-  function handleDelete(id) {
-    let updated = offices.filter(o => o.id !== id);
-    // If deleted was primary, make next first one primary
-    if (!updated.some(o => o.is_primary) && updated.length > 0) {
-      updated[0] = { ...updated[0], is_primary: true };
-    }
-    onChange(updated);
+  async function handleDelete(id) {
+    setBusy(true);
+    await base44.entities.AgencyOffice.delete(id);
+    await load();
+    setBusy(false);
   }
 
-  function handleSetPrimary(id) {
-    onChange(offices.map(o => ({ ...o, is_primary: o.id === id })));
+  async function handleSetPrimary(id) {
+    setBusy(true);
+    await base44.entities.AgencyOffice.update(id, { is_primary: true });
+    await load();
+    setBusy(false);
   }
 
-  function handleDragEnd(result) {
+  async function handleDragEnd(result) {
     if (!result.destination) return;
     const reordered = Array.from(offices);
     const [removed] = reordered.splice(result.source.index, 1);
     reordered.splice(result.destination.index, 0, removed);
-    onChange(reordered);
+    setOffices(reordered); // optimistic
+    // Persist new display_order
+    await Promise.all(
+      reordered.map((o, idx) =>
+        o.display_order === idx
+          ? null
+          : base44.entities.AgencyOffice.update(o.id, { display_order: idx })
+      ).filter(Boolean)
+    );
   }
 
   // Sort: primary first for display
   const sorted = [...offices].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6 text-gray-400">
+        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+        <span className="text-sm">{lbl("Loading offices…", "Chargement…", "جارٍ التحميل…")}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -94,6 +106,7 @@ export default function OfficesManager({ offices = [], lang, onChange }) {
             variant="outline"
             onClick={() => setShowForm(true)}
             className="gap-1.5 text-xs"
+            disabled={busy}
           >
             <Plus className="w-3.5 h-3.5" />
             {lbl("Add an office", "Ajouter un bureau", "إضافة مكتب")}
@@ -114,7 +127,7 @@ export default function OfficesManager({ offices = [], lang, onChange }) {
               "أضف مواقع مكاتبك لمساعدة الباحثين في العثور عليك. اختياري ولكن موصى به."
             )}
           </p>
-          <Button type="button" size="sm" onClick={() => setShowForm(true)} className="mt-3 bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs">
+          <Button type="button" size="sm" onClick={() => setShowForm(true)} className="mt-3 bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" disabled={busy}>
             <Plus className="w-3.5 h-3.5" />
             {lbl("Add an office", "Ajouter un bureau", "إضافة مكتب")}
           </Button>

@@ -41,6 +41,7 @@ const ENTITY_TO_FUNCTION = {
   Waitlist: 'waitlistCrud',
   Client: 'clientCrud',
   ClientSearchProfile: 'clientSearchProfileCrud',
+  AgencyOffice: 'agencyOfficeCrud',
   SavedSearch: 'savedSearchCrud',
   Project: 'projectCrud',
   ProjectLot: 'projectLotCrud',

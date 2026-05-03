@@ -1,14 +1,35 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Building2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import OfficeCard from "./OfficeCard";
 
-export default function OfficesDisplay({ offices = [], lang }) {
+// Public read-only display of an agency's offices, fetched from the
+// AgencyOffice entity. Renders nothing while loading or if the agency
+// has no offices.
+
+export default function OfficesDisplay({ agentEmail, lang }) {
+  const [offices, setOffices] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!agentEmail) { setLoaded(true); return; }
+    base44.entities.AgencyOffice
+      .filter({ agent_email: agentEmail }, null, 100)
+      .then(data => setOffices(data || []))
+      .catch(() => setOffices([]))
+      .finally(() => setLoaded(true));
+  }, [agentEmail]);
+
+  if (!loaded) return null;
   if (!offices || offices.length === 0) return null;
 
   const lbl = (en, fr, ar) => lang === "ar" ? ar : lang === "fr" ? fr : en;
 
-  // Primary first, then rest in order
-  const sorted = [...offices].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0));
+  // Primary first, then by display_order (already sorted server-side, kept defensive)
+  const sorted = [...offices].sort((a, b) => {
+    if (a.is_primary !== b.is_primary) return b.is_primary ? 1 : -1;
+    return (a.display_order || 0) - (b.display_order || 0);
+  });
 
   return (
     <div className="bg-white dark:bg-[#13161c] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-5 mb-4">

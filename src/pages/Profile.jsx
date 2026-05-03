@@ -81,7 +81,6 @@ export default function ProfilePage() {
       website: userInfo?.website || "",
       contact_email: userInfo?.contact_email || "",
       avatar_url: userInfo?.avatar_url || "",
-      agency_offices: Array.isArray(userInfo?.agency_offices) ? userInfo.agency_offices : [],
     });
 
     const data = await base44.entities.Listing.filter({ created_by: targetEmail, status: "active" }, "-created_date", 20);
@@ -400,9 +399,8 @@ export default function ProfilePage() {
 
               {isProfessional && (
                 <OfficesManager
-                  offices={form.agency_offices}
+                  agentEmail={profileUser.email}
                   lang={lang}
-                  onChange={offices => setForm(p => ({ ...p, agency_offices: offices }))}
                 />
               )}
               <div>
@@ -433,7 +431,7 @@ export default function ProfilePage() {
 
         {/* Offices — public display */}
         {!editing && isProfessional && (
-          <OfficesDisplay offices={profileUser.agency_offices} lang={lang} />
+          <OfficesDisplay agentEmail={profileUser.email} lang={lang} />
         )}
 
         {/* Reviews */}
