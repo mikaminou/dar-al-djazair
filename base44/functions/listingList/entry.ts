@@ -1,6 +1,13 @@
 // listingList — query Supabase `listings`, return Base44-entity-shaped rows.
-// All type-specific fields are real columns now, so `query` keys map directly
-// onto column names (with a few aliases). Unknown keys are ignored.
+//
+// `listings` now holds only shared/cross-cutting columns. Type-specific
+// attributes live in per-type child tables and are merged into each row's
+// response (and into a virtual `attributes` mirror for legacy callers).
+//
+// Filtering by type-specific fields (e.g. bedrooms, pool) requires per-type
+// joins — out of scope for this generic list endpoint, which sticks to
+// shared-column filters. Callers needing those filters should query the
+// per-type table directly.
 //
 // Payload: { query?: object, sort?: string, limit?: number }
 
@@ -14,48 +21,21 @@ const LISTING_COLUMNS = new Set([
   'agent_id','owner_is_verified','owner_verification_type',
   'exclusivity_conflict','conflict_listing_id',
   'hide_price','hide_location','price_period','currency',
-  'land_area','total_area','buildable_area','house_area',
-  'rooms','bedrooms','bathrooms','floor','building_total_floors',
-  'total_floors','total_units','levels','garage_spots','parking_spots',
-  'frontage_meters','frontage_count','max_floors_allowed','entrance_count',
-  'ceiling_height','workstation_capacity','meeting_room_count',
-  'proximity_to_road_meters','monthly_revenue','building_age','year_built',
-  'is_top_floor','water_tank','balcony','parking','elevator','fiber_internet',
-  'terrace','cave','concierge','security','air_conditioning','solar_panels',
-  'well','intercom','double_glazing','generator','has_basement','pool','garden',
-  'garage','has_well','boundary_walls','has_summer_kitchen','has_summer_living_room',
-  'has_alarm','has_servant_quarters','is_gated_community','buildable','corner_plot',
-  'has_water_access','has_electricity','has_road_access','has_storefront',
-  'commercial_license_included','has_storage','has_water_meter','has_electricity_meter',
-  'has_gas','is_under_lease','has_concierge_apartment','has_elevator',
-  'has_collective_heating','has_reception_area','is_accessible','has_kitchen',
-  'has_archive_room','has_house','has_fencing','furnished','heating_type',
-  'parking_type','title_type','slope','zoning_type','office_layout',
-  'ground_floor_use','current_activity','water_source','irrigation_type','soil_type',
+  'watermark_status','rejection_reason',
 ]);
 
-const ATTR_MIRROR_KEYS = [
-  'land_area','total_area','buildable_area','house_area',
-  'rooms','bedrooms','bathrooms','floor','building_total_floors',
-  'total_floors','total_units','levels','garage_spots','parking_spots',
-  'frontage_meters','frontage_count','max_floors_allowed','entrance_count',
-  'ceiling_height','workstation_capacity','meeting_room_count',
-  'proximity_to_road_meters','monthly_revenue','building_age','year_built',
-  'is_top_floor','water_tank','balcony','parking','elevator','fiber_internet',
-  'terrace','cave','concierge','security','air_conditioning','solar_panels',
-  'well','intercom','double_glazing','generator','has_basement','pool','garden',
-  'garage','has_well','boundary_walls','has_summer_kitchen','has_summer_living_room',
-  'has_alarm','has_servant_quarters','is_gated_community','buildable','corner_plot',
-  'has_water_access','has_electricity','has_road_access','has_storefront',
-  'commercial_license_included','has_storage','has_water_meter','has_electricity_meter',
-  'has_gas','is_under_lease','has_concierge_apartment','has_elevator',
-  'has_collective_heating','has_reception_area','is_accessible','has_kitchen',
-  'has_archive_room','has_house','has_fencing','furnished','heating_type',
-  'parking_type','title_type','slope','zoning_type','office_layout',
-  'ground_floor_use','current_activity','water_source','irrigation_type',
-  'soil_type','orientation','view_type','suitable_for','current_crops',
-  'equipment_included','livestock_included','units_breakdown',
-];
+const TYPE_TABLES = {
+  apartment:  'listing_apartments',
+  house:      'listing_houses',
+  villa:      'listing_villas',
+  land:       'listing_lands',
+  commercial: 'listing_commercials',
+  building:   'listing_buildings',
+  office:     'listing_offices',
+  farm:       'listing_farms',
+};
+
+const STRIP = new Set(['listing_id', 'created_at', 'updated_at']);
 
 function getSupabaseClient() {
   const url = (Deno.env.get('supabase_base_url') || '').replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
@@ -68,20 +48,28 @@ function resolveSortColumn(field) {
   if (field === 'created_date') return 'created_at';
   if (field === 'updated_date') return 'updated_at';
   if (field === 'area') return 'normalized_area_m2';
-  if (LISTING_COLUMNS.has(field) || ['created_at', 'updated_at', 'normalized_area_m2'].includes(field)) {
+  if (LISTING_COLUMNS.has(field) || ['created_at', 'updated_at', 'normalized_area_m2', 'price'].includes(field)) {
     return field;
   }
   return 'created_at';
 }
 
-function flattenRow(row, ownerEmail) {
+function flattenRow(row, typeRow, ownerEmail) {
   const photos = (row.listing_photos || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
-  const attributes = { area: row.area_value };
-  for (const k of ATTR_MIRROR_KEYS) {
-    if (row[k] !== null && row[k] !== undefined) attributes[k] = row[k];
+
+  const typeFields = {};
+  if (typeRow) {
+    for (const [k, v] of Object.entries(typeRow)) {
+      if (STRIP.has(k)) continue;
+      if (v !== null && v !== undefined) typeFields[k] = v;
+    }
   }
+
+  const attributes = { area: row.area_value, ...typeFields };
+
   return {
     ...row,
+    ...typeFields,
     id: row.id,
     created_date: row.created_at,
     updated_date: row.updated_at,
@@ -120,6 +108,7 @@ Deno.serve(async (req) => {
       } else if (LISTING_COLUMNS.has(key)) {
         q = q.eq(key, value);
       }
+      // Type-specific filters silently ignored — see file header.
     }
 
     const desc = sort.startsWith('-');
@@ -131,15 +120,31 @@ Deno.serve(async (req) => {
     const { data, error } = await q;
     if (error) return Response.json({ error: error.message }, { status: 500 });
 
-    const ownerIds = [...new Set((data || []).map(r => r.owner_id).filter(Boolean))];
+    const rows = data || [];
+
+    // Resolve owner emails in bulk.
+    const ownerIds = [...new Set(rows.map(r => r.owner_id).filter(Boolean))];
     let emailById = {};
     if (ownerIds.length > 0) {
       const { data: profs } = await sb.from('profiles').select('id, email').in('id', ownerIds);
       emailById = Object.fromEntries((profs || []).map(p => [p.id, p.email]));
     }
 
-    const rows = (data || []).map(r => flattenRow(r, emailById[r.owner_id] || null));
-    return Response.json(rows);
+    // Bulk-fetch per-type child rows, grouped by property_type to avoid N+1.
+    const idsByType = {};
+    for (const r of rows) {
+      const t = r.property_type;
+      if (!TYPE_TABLES[t]) continue;
+      (idsByType[t] ||= []).push(r.id);
+    }
+    const typeRowById = {};
+    await Promise.all(Object.entries(idsByType).map(async ([t, ids]) => {
+      const { data: trs } = await sb.from(TYPE_TABLES[t]).select('*').in('listing_id', ids);
+      for (const tr of trs || []) typeRowById[tr.listing_id] = tr;
+    }));
+
+    const out = rows.map(r => flattenRow(r, typeRowById[r.id] || null, emailById[r.owner_id] || null));
+    return Response.json(out);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

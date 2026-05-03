@@ -1,5 +1,8 @@
 // listingUpdate — partial update of a listing.
-// All type-specific fields are now real columns. Unknown keys are dropped.
+//
+// Storage model:
+//   • `listings`           — shared/cross-cutting columns only.
+//   • `listing_<type>`     — type-specific attributes (one row per listing).
 //
 // Payload: { id: string, data: <partial Base44 listing object> }
 
@@ -8,44 +11,17 @@ import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
 const LISTING_COLUMNS = new Set([
   'title', 'description', 'listing_type', 'property_type', 'price',
-  'wilaya', 'commune', 'address', 'status', 'is_exclusive',
+  'wilaya', 'commune', 'address', 'latitude', 'longitude',
+  'status', 'is_exclusive',
   'contact_name', 'contact_phone', 'contact_email', 'contact_whatsapp',
-  'show_phone', 'show_email', 'rental_period', 'price_negotiable',
-  'price_display', 'watermark_status', 'rejection_reason',
-
+  'show_phone', 'show_email',
+  'rental_period', 'price_negotiable', 'price_display',
+  'hide_price', 'price_period', 'currency', 'hide_location',
   'admin_note', 'active_since', 'is_featured', 'views_count',
   'agent_id', 'owner_is_verified', 'owner_verification_type',
   'exclusivity_conflict', 'conflict_listing_id', 'audit_log',
-  'hide_price', 'hide_location', 'price_period', 'currency', 'features',
-
-  'land_area', 'total_area', 'buildable_area', 'house_area',
-  'rooms', 'bedrooms', 'bathrooms', 'floor', 'building_total_floors',
-  'total_floors', 'total_units', 'levels', 'garage_spots', 'parking_spots',
-  'frontage_meters', 'frontage_count', 'max_floors_allowed', 'entrance_count',
-  'ceiling_height', 'workstation_capacity', 'meeting_room_count',
-  'proximity_to_road_meters', 'monthly_revenue', 'building_age', 'year_built',
-
-  'is_top_floor', 'water_tank', 'balcony', 'parking', 'elevator',
-  'fiber_internet', 'terrace', 'cave', 'concierge', 'security',
-  'air_conditioning', 'solar_panels', 'well', 'intercom', 'double_glazing',
-  'generator', 'has_basement', 'pool', 'garden', 'garage', 'has_well',
-  'boundary_walls', 'has_summer_kitchen', 'has_summer_living_room',
-  'has_alarm', 'has_servant_quarters', 'is_gated_community',
-  'buildable', 'corner_plot', 'has_water_access', 'has_electricity',
-  'has_road_access', 'has_storefront', 'commercial_license_included',
-  'has_storage', 'has_water_meter', 'has_electricity_meter', 'has_gas',
-  'is_under_lease', 'has_concierge_apartment', 'has_elevator',
-  'has_collective_heating', 'has_reception_area', 'is_accessible',
-  'has_kitchen', 'has_archive_room', 'has_house', 'has_fencing',
-
-  'furnished', 'heating_type', 'parking_type', 'title_type', 'slope',
-  'zoning_type', 'office_layout', 'ground_floor_use', 'current_activity',
-  'water_source', 'irrigation_type', 'soil_type',
-
-  'orientation', 'view_type', 'suitable_for', 'current_crops',
-  'equipment_included', 'livestock_included',
-
-  'units_breakdown',
+  'watermark_status', 'rejection_reason',
+  'features',
 ]);
 
 const KEY_ALIASES = { area: 'area_value' };
@@ -54,7 +30,6 @@ const DROPPED_KEYS = new Set([
   'attributes', 'images',
 ]);
 
-// Per-property-type tables and the columns each one owns.
 const TYPE_TABLE_COLUMNS = {
   apartment: {
     table: 'listing_apartments',
@@ -90,29 +65,39 @@ const TYPE_TABLE_COLUMNS = {
   },
 };
 
-function buildTypeRow(propertyType, listingRow) {
+function extractTypeFields(propertyType, data) {
   const cfg = TYPE_TABLE_COLUMNS[propertyType];
   if (!cfg) return null;
+  const merged = { ...(data.attributes || {}), ...data };
   const out = {};
+  let touched = false;
   for (const col of cfg.columns) {
-    if (col === 'area') {
-      const v = propertyType === 'land' ? listingRow.area_value : listingRow.normalized_area_m2;
-      if (v !== undefined && v !== null) out[col] = v;
-    } else if (listingRow[col] !== undefined && listingRow[col] !== null) {
-      out[col] = listingRow[col];
+    if (col === 'area') continue; // computed from listingRow below
+    if (merged[col] !== undefined) {
+      out[col] = merged[col];
+      touched = true;
     }
   }
-  return { table: cfg.table, row: out };
+  return { table: cfg.table, row: out, touched };
 }
 
-async function syncTypeTable(sb, listingRow) {
-  const built = buildTypeRow(listingRow.property_type, listingRow);
+async function syncTypeTable(sb, listingRow, data) {
+  const built = extractTypeFields(listingRow.property_type, data);
   if (!built) return;
+
+  const propertyType = listingRow.property_type;
+  // If the area or property_type changed, refresh per-type `area`.
+  if (propertyType !== 'building' && propertyType !== 'farm') {
+    const v = propertyType === 'land' ? listingRow.area_value : listingRow.normalized_area_m2;
+    if (v !== undefined && v !== null) built.row.area = v;
+  }
+
+  // Always upsert (creates the per-type row on first update if missing).
   const payload = { ...built.row, listing_id: listingRow.id };
   await sb.from(built.table).upsert(payload, { onConflict: 'listing_id' });
 }
 
-function mapPayloadToRow(data) {
+function mapPayloadToListingRow(data) {
   const row = {};
   if (data.attributes && typeof data.attributes === 'object') {
     for (const [k, v] of Object.entries(data.attributes)) {
@@ -155,7 +140,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    const row = mapPayloadToRow(data);
+    const row = mapPayloadToListingRow(data);
     row.updated_at = new Date().toISOString();
 
     if (Object.keys(row).length > 1) {
@@ -165,7 +150,7 @@ Deno.serve(async (req) => {
 
     // Re-fetch the canonical row and mirror into the per-property-type table.
     const { data: fresh } = await sb.from('listings').select('*').eq('id', id).maybeSingle();
-    if (fresh) await syncTypeTable(sb, fresh);
+    if (fresh) await syncTypeTable(sb, fresh, data);
 
     if (Array.isArray(data.images)) {
       await sb.from('listing_photos').delete().eq('listing_id', id);

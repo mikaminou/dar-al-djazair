@@ -1,48 +1,46 @@
 // listingGet — fetch a single listing by id, returns Base44-shaped row.
-// All type-specific fields are real columns now; we just spread row + add
-// computed derived fields (images, attributes mirror, area).
+//
+// Joins the per-property-type table to merge type-specific attributes back
+// into the response (so callers continue to see e.g. `bedrooms`, `pool`,
+// `furnished` directly on the listing object and inside `attributes`).
 //
 // Payload: { id: string }
 
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-// Mirror of listing columns used to rebuild a virtual `attributes` object
-// for clients that still read it (DynamicFieldDisplay etc. now read columns
-// directly, but this keeps backwards compat for any caller that expects it).
-const ATTR_MIRROR_KEYS = [
-  'land_area','total_area','buildable_area','house_area',
-  'rooms','bedrooms','bathrooms','floor','building_total_floors',
-  'total_floors','total_units','levels','garage_spots','parking_spots',
-  'frontage_meters','frontage_count','max_floors_allowed','entrance_count',
-  'ceiling_height','workstation_capacity','meeting_room_count',
-  'proximity_to_road_meters','monthly_revenue','building_age','year_built',
-  'is_top_floor','water_tank','balcony','parking','elevator','fiber_internet',
-  'terrace','cave','concierge','security','air_conditioning','solar_panels',
-  'well','intercom','double_glazing','generator','has_basement','pool','garden',
-  'garage','has_well','boundary_walls','has_summer_kitchen','has_summer_living_room',
-  'has_alarm','has_servant_quarters','is_gated_community','buildable','corner_plot',
-  'has_water_access','has_electricity','has_road_access','has_storefront',
-  'commercial_license_included','has_storage','has_water_meter','has_electricity_meter',
-  'has_gas','is_under_lease','has_concierge_apartment','has_elevator',
-  'has_collective_heating','has_reception_area','is_accessible','has_kitchen',
-  'has_archive_room','has_house','has_fencing','furnished','heating_type',
-  'parking_type','title_type','slope','zoning_type','office_layout',
-  'ground_floor_use','current_activity','water_source','irrigation_type',
-  'soil_type','orientation','view_type','suitable_for','current_crops',
-  'equipment_included','livestock_included','units_breakdown',
-];
+// Map property_type → child table name.
+const TYPE_TABLES = {
+  apartment:  'listing_apartments',
+  house:      'listing_houses',
+  villa:      'listing_villas',
+  land:       'listing_lands',
+  commercial: 'listing_commercials',
+  building:   'listing_buildings',
+  office:     'listing_offices',
+  farm:       'listing_farms',
+};
 
-function flattenRow(row, ownerEmail) {
+// Strip per-type bookkeeping columns before merging.
+const STRIP = new Set(['listing_id', 'created_at', 'updated_at']);
+
+function flattenRow(row, typeRow, ownerEmail) {
   const photos = (row.listing_photos || []).slice().sort((a, b) => (a.position || 0) - (b.position || 0));
 
-  // Build a virtual attributes object for legacy callers.
-  const attributes = { area: row.area_value };
-  for (const k of ATTR_MIRROR_KEYS) {
-    if (row[k] !== null && row[k] !== undefined) attributes[k] = row[k];
+  // Merge per-type fields onto the listing object.
+  const typeFields = {};
+  if (typeRow) {
+    for (const [k, v] of Object.entries(typeRow)) {
+      if (STRIP.has(k)) continue;
+      if (v !== null && v !== undefined) typeFields[k] = v;
+    }
   }
+
+  // Build a virtual `attributes` mirror for legacy callers.
+  const attributes = { area: row.area_value, ...typeFields };
 
   return {
     ...row,
+    ...typeFields,
     id: row.id,
     created_date: row.created_at,
     updated_date: row.updated_at,
@@ -72,13 +70,25 @@ Deno.serve(async (req) => {
     if (error) return Response.json({ error: error.message }, { status: 500 });
     if (!row) return Response.json({ error: 'Not found' }, { status: 404 });
 
+    // Fetch the per-type child row (if any).
+    let typeRow = null;
+    const childTable = TYPE_TABLES[row.property_type];
+    if (childTable) {
+      const { data: tr } = await sb
+        .from(childTable)
+        .select('*')
+        .eq('listing_id', id)
+        .maybeSingle();
+      typeRow = tr || null;
+    }
+
     let ownerEmail = null;
     if (row.owner_id) {
       const { data: p } = await sb.from('profiles').select('email').eq('id', row.owner_id).maybeSingle();
       ownerEmail = p?.email || null;
     }
 
-    return Response.json(flattenRow(row, ownerEmail));
+    return Response.json(flattenRow(row, typeRow, ownerEmail));
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
