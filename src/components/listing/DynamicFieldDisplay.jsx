@@ -10,9 +10,59 @@
  *   lang          (string)  — "en" | "fr" | "ar"
  */
 
-import React, { useState } from "react";
+import React from "react";
 import { getPropertyType } from "../propertyTypes.config";
-import { ChevronDown } from "lucide-react";
+import {
+  Ruler, LayoutGrid, BedDouble, Bath, Layers, Sofa, Fence, ParkingSquare,
+  Calendar, Compass, Sun, Snowflake, Trees, Waves, Mountain, Wifi,
+  Dumbbell, ShieldCheck, Wrench, Home, Building2, Briefcase, Tractor,
+  Car, DoorOpen, Key, MapPin, Sprout, Droplets, Zap, Thermometer,
+  CheckCircle2, MinusCircle, Users, Maximize2,
+} from "lucide-react";
+
+// Map a field key (or fallback group) to a Lucide icon. Unknown keys fall
+// back to a neutral icon so the layout never breaks.
+const FIELD_ICONS = {
+  area: Ruler,
+  surface: Ruler,
+  rooms: LayoutGrid,
+  bedrooms: BedDouble,
+  bathrooms: Bath,
+  floor: Layers,
+  total_floors: Layers,
+  furnished: Sofa,
+  balcony: Fence,
+  parking: ParkingSquare,
+  garage: Car,
+  year_built: Calendar,
+  orientation: Compass,
+  view: Mountain,
+  sun_exposure: Sun,
+  air_conditioning: Snowflake,
+  heating: Thermometer,
+  garden: Trees,
+  pool: Waves,
+  internet: Wifi,
+  gym: Dumbbell,
+  security: ShieldCheck,
+  elevator: Building2,
+  workshop: Wrench,
+  office_layout: Briefcase,
+  total_units: Home,
+  capacity: Users,
+  buildable: DoorOpen,
+  title_type: Key,
+  zoning: MapPin,
+  soil_type: Sprout,
+  irrigation: Droplets,
+  electricity: Zap,
+  land_area: Maximize2,
+  crops: Tractor,
+};
+
+function iconFor(field) {
+  return FIELD_ICONS[field.key] || CheckCircle2;
+}
 
 // ─── Attributes adapter ───────────────────────────────────────────────────────
 // All type-specific fields now live as top-level columns. We merge any legacy
@@ -78,60 +128,43 @@ function formatValue(field, rawValue, lang) {
   return `${rawValue}${unit}`;
 }
 
-// ─── Value renderer ───────────────────────────────────────────────────────────
-function FieldValue({ field, displayValue, lang }) {
-  if (displayValue === "__TRUE__") {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-        ✓ {lang === "ar" ? "نعم" : lang === "fr" ? "Oui" : "Yes"}
-      </span>
-    );
-  }
-  if (displayValue === "__FALSE__") {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-        — {lang === "ar" ? "لا" : lang === "fr" ? "Non" : "No"}
-      </span>
-    );
-  }
-  if (Array.isArray(displayValue)) {
-    return (
-      <div className="flex flex-wrap gap-1 mt-0.5">
-        {displayValue.map((v, i) => (
-          <span key={i} className="text-xs bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded-full">
-            {v}
-          </span>
-        ))}
-      </div>
-    );
-  }
-  return <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{displayValue}</span>;
-}
+// ─── Stat tile ────────────────────────────────────────────────────────────────
+// Renders a single field as an icon-stat tile (icon → value → label).
+function StatTile({ field, displayValue, lang }) {
+  const Icon = iconFor(field);
+  const yes = lang === "ar" ? "نعم" : lang === "fr" ? "Oui" : "Yes";
+  const no  = lang === "ar" ? "لا"  : lang === "fr" ? "Non" : "No";
 
-// ─── Collapsible group card ───────────────────────────────────────────────────
-function GroupCard({ group, items, lang, defaultOpen }) {
-  const [open, setOpen] = useState(defaultOpen);
+  let valueNode;
+  if (displayValue === "__TRUE__") {
+    valueNode = (
+      <span className="flex items-center justify-center gap-1">
+        <CheckCircle2 className="w-4 h-4 text-emerald-600" strokeWidth={2.5} />
+        {yes}
+      </span>
+    );
+  } else if (displayValue === "__FALSE__") {
+    valueNode = (
+      <span className="flex items-center justify-center gap-1 text-gray-400">
+        <MinusCircle className="w-4 h-4" strokeWidth={2.5} />
+        {no}
+      </span>
+    );
+  } else if (Array.isArray(displayValue)) {
+    valueNode = <span className="text-base">{displayValue.join(", ")}</span>;
+  } else {
+    valueNode = displayValue;
+  }
+
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden">
-      <button
-        className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-        onClick={() => setOpen(o => !o)}
-      >
-        <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
-          {group.label?.[lang] || group.label?.fr}
-        </span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      {open && (
-        <div className="px-4 py-3 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
-          {items.map(({ field, displayValue }) => (
-            <div key={field.key} className="flex flex-col gap-0.5">
-              <span className="text-xs text-gray-400">{lbl(field, lang)}</span>
-              <FieldValue field={field} displayValue={displayValue} lang={lang} />
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="bg-white dark:bg-[#13161c] border border-gray-100 dark:border-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow p-5 flex flex-col items-center text-center gap-2">
+      <Icon className="w-7 h-7 text-emerald-600" strokeWidth={2} />
+      <div className="text-lg font-bold text-gray-900 dark:text-gray-100 leading-tight">
+        {valueNode}
+      </div>
+      <div className="text-sm text-gray-500 dark:text-gray-400">
+        {lbl(field, lang)}
+      </div>
     </div>
   );
 }
@@ -146,12 +179,13 @@ export default function DynamicFieldDisplay({ propertyType, attributes = {}, lis
   const typeDef = getPropertyType(propertyType === "new_development" ? "building" : propertyType);
   if (!typeDef) return null;
 
-  const sortedGroups = [...typeDef.groups].sort((a, b) => a.order - b.order);
+  // Build a flat, group-ordered list of {field, displayValue} tiles.
+  const groupOrder = Object.fromEntries(
+    [...typeDef.groups].sort((a, b) => a.order - b.order).map((g, i) => [g.key, i])
+  );
 
-  // Group fields with their computed display values
-  const grouped = {};
+  const tiles = [];
   for (const field of typeDef.fields) {
-    // Conditional visibility
     if (field.conditional) {
       if (resolvedAttrs[field.conditional.field] !== field.conditional.value) continue;
     }
@@ -160,38 +194,27 @@ export default function DynamicFieldDisplay({ propertyType, attributes = {}, lis
     const raw = resolvedAttrs[field.key];
     let displayValue = formatValue(field, raw, lang);
 
-    // For unit_number: append unit
     if (field.type === "unit_number" && displayValue !== null && displayValue !== undefined) {
       const unit = resolvedAttrs[unitKey] || field.unitOptions?.[0] || "";
       displayValue = `${displayValue} ${unit}`;
     }
 
-    // Hide null / empty (but keep FALSE boolean — it's meaningful)
     if (displayValue === null || displayValue === undefined || displayValue === "") continue;
     if (Array.isArray(displayValue) && displayValue.length === 0) continue;
 
-    if (!grouped[field.group]) grouped[field.group] = [];
-    grouped[field.group].push({ field, displayValue });
+    tiles.push({ field, displayValue });
   }
 
-  const hasAny = Object.values(grouped).some(arr => arr.length > 0);
-  if (!hasAny) return null;
+  if (tiles.length === 0) return null;
+
+  // Order tiles by their group's display order, preserving field order within a group.
+  tiles.sort((a, b) => (groupOrder[a.field.group] ?? 99) - (groupOrder[b.field.group] ?? 99));
 
   return (
-    <div className="space-y-3">
-      {sortedGroups.map((group, idx) => {
-        const items = grouped[group.key];
-        if (!items || items.length === 0) return null;
-        return (
-          <GroupCard
-            key={group.key}
-            group={group}
-            items={items}
-            lang={lang}
-            defaultOpen={idx === 0}
-          />
-        );
-      })}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {tiles.map(({ field, displayValue }) => (
+        <StatTile key={field.key} field={field} displayValue={displayValue} lang={lang} />
+      ))}
     </div>
   );
 }
