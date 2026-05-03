@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
 const TABLE = 'messages';
-const ALLOWED_FIELDS = ['listing_id', 'sender_email', 'recipient_email', 'content', 'is_read', 'thread_id', 'hidden_for'];
+const ALLOWED_FIELDS = ['listing_id', 'sender_email', 'recipient_email', 'content', 'is_read', 'thread_id', 'hidden_for', 'conversation_id'];
 
 function getSupabase() {
   let url = Deno.env.get('supabase_base_url') || '';
@@ -21,6 +21,7 @@ function mapRow(row) {
     is_read: row.is_read,
     thread_id: row.thread_id,
     hidden_for: row.hidden_for || [],
+    conversation_id: row.conversation_id,
     created_date: row.created_at,
     updated_date: row.updated_at,
     created_by: row.sender_email,
