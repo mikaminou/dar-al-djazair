@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_waitlists';
+const TABLE = 'waitlists';
 const ALLOWED_FIELDS = [
   'listing_id', 'listing_title', 'listing_wilaya', 'owner_email',
   'user_email', 'user_name', 'position', 'joined_at', 'status', 'notes'

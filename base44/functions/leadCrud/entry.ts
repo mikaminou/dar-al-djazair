@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_leads';
+const TABLE = 'leads';
 const ALLOWED_FIELDS = [
   'listing_id', 'listing_title', 'listing_wilaya', 'agent_email', 'seeker_email',
   'search_name', 'search_filters', 'status', 'high_priority_alert_sent'

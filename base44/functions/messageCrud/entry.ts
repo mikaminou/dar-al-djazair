@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_messages';
+const TABLE = 'messages';
 const ALLOWED_FIELDS = ['listing_id', 'sender_email', 'recipient_email', 'content', 'is_read', 'thread_id', 'hidden_for'];
 
 function getSupabase() {

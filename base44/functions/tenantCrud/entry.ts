@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_tenants';
+const TABLE = 'tenants';
 const ALLOWED_FIELDS = [
   'listing_id', 'property_address', 'tenant_name', 'tenant_phone',
   'rent_amount', 'period_type', 'period_months', 'total_paid_upfront',

@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_client_search_profiles';
+const TABLE = 'client_search_profiles';
 const ALLOWED_FIELDS = ['client_id', 'client_name', 'agent_email', 'name', 'filters'];
 
 function getSupabase() {

@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import { createClient } from 'npm:@supabase/supabase-js@2.45.0';
 
-const TABLE = 'b44_saved_searches';
+const TABLE = 'saved_searches';
 const ALLOWED_FIELDS = ['name', 'user_email', 'filters', 'financial_state', 'alert_enabled', 'last_checked'];
 
 function getSupabase() {
