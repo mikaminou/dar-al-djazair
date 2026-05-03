@@ -7,7 +7,7 @@ import { COMMUNES_BY_WILAYA } from "../communesData";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import SmartPriceInput from "../price/SmartPriceInput";
-import PerTypeFilters from "./filters/PerTypeFilters";
+import FiltersDialog from "./filters/FiltersDialog";
 import { getAllFilterKeysForType, countActiveTypeFilters } from "./perTypeFilterSchema";
 
 // Generic, never-stripped filter keys (universal across all property types)
@@ -198,7 +198,7 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* ── Advanced filters trigger ── */}
       <div className="border-t border-gray-100 dark:border-gray-800 px-3 py-2 flex items-center justify-between">
         <button
-          onClick={() => setAdvOpen(v => !v)}
+          onClick={() => setAdvOpen(true)}
           className="flex items-center gap-2 text-sm text-gray-500 hover:text-emerald-700 font-medium transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
@@ -208,41 +208,28 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
               {dynamicActiveCount}
             </span>
           )}
-          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${advOpen ? "rotate-180" : ""}`} />
         </button>
       </div>
 
-      {/* ── Advanced / Per-type panel ── */}
-      {advOpen && (
-        <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50 dark:bg-[#0f1115]">
-          <PerTypeFilters
-            propertyType={filters.property_type}
-            filters={filters}
-            onChange={onChange}
-            lang={lang}
-          />
-
-          {dynamicActiveCount > 0 && (
-            <button
-              onClick={() => {
-                const cleared = {
-                  listing_type: filters.listing_type,
-                  property_type: filters.property_type,
-                  wilaya: filters.wilaya,
-                  commune: filters.commune,
-                  min_price: filters.min_price,
-                  max_price: filters.max_price,
-                };
-                onChange(cleared);
-              }}
-              className="mt-4 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium"
-            >
-              <X className="w-3.5 h-3.5" />
-              {lang === "ar" ? "مسح كل الفلاتر" : lang === "fr" ? "Effacer tous les filtres" : "Clear all filters"}
-            </button>
-          )}
-        </div>
-      )}
+      <FiltersDialog
+        open={advOpen}
+        onOpenChange={setAdvOpen}
+        propertyType={filters.property_type}
+        filters={filters}
+        onChange={onChange}
+        lang={lang}
+        onClear={() => {
+          const cleared = {
+            listing_type: filters.listing_type,
+            property_type: filters.property_type,
+            wilaya: filters.wilaya,
+            commune: filters.commune,
+            min_price: filters.min_price,
+            max_price: filters.max_price,
+          };
+          onChange(cleared);
+        }}
+      />
     </div>
   );
 }
