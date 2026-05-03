@@ -89,8 +89,10 @@ Deno.serve(async (req) => {
       created++;
     }
 
-    // ── CLIENT SEARCH PROFILES (pro/agency) ──────────────────────────────
-    const clientProfiles = await base44.asServiceRole.entities.ClientSearchProfile.list(null, 1000).catch(() => []);
+    // ── CLIENT SEARCH PROFILES (agency CRM) ──────────────────────────────
+    // Only profiles with alerts enabled fire notifications + emails to the agency.
+    const clientProfiles = await base44.asServiceRole.entities.ClientSearchProfile
+      .filter({ alert_enabled: true }, null, 1000).catch(() => []);
     for (const profile of clientProfiles) {
       if (!profile.agent_email || !profile.client_id) continue;
       if (profile.agent_email === listing.created_by) continue;
@@ -129,6 +131,52 @@ Deno.serve(async (req) => {
         ref_id:     refId,
       });
       created++;
+
+      // Send email to agency (per-match, no batching) mentioning the client.
+      const BASE_URL = Deno.env.get("BASE_URL") || "https://dar-el-djazair.com";
+      const listingUrl = `${BASE_URL}/ListingDetail?id=${listing.id}`;
+      const subjects = {
+        fr: `Nouveau bien pour votre client ${clientLabel}`,
+        en: `New listing for your client ${clientLabel}`,
+        ar: `عقار جديد لعميلك ${clientLabel}`,
+      };
+      const intro = {
+        fr: `Un nouveau bien correspond aux critères de recherche de votre client <strong>${clientLabel}</strong> :`,
+        en: `A new listing matches the search criteria of your client <strong>${clientLabel}</strong>:`,
+        ar: `عقار جديد يطابق معايير البحث لعميلك <strong>${clientLabel}</strong>:`,
+      };
+      const cta = { fr: "Voir l'annonce →", en: "View listing →", ar: "عرض الإعلان ←" };
+      const emailBody = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px;"><tr><td align="center">
+          <table width="100%" style="max-width:600px;" cellpadding="0" cellspacing="0">
+            <tr><td style="background:#059669;border-radius:12px 12px 0 0;padding:24px 32px;color:#fff;">
+              <p style="margin:0 0 4px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7;">Dar El Djazair · ${lang === "ar" ? "تنبيه عميل" : lang === "fr" ? "Alerte client" : "Client alert"}</p>
+              <h1 style="margin:0;font-size:22px;">${subjects[lang] || subjects.fr}</h1>
+            </td></tr>
+            <tr><td style="background:#fff;padding:32px;border:1px solid #e5e7eb;">
+              <p style="margin:0 0 16px;color:#374151;font-size:15px;">${intro[lang] || intro.fr}</p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;background:#f9fafb;">
+                <tr><td style="padding:16px;">
+                  <p style="margin:0;font-weight:700;color:#111827;font-size:15px;">${listing.title || "—"}</p>
+                  <p style="margin:4px 0 0;font-size:13px;color:#6b7280;">${listing.wilaya || ""}${priceStr ? ` · ${priceStr}` : ""}</p>
+                </td></tr>
+              </table>
+              <table cellpadding="0" cellspacing="0" style="margin-top:24px;"><tr><td style="border-radius:8px;background:#059669;">
+                <a href="${listingUrl}" style="display:inline-block;padding:12px 24px;color:#fff;font-weight:700;text-decoration:none;font-size:14px;">${cta[lang] || cta.fr}</a>
+              </td></tr></table>
+            </td></tr>
+            <tr><td style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:16px 32px;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#9ca3af;">Dar El Djazair</p>
+            </td></tr>
+          </table>
+        </td></tr></table></body></html>`;
+
+      await base44.asServiceRole.integrations.Core.SendEmail({
+        to: profile.agent_email,
+        from_name: "Dar El Djazair",
+        subject: subjects[lang] || subjects.fr,
+        body: emailBody,
+      }).catch(() => {});
     }
 
     return Response.json({ ok: true, notifications_created: created });
