@@ -112,7 +112,8 @@
         "archived",
         "deleted",
         "declined",
-        "changes_requested"
+        "changes_requested",
+        "watermarking"
       ],
       "default": "pending"
     },

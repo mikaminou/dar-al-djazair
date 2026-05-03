@@ -54,6 +54,64 @@ const DROPPED_KEYS = new Set([
   'attributes', 'images',
 ]);
 
+// Per-property-type tables and the columns each one owns.
+const TYPE_TABLE_COLUMNS = {
+  apartment: {
+    table: 'listing_apartments',
+    columns: ['area','rooms','bedrooms','bathrooms','floor','building_total_floors','is_top_floor','orientation','view_type','furnished','heating_type','water_tank','balcony','parking','parking_type','elevator','fiber_internet','terrace','cave','concierge','security','air_conditioning','solar_panels','well','intercom','double_glazing','generator','building_age'],
+  },
+  house: {
+    table: 'listing_houses',
+    columns: ['area','land_area','rooms','bedrooms','bathrooms','levels','orientation','view_type','furnished','has_basement','pool','heating_type','water_tank','garden','garage','parking_type','has_well','boundary_walls','has_summer_kitchen','terrace','fiber_internet','security','air_conditioning','solar_panels','well','intercom','double_glazing','generator','year_built'],
+  },
+  villa: {
+    table: 'listing_villas',
+    columns: ['area','land_area','rooms','bedrooms','bathrooms','levels','has_servant_quarters','is_gated_community','view_type','furnished','has_basement','heating_type','water_tank','garden','pool','has_summer_kitchen','has_summer_living_room','has_well','boundary_walls','has_alarm','garage_spots','terrace','fiber_internet','security','air_conditioning','solar_panels','well','intercom','double_glazing','generator','year_built'],
+  },
+  land: {
+    table: 'listing_lands',
+    columns: ['area','buildable','title_type','corner_plot','slope','frontage_count','max_floors_allowed','zoning_type','frontage_meters','has_water_access','has_electricity','has_road_access'],
+  },
+  commercial: {
+    table: 'listing_commercials',
+    columns: ['area','floor','frontage_meters','has_storefront','commercial_license_included','current_activity','entrance_count','ceiling_height','has_storage','parking','has_water_meter','has_electricity_meter','has_gas','security','air_conditioning','suitable_for','year_built'],
+  },
+  building: {
+    table: 'listing_buildings',
+    columns: ['total_area','total_floors','total_units','units_breakdown','title_type','is_under_lease','monthly_revenue','ground_floor_use','has_basement','has_concierge_apartment','parking_spots','has_elevator','has_collective_heating','security','generator','water_tank','year_built'],
+  },
+  office: {
+    table: 'listing_offices',
+    columns: ['area','floor','office_layout','ceiling_height','workstation_capacity','meeting_room_count','has_reception_area','furnished','parking_spots','has_elevator','is_accessible','has_kitchen','has_archive_room','air_conditioning','fiber_internet','security','suitable_for'],
+  },
+  farm: {
+    table: 'listing_farms',
+    columns: ['total_area','buildable_area','house_area','title_type','proximity_to_road_meters','soil_type','current_crops','has_house','has_water_access','water_source','irrigation_type','has_electricity','has_fencing','equipment_included','livestock_included','year_built'],
+  },
+};
+
+function buildTypeRow(propertyType, listingRow) {
+  const cfg = TYPE_TABLE_COLUMNS[propertyType];
+  if (!cfg) return null;
+  const out = {};
+  for (const col of cfg.columns) {
+    if (col === 'area') {
+      const v = propertyType === 'land' ? listingRow.area_value : listingRow.normalized_area_m2;
+      if (v !== undefined && v !== null) out[col] = v;
+    } else if (listingRow[col] !== undefined && listingRow[col] !== null) {
+      out[col] = listingRow[col];
+    }
+  }
+  return { table: cfg.table, row: out };
+}
+
+async function syncTypeTable(sb, listingRow) {
+  const built = buildTypeRow(listingRow.property_type, listingRow);
+  if (!built) return;
+  const payload = { ...built.row, listing_id: listingRow.id };
+  await sb.from(built.table).upsert(payload, { onConflict: 'listing_id' });
+}
+
 function mapPayloadToRow(data) {
   const row = {};
   if (data.attributes && typeof data.attributes === 'object') {
@@ -104,6 +162,10 @@ Deno.serve(async (req) => {
       const { error: upErr } = await sb.from('listings').update(row).eq('id', id);
       if (upErr) return Response.json({ error: upErr.message }, { status: 500 });
     }
+
+    // Re-fetch the canonical row and mirror into the per-property-type table.
+    const { data: fresh } = await sb.from('listings').select('*').eq('id', id).maybeSingle();
+    if (fresh) await syncTypeTable(sb, fresh);
 
     if (Array.isArray(data.images)) {
       await sb.from('listing_photos').delete().eq('listing_id', id);
