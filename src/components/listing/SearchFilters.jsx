@@ -8,6 +8,13 @@ import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import SmartPriceInput from "../price/SmartPriceInput";
 import DynamicSearchFilters from "./DynamicSearchFilters";
+import { getSearchFilterFields } from "../propertyTypes.config";
+
+// Generic, never-stripped filter keys (universal across all property types)
+const UNIVERSAL_FILTER_KEYS = new Set([
+  "listing_type", "property_type", "wilaya", "commune",
+  "min_price", "max_price", "features", "agency_office_wilaya", "furnished",
+]);
 
 const FURNISHED_OPTIONS = [
   { value: "furnished",      label: { en: "Furnished", fr: "Meublé", ar: "مفروش" } },
@@ -21,7 +28,31 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
   const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
   const [drawerOpen, setDrawerOpen] = useState(null);
 
-  const update = (key, val) => onChange({ ...filters, [key]: val });
+  const update = (key, val) => {
+    // When property_type changes, strip type-specific filter keys that don't
+    // exist on the new type. Universal filters and shared field keys are kept.
+    if (key === "property_type") {
+      const newType = val;
+      const validKeysForNewType = new Set(
+        newType ? getSearchFilterFields(newType).flatMap(f => [f.key, `min_${f.key}`, `max_${f.key}`, `${f.key}_unit`]) : []
+      );
+      const cleaned = {};
+      for (const [k, v] of Object.entries(filters)) {
+        if (UNIVERSAL_FILTER_KEYS.has(k) || validKeysForNewType.has(k)) {
+          cleaned[k] = v;
+        }
+      }
+      onChange({ ...cleaned, [key]: val });
+      return;
+    }
+    onChange({ ...filters, [key]: val });
+  };
+
+  // Active property type definition (for personalized panel header)
+  const activeTypeDef = PROPERTY_TYPES.find(pt => pt.value === filters.property_type);
+  const personalizedFieldCount = filters.property_type
+    ? getSearchFilterFields(filters.property_type).length
+    : 0;
 
   const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w.value, label: w.label[lang] || w.label.fr }))];
   const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
@@ -203,6 +234,28 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
       {/* ── Advanced / Dynamic panel ── */}
       {advOpen && (
         <div className="border-t border-gray-100 dark:border-gray-800 p-4 space-y-5 bg-gray-50 dark:bg-[#0f1115]">
+
+          {/* Personalized header — shows which type's filters are active */}
+          {activeTypeDef ? (
+            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg px-3 py-2">
+              <span>{activeTypeDef.icon}</span>
+              <span>
+                {lang === "ar"
+                  ? `فلاتر مخصصة لـ ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`
+                  : lang === "fr"
+                  ? `Filtres personnalisés pour ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`
+                  : `Personalized filters for ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`}
+              </span>
+            </div>
+          ) : (
+            <div className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-center">
+              {lang === "ar"
+                ? "اختر نوع العقار لعرض الفلاتر المخصصة لهذا النوع"
+                : lang === "fr"
+                ? "Sélectionnez un type de bien pour afficher les filtres spécifiques"
+                : "Pick a property type to see filters specific to it"}
+            </div>
+          )}
 
           {/* Furnished — only for rent */}
           {isRent && (
