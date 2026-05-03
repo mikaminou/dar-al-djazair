@@ -7,20 +7,14 @@ import { COMMUNES_BY_WILAYA } from "../communesData";
 import { useLang } from "../LanguageContext";
 import SelectDrawer from "../SelectDrawer";
 import SmartPriceInput from "../price/SmartPriceInput";
-import DynamicSearchFilters from "./DynamicSearchFilters";
-import { getSearchFilterFields } from "../propertyTypes.config";
+import PerTypeFilters from "./filters/PerTypeFilters";
+import { getAllFilterKeysForType, countActiveTypeFilters } from "./perTypeFilterSchema";
 
 // Generic, never-stripped filter keys (universal across all property types)
 const UNIVERSAL_FILTER_KEYS = new Set([
   "listing_type", "property_type", "wilaya", "commune",
-  "min_price", "max_price", "features", "agency_office_wilaya", "furnished",
+  "min_price", "max_price", "features", "agency_office_wilaya",
 ]);
-
-const FURNISHED_OPTIONS = [
-  { value: "furnished",      label: { en: "Furnished", fr: "Meublé", ar: "مفروش" } },
-  { value: "semi_furnished", label: { en: "Semi-furnished", fr: "Semi-meublé", ar: "نصف مفروش" } },
-  { value: "unfurnished",    label: { en: "Unfurnished", fr: "Non meublé", ar: "غير مفروش" } },
-];
 
 export default function SearchFilters({ filters, onChange, onSearch, compact = false }) {
   const { t, lang } = useLang();
@@ -30,12 +24,10 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
 
   const update = (key, val) => {
     // When property_type changes, strip type-specific filter keys that don't
-    // exist on the new type. Universal filters and shared field keys are kept.
+    // exist on the new type — keeps URL/saved-search state clean.
     if (key === "property_type") {
       const newType = val;
-      const validKeysForNewType = new Set(
-        newType ? getSearchFilterFields(newType).flatMap(f => [f.key, `min_${f.key}`, `max_${f.key}`, `${f.key}_unit`]) : []
-      );
+      const validKeysForNewType = new Set(getAllFilterKeysForType(newType));
       const cleaned = {};
       for (const [k, v] of Object.entries(filters)) {
         if (UNIVERSAL_FILTER_KEYS.has(k) || validKeysForNewType.has(k)) {
@@ -48,12 +40,6 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     onChange({ ...filters, [key]: val });
   };
 
-  // Active property type definition (for personalized panel header)
-  const activeTypeDef = PROPERTY_TYPES.find(pt => pt.value === filters.property_type);
-  const personalizedFieldCount = filters.property_type
-    ? getSearchFilterFields(filters.property_type).length
-    : 0;
-
   const wilayaOptions = [{ value: "all", label: t.allWilayas }, ...WILAYAS.map(w => ({ value: w.value, label: w.label[lang] || w.label.fr }))];
   const propertyTypeOptions = [{ value: "all", label: t.allTypes }, ...PROPERTY_TYPES.map(pt => ({ value: pt.value, label: pt.label[lang] || pt.label.fr }))];
   const communeOptions = filters.wilaya
@@ -61,14 +47,9 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
     : [];
 
   const listingType = filters.listing_type || "sale";
-  const isRent = filters.listing_type === "rent";
 
-  // Count active dynamic/advanced filters
-  const dynamicActiveCount = Object.entries(filters).filter(([k, v]) => {
-    if (["listing_type","property_type","wilaya","commune","min_price","max_price","features"].includes(k)) return false;
-    if (Array.isArray(v)) return v.length > 0;
-    return v && v !== "";
-  }).length + (filters.features?.length || 0);
+  // Active count for the new per-type panel (drives the badge on the toggle)
+  const dynamicActiveCount = countActiveTypeFilters(filters.property_type, filters);
 
   return (
     <div className="bg-white dark:bg-[#13161c] rounded-2xl shadow-md overflow-hidden select-none">
@@ -231,79 +212,19 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
         </button>
       </div>
 
-      {/* ── Advanced / Dynamic panel ── */}
+      {/* ── Advanced / Per-type panel ── */}
       {advOpen && (
-        <div className="border-t border-gray-100 dark:border-gray-800 p-4 space-y-5 bg-gray-50 dark:bg-[#0f1115]">
-
-          {/* Personalized header — shows which type's filters are active */}
-          {activeTypeDef ? (
-            <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400 font-medium bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-lg px-3 py-2">
-              <span>{activeTypeDef.icon}</span>
-              <span>
-                {lang === "ar"
-                  ? `فلاتر مخصصة لـ ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`
-                  : lang === "fr"
-                  ? `Filtres personnalisés pour ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`
-                  : `Personalized filters for ${activeTypeDef.label[lang] || activeTypeDef.label.fr} (${personalizedFieldCount})`}
-              </span>
-            </div>
-          ) : (
-            <div className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-center">
-              {lang === "ar"
-                ? "اختر نوع العقار لعرض الفلاتر المخصصة لهذا النوع"
-                : lang === "fr"
-                ? "Sélectionnez un type de bien pour afficher les filtres spécifiques"
-                : "Pick a property type to see filters specific to it"}
-            </div>
-          )}
-
-          {/* Furnished — only for rent */}
-          {isRent && (
-            <div>
-              <label className="text-xs text-gray-500 font-medium mb-2 block">
-                {lang === "ar" ? "التأثيث" : lang === "fr" ? "Ameublement" : "Furnishing"}
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => update("furnished", "")}
-                  className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                    !filters.furnished
-                      ? "bg-emerald-600 text-white border-emerald-600"
-                      : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-emerald-400"
-                  }`}
-                >
-                  {lang === "ar" ? "أي" : lang === "fr" ? "Tous" : "Any"}
-                </button>
-                {FURNISHED_OPTIONS.map(fo => (
-                  <button
-                    key={fo.value}
-                    onClick={() => update("furnished", fo.value === filters.furnished ? "" : fo.value)}
-                    className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                      filters.furnished === fo.value
-                        ? "bg-emerald-600 text-white border-emerald-600"
-                        : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-emerald-400"
-                    }`}
-                  >
-                    {fo.label[lang] || fo.label.fr}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Dynamic type-specific filters */}
-          <DynamicSearchFilters
+        <div className="border-t border-gray-100 dark:border-gray-800 p-4 bg-gray-50 dark:bg-[#0f1115]">
+          <PerTypeFilters
             propertyType={filters.property_type}
             filters={filters}
             onChange={onChange}
             lang={lang}
           />
 
-          {/* Clear */}
           {dynamicActiveCount > 0 && (
             <button
               onClick={() => {
-                // Clear everything except core universal filters
                 const cleared = {
                   listing_type: filters.listing_type,
                   property_type: filters.property_type,
@@ -314,10 +235,10 @@ export default function SearchFilters({ filters, onChange, onSearch, compact = f
                 };
                 onChange(cleared);
               }}
-              className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium"
+              className="mt-4 flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 font-medium"
             >
               <X className="w-3.5 h-3.5" />
-              {lang === "ar" ? "مسح الفلاتر الإضافية" : lang === "fr" ? "Effacer les filtres" : "Clear advanced filters"}
+              {lang === "ar" ? "مسح كل الفلاتر" : lang === "fr" ? "Effacer tous les filtres" : "Clear all filters"}
             </button>
           )}
         </div>
