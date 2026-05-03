@@ -318,16 +318,7 @@ export default function ListingDetailPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600">
-              {listing.area && <span className="flex items-center gap-1"><Maximize2 className="w-4 h-4 text-emerald-500" /> {listing.area} m²</span>}
-              {listing.bedrooms && <span className="flex items-center gap-1"><BedDouble className="w-4 h-4 text-emerald-500" /> {listing.bedrooms} {t.bedrooms}</span>}
-              {listing.bathrooms && <span className="flex items-center gap-1"><Bath className="w-4 h-4 text-emerald-500" /> {listing.bathrooms} {t.bathrooms}</span>}
-              {listing.floor != null && <span className="flex items-center gap-1"><Layers className="w-4 h-4 text-emerald-500" /> {t.floor} {listing.floor}</span>}
-              {listing.year_built && <span className="flex items-center gap-1"><Calendar className="w-4 h-4 text-emerald-500" /> {listing.year_built}</span>}
-              {listing.furnished && <span className="flex items-center gap-1"><CheckCircle className="w-4 h-4 text-emerald-500" /> {t.furnished}</span>}
-            </div>
-
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
               <Button onClick={toggleFav} variant="outline" className={`gap-2 ${isFav ? "text-red-500 border-red-200" : ""}`}>
                 <Heart className={`w-4 h-4 ${isFav ? "fill-red-500" : ""}`} />
                 {isFav ? t.removeFromFavorites : t.addToFavorites}
