@@ -238,9 +238,13 @@ const userProxy = {
   async update(idOrEmail, data) {
     const mapped = denormalizeProfile(data);
     const isEmail = typeof idOrEmail === 'string' && idOrEmail.includes('@');
-    let q = supabase.from('profiles').update(mapped).select().maybeSingle();
-    q = isEmail ? q.eq('email', idOrEmail) : q.eq('id', idOrEmail);
-    const { data: profile, error } = await q;
+    const col = isEmail ? 'email' : 'id';
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .update(mapped)
+      .eq(col, idOrEmail)
+      .select()
+      .maybeSingle();
     if (error) throw error;
     return profile ? normalizeProfile(profile) : null;
   },
