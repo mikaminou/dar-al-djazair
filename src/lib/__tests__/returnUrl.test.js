@@ -72,9 +72,10 @@ describe('returnUrl sanitization (Login.jsx logic)', () => {
     expect(sanitizeReturnUrl('data:text/html,<script>alert(1)</script>')).toBe('/');
   });
 
-  it('rejects / alone (single slash with nothing after)', () => {
-    // The regex requires at least one non-slash char after /
-    // '/' is only one char; SAFE_PATH_RE requires a second char that isn't / or \
+  it('returns / for a bare slash (passes through fallback, same result)', () => {
+    // The regex /^\/[^/\\]/ requires at least one non-slash char after /.
+    // A bare '/' has no char after it → regex does not match → fallback runs → '/'
+    // The result is '/' either way, but the fallback path is exercised.
     expect(sanitizeReturnUrl('/')).toBe('/');
   });
 });
