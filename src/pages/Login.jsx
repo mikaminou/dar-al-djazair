@@ -11,7 +11,9 @@ export default function Login() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/';
+  const rawReturnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/';
+  // Only allow same-origin paths (reject any URL containing a scheme/host)
+  const returnUrl = /^\/[^/\\]/.test(rawReturnUrl) ? rawReturnUrl : '/';
 
   async function handleSignIn(e) {
     e.preventDefault();

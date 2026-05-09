@@ -17,9 +17,9 @@ Deno.serve(async (req: Request) => {
     const { file_uri } = await req.json();
     if (!file_uri) return Response.json({ error: "Missing file_uri" }, { status: 400, headers: corsHeaders });
 
-    // Legacy base44:// URIs are no longer supported — only Supabase storage paths
-    if (file_uri.startsWith("base44://") || file_uri.includes("base44.com")) {
-      return Response.json({ error: "Legacy base44 file URIs are no longer supported" }, { status: 400, headers: corsHeaders });
+    // Only accept plain storage paths (no protocol, no host component)
+    if (!file_uri || /^[a-z][a-z0-9+\-.]*:\/\//i.test(file_uri)) {
+      return Response.json({ error: "Only Supabase storage paths are accepted" }, { status: 400, headers: corsHeaders });
     }
 
     const sb = getServiceClient();

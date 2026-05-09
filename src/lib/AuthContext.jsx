@@ -68,7 +68,8 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const navigateToLogin = useCallback(() => {
-    window.location.href = '/Login';
+    const path = window.location.pathname + window.location.search;
+    window.location.href = `/Login?returnUrl=${encodeURIComponent(path)}`;
   }, []);
 
   return (
