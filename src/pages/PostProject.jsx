@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { uploadToSupabase } from "@/lib/uploadToSupabase";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES } from "../components/constants";
 import { Button } from "@/components/ui/button";
@@ -130,8 +131,8 @@ export default function PostProject() {
     setUploadingPhotos(true);
     const urls = [];
     for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      urls.push(file_url);
+      const result = await uploadToSupabase(file, 'listing-photos');
+      urls.push(result.url);
     }
     setForm(f => ({ ...f, photos: [...f.photos, ...urls] }));
     setUploadingPhotos(false);

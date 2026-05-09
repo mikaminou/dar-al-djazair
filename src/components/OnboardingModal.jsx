@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
+import { uploadToSupabase } from '@/lib/uploadToSupabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { User, Building2, Camera } from 'lucide-react';
@@ -50,8 +51,8 @@ export default function OnboardingModal({ user, lang, onComplete }) {
     if (!file) return;
     setAvatarPreview(URL.createObjectURL(file));
     setUploadingAvatar(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setAvatarUrl(file_url);
+    const result = await uploadToSupabase(file, 'profile-avatars');
+    setAvatarUrl(result.url);
     setUploadingAvatar(false);
   }
 

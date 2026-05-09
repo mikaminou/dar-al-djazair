@@ -6,6 +6,7 @@ import ClientManagement from './pages/ClientManagement';
 import MyWaitlists from './pages/MyWaitlists';
 import UpgradeTier from './pages/UpgradeTier';
 import MyProjects from './pages/MyProjects';
+import Login from './pages/Login';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import { motion } from 'framer-motion';
 import { Toaster } from "@/components/ui/toaster"
@@ -15,12 +16,10 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { TabNavigationProvider } from '@/components/TabNavigationContext';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import PushAlertManager from '@/components/PushAlertManager';
 import AuthGuard from '@/components/AuthGuard';
-import { Navigate } from 'react-router-dom';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -60,10 +59,9 @@ const PageTransition = ({ children }) => {
 };
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -71,23 +69,14 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
-  if (authError) {
-    if (authError.type === 'user_not_registered') {
-      return <UserNotRegisteredError />;
-    } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
-    }
-  }
-
-  // Render the main app
   return (
     <>
       <PushNotificationManager />
       <PushAlertManager />
       <Routes>
+        {/* Login page — always public */}
+        <Route path="/Login" element={<Login />} />
+
         <Route path="/" element={
           <PageTransition>
             <LayoutWrapper currentPageName={mainPageKey}>
@@ -123,11 +112,11 @@ const AuthenticatedApp = () => {
         })}
         <Route path="/Projects" element={<PageTransition><LayoutWrapper currentPageName="Projects"><Suspense fallback={<PageLoadingFallback />}><Projects /></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="/ProjectDetail" element={<PageTransition><LayoutWrapper currentPageName="ProjectDetail"><Suspense fallback={<PageLoadingFallback />}><ProjectDetail /></Suspense></LayoutWrapper></PageTransition>} />
-        <Route path="/PostProject" element={<PageTransition><LayoutWrapper currentPageName="PostProject"><Suspense fallback={<PageLoadingFallback />}><PostProject /></Suspense></LayoutWrapper></PageTransition>} />
-        <Route path="/ClientManagement" element={<PageTransition><LayoutWrapper currentPageName="ClientManagement"><Suspense fallback={<PageLoadingFallback />}><ClientManagement /></Suspense></LayoutWrapper></PageTransition>} />
-        <Route path="/MyProjects" element={<PageTransition><LayoutWrapper currentPageName="MyProjects"><Suspense fallback={<PageLoadingFallback />}><MyProjects /></Suspense></LayoutWrapper></PageTransition>} />
-        <Route path="/MyWaitlists" element={<PageTransition><LayoutWrapper currentPageName="MyWaitlists"><Suspense fallback={<PageLoadingFallback />}><MyWaitlists /></Suspense></LayoutWrapper></PageTransition>} />
-        <Route path="/UpgradeTier" element={<PageTransition><LayoutWrapper currentPageName="UpgradeTier"><Suspense fallback={<PageLoadingFallback />}><UpgradeTier /></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/PostProject" element={<PageTransition><LayoutWrapper currentPageName="PostProject"><Suspense fallback={<PageLoadingFallback />}><AuthGuard><PostProject /></AuthGuard></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/ClientManagement" element={<PageTransition><LayoutWrapper currentPageName="ClientManagement"><Suspense fallback={<PageLoadingFallback />}><AuthGuard><ClientManagement /></AuthGuard></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/MyProjects" element={<PageTransition><LayoutWrapper currentPageName="MyProjects"><Suspense fallback={<PageLoadingFallback />}><AuthGuard><MyProjects /></AuthGuard></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/MyWaitlists" element={<PageTransition><LayoutWrapper currentPageName="MyWaitlists"><Suspense fallback={<PageLoadingFallback />}><AuthGuard><MyWaitlists /></AuthGuard></Suspense></LayoutWrapper></PageTransition>} />
+        <Route path="/UpgradeTier" element={<PageTransition><LayoutWrapper currentPageName="UpgradeTier"><Suspense fallback={<PageLoadingFallback />}><AuthGuard><UpgradeTier /></AuthGuard></Suspense></LayoutWrapper></PageTransition>} />
         <Route path="*" element={<PageNotFound />} />
       </Routes>
     </>
