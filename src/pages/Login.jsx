@@ -57,12 +57,13 @@ export default function Login() {
     }
 
     setLoading(true);
+    const emailPrefix = email.includes('@') ? email.split('@')[0].trim() : '';
     const { data, error: err } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin + returnUrl,
-        data: { full_name: fullName.trim() || email.split('@')[0] },
+        data: { full_name: fullName.trim() || emailPrefix || 'User' },
       },
     });
 

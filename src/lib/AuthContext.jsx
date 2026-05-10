@@ -4,7 +4,10 @@ import { supabase } from '@/lib/supabaseClient';
 const AuthContext = createContext();
 
 function buildFallbackUser(authUser) {
-  const emailPrefix = authUser.email ? authUser.email.split('@')[0].trim() : '';
+  const emailPrefix =
+    authUser.email && authUser.email.includes('@')
+      ? authUser.email.split('@')[0].trim()
+      : '';
   const fullName =
     authUser.user_metadata?.full_name ||
     authUser.user_metadata?.name ||
