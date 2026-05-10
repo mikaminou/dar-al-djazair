@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+const MIN_PASSWORD_LENGTH = 8;
+
 export default function Login() {
   const [activeTab, setActiveTab] = useState('sign-in');
   const [email, setEmail] = useState('');
@@ -44,8 +46,8 @@ export default function Login() {
     e.preventDefault();
     clearFeedback();
 
-    if (password.length < 8) {
-      setError('Le mot de passe doit contenir au moins 8 caractères.');
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setError(`Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères.`);
       return;
     }
 
@@ -201,7 +203,7 @@ export default function Login() {
                         placeholder="8 caractères minimum"
                         required
                         autoComplete="new-password"
-                        minLength={8}
+                        minLength={MIN_PASSWORD_LENGTH}
                         className="h-11 pl-9"
                       />
                     </div>
@@ -217,7 +219,7 @@ export default function Login() {
                         placeholder="Répétez le mot de passe"
                         required
                         autoComplete="new-password"
-                        minLength={8}
+                        minLength={MIN_PASSWORD_LENGTH}
                         className="h-11 pl-9"
                       />
                     </div>
