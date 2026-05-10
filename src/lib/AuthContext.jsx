@@ -15,6 +15,7 @@ function buildFallbackUser(authUser) {
     id: authUser.id,
     email: authUser.email,
     full_name: fullName,
+    // Keep "role" for legacy consumers that still read user.role.
     role: 'individual',
     lang: 'fr',
     is_verified: false,
@@ -100,7 +101,12 @@ export const AuthProvider = ({ children }) => {
 
   const navigateToLogin = useCallback(() => {
     const path = window.location.pathname + window.location.search;
-    window.location.href = `/Login?returnUrl=${encodeURIComponent(path)}`;
+    try {
+      window.sessionStorage.setItem('postLoginReturnUrl', path);
+    } catch {
+      // Ignore storage failures and continue to login.
+    }
+    window.location.href = '/Login';
   }, []);
 
   return (

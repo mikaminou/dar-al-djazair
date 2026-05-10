@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 export default function Login() {
   const [activeTab, setActiveTab] = useState('sign-in');
   const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -16,8 +17,7 @@ export default function Login() {
   const [error, setError] = useState('');
 
   const returnUrl = useMemo(() => {
-    const rawReturnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/';
-    // Only allow same-origin paths (reject any URL containing a scheme/host)
+    const rawReturnUrl = window.sessionStorage.getItem('postLoginReturnUrl') || '/';
     return /^\/[^/\\]/.test(rawReturnUrl) ? rawReturnUrl : '/';
   }, []);
 
@@ -33,7 +33,10 @@ export default function Login() {
 
     const { error: err } = await supabase.auth.signInWithPassword({ email, password });
     if (err) setError(err.message);
-    else window.location.href = returnUrl;
+    else {
+      window.sessionStorage.removeItem('postLoginReturnUrl');
+      window.location.href = returnUrl;
+    }
     setLoading(false);
   }
 
@@ -57,7 +60,7 @@ export default function Login() {
       password,
       options: {
         emailRedirectTo: window.location.origin + returnUrl,
-        data: { full_name: email.split('@')[0] },
+        data: { full_name: fullName.trim() || email.split('@')[0] },
       },
     });
 
@@ -68,6 +71,7 @@ export default function Login() {
     }
 
     if (data.session) {
+      window.sessionStorage.removeItem('postLoginReturnUrl');
       window.location.href = returnUrl;
       return;
     }
@@ -160,6 +164,17 @@ export default function Login() {
 
               <TabsContent value="sign-up">
                 <form onSubmit={handleSignUp} className="space-y-4 pt-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Nom complet</label>
+                    <Input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Votre nom"
+                      autoComplete="name"
+                      className="h-11"
+                    />
+                  </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">Email</label>
                     <div className="relative">
