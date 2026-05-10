@@ -117,7 +117,7 @@ describe('AuthProvider initial loading', () => {
     expect(result.current.user.is_verified).toBe(true);
   });
 
-  it('stays unauthenticated when profile row is not found', async () => {
+  it('uses auth user fallback when profile row is not found', async () => {
     mockGetSession.mockResolvedValue({
       data: { session: { user: { id: 'uid-norow', email: 'ghost@test.com' } } },
     });
@@ -126,8 +126,10 @@ describe('AuthProvider initial loading', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
     await act(async () => {});
 
-    expect(result.current.isAuthenticated).toBe(false);
-    expect(result.current.user).toBeNull();
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.user).not.toBeNull();
+    expect(result.current.user.email).toBe('ghost@test.com');
+    expect(result.current.user.role).toBe('individual');
     expect(result.current.isLoadingAuth).toBe(false);
   });
 });

@@ -2,7 +2,7 @@
  * Tests for the returnUrl validation logic used in Login.jsx.
  *
  * The logic is:
- *   const rawReturnUrl = new URLSearchParams(search).get('returnUrl') || '/';
+ *   const rawReturnUrl = window.sessionStorage.getItem('postLoginReturnUrl') || '/';
  *   const returnUrl = /^\/[^/\\]/.test(rawReturnUrl) ? rawReturnUrl : '/';
  *
  * This ensures only same-origin absolute paths are accepted.
