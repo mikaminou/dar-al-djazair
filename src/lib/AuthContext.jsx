@@ -3,26 +3,57 @@ import { supabase } from '@/lib/supabaseClient';
 
 const AuthContext = createContext();
 
-async function fetchProfile(authUser) {
-  if (!authUser) return null;
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', authUser.email)
-    .maybeSingle();
-  if (!profile) return null;
+function buildFallbackUser(authUser) {
+  const fullName =
+    authUser.user_metadata?.full_name ||
+    authUser.user_metadata?.name ||
+    authUser.email?.split('@')[0] ||
+    authUser.email ||
+    'Utilisateur';
+
   return {
-    ...profile,
     id: authUser.id,
     email: authUser.email,
-    full_name:
-      [profile.first_name, profile.last_name].filter(Boolean).join(' ') ||
-      profile.agency_name ||
-      authUser.email,
-    role: profile.account_type,
-    lang: profile.language_preference,
-    is_verified: profile.verification_status === 'verified',
+    full_name: fullName,
+    role: 'individual',
+    lang: 'fr',
+    is_verified: false,
+    account_type: 'individual',
+    first_name: authUser.user_metadata?.first_name,
+    last_name: authUser.user_metadata?.last_name,
+    verification_status: null,
   };
+}
+
+async function fetchProfile(authUser) {
+  if (!authUser) return null;
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', authUser.email)
+      .maybeSingle();
+
+    if (!profile) {
+      return buildFallbackUser(authUser);
+    }
+
+    return {
+      ...profile,
+      id: authUser.id,
+      email: authUser.email,
+      full_name:
+        [profile.first_name, profile.last_name].filter(Boolean).join(' ') ||
+        profile.agency_name ||
+        authUser.email,
+      role: profile.account_type,
+      lang: profile.language_preference,
+      is_verified: profile.verification_status === 'verified',
+    };
+  } catch (err) {
+    console.warn('[AuthContext] Failed to load profile, using auth user fallback.', err);
+    return buildFallbackUser(authUser);
+  }
 }
 
 export const AuthProvider = ({ children }) => {
@@ -36,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       if (session?.user) {
         const profile = await fetchProfile(session.user);
         setUser(profile);
-        setIsAuthenticated(!!profile);
+        setIsAuthenticated(!!session.user);
       }
       setIsLoadingAuth(false);
     });
@@ -47,7 +78,7 @@ export const AuthProvider = ({ children }) => {
         if (session?.user) {
           const profile = await fetchProfile(session.user);
           setUser(profile);
-          setIsAuthenticated(!!profile);
+          setIsAuthenticated(!!session.user);
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -97,4 +128,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

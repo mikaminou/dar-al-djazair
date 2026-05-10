@@ -14,7 +14,7 @@ ALTER TABLE profiles
 
 -- Add account_type if it doesn't exist yet (was 'role' in base44)
 ALTER TABLE profiles
-  ADD COLUMN IF NOT EXISTS account_type TEXT DEFAULT 'user';
+  ADD COLUMN IF NOT EXISTS account_type TEXT DEFAULT 'individual';
 
 -- Populate account_type from role column if it exists
 DO $$
@@ -49,10 +49,10 @@ BEGIN
     VALUES (
       NEW.id,
       _email,
-      _name,
-      'user',
-      'fr'
-    )
+        _name,
+        'individual',
+        'fr'
+      )
     ON CONFLICT (id) DO NOTHING;
   ELSE
     -- If profile exists (legacy base44 row), link it to the auth user id
