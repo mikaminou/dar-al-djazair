@@ -1,41 +1,55 @@
-import { base44 } from '@/api/base44Client';
+import { supabase } from '@/lib/supabaseClient';
 
-/**
- * Read a File/Blob as a base64 string (no data: prefix).
- */
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const str = reader.result || '';
-      const i = String(str).indexOf(',');
-      resolve(i >= 0 ? String(str).slice(i + 1) : String(str));
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
+// Buckets that require a signed URL (private)
+const PRIVATE_BUCKETS = new Set(['documents', 'receipts']);
+
+function extFromFile(file) {
+  const m = (file.name || '').match(/\.([a-zA-Z0-9]+)$/);
+  if (m) return m[1].toLowerCase();
+  const ct = file.type || '';
+  if (ct.includes('jpeg') || ct.includes('jpg')) return 'jpg';
+  if (ct.includes('png'))  return 'png';
+  if (ct.includes('webp')) return 'webp';
+  if (ct.includes('pdf'))  return 'pdf';
+  if (ct.includes('mp4'))  return 'mp4';
+  return 'bin';
 }
 
 /**
  * Upload a single File/Blob to a Supabase Storage bucket.
  *
+ * The path is always prefixed with the authenticated user's UUID so that
+ * the storage RLS policy (foldername[1] = auth.uid()) is satisfied.
+ *
  * @param {File|Blob}            file
- * @param {string}               bucket   one of: listing-photos | listing-videos |
- *                                        watermarked-photos | watermarked-videos |
- *                                        profile-avatars | documents | receipts
- * @param {{ prefix?: string }}  [opts]   optional folder inside the bucket
+ * @param {string}               bucket   e.g. 'listing-photos', 'profile-avatars'
+ * @param {{ prefix?: string }}  [opts]   optional sub-folder inside the bucket
  * @returns {Promise<{ url: string, path: string, bucket: string }>}
  */
-export async function uploadToSupabase(file, bucket, opts = {}) {
-  const data_base64 = await fileToBase64(file);
-  const res = await base44.functions.invoke('uploadToBucket', {
-    bucket,
-    filename: file.name || 'upload',
-    content_type: file.type || 'application/octet-stream',
-    data_base64,
-    prefix: opts.prefix,
-  });
-  const data = res?.data || res;
-  if (!data || data.error) throw new Error(data?.error || 'Upload failed');
-  return data;
+export async function uploadToSupabase(file, bucket = 'listing-photos', opts = {}) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Must be authenticated to upload files');
+
+  const ext = extFromFile(file);
+  const ts = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  const subFolder = opts.prefix ? `${opts.prefix}/` : '';
+  const storagePath = `${user.id}/${subFolder}${ts}_${rand}.${ext}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(storagePath, file, { contentType: file.type || 'application/octet-stream', upsert: false });
+
+  if (uploadError) throw uploadError;
+
+  if (PRIVATE_BUCKETS.has(bucket)) {
+    const { data, error } = await supabase.storage
+      .from(bucket)
+      .createSignedUrl(storagePath, 60 * 60 * 24 * 7); // 7 days
+    if (error) throw error;
+    return { url: data.signedUrl, path: storagePath, bucket };
+  }
+
+  const { data } = supabase.storage.from(bucket).getPublicUrl(storagePath);
+  return { url: data.publicUrl, path: storagePath, bucket };
 }

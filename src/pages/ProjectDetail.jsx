@@ -94,7 +94,8 @@ export default function ProjectDetail() {
     if (!contactForm.name || !contactForm.phone) return;
     setSendingContact(true);
     if (project?.contact_email) {
-      await base44.integrations.Core.SendEmail({
+      // Email notifications are sent server-side via the notifyWaitlist/sendEmail function
+      await base44.functions.invoke('sendEmail', {
         to: project.contact_email,
         from_name: "Dar El Djazair",
         subject: `Demande d'info — ${project.project_name}`,

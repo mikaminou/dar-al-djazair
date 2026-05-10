@@ -1,56 +1,89 @@
-import { createClient } from '@base44/sdk';
-import { appParams } from '@/lib/app-params';
-
-const { appId, token, functionsVersion, appBaseUrl } = appParams;
-
-// Create the underlying Base44 client
-const base44Raw = createClient({
-  appId,
-  token,
-  functionsVersion,
-  serverUrl: '',
-  requiresAuth: false,
-  appBaseUrl
-});
+import { supabase } from '@/lib/supabaseClient';
+import { uploadToSupabase } from '@/lib/uploadToSupabase';
 
 // ============================================================
-// Supabase-backed entity adapter
-// Routes entity calls to backend CRUD functions instead of
-// the native Base44 entity API. Each entity below has a
-// matching `<name>Crud` backend function that supports
-// list/get/create/update/delete operations.
+// Profile normalization: maps profiles table → base44 user shape
 // ============================================================
 
-const ENTITY_TO_FUNCTION = {
-  Listing: null, // handled by listingList/listingGet/listingCreate/listingUpdate/listingDelete
-  Favorite: 'favoriteCrud',
-  Message: 'messageCrud',
-  Lead: 'leadCrud',
-  AvailabilitySlot: 'availabilitySlotCrud',
-  Appointment: 'appointmentCrud',
-  AppointmentProposal: 'appointmentProposalCrud',
-  Notification: 'notificationCrud',
-  NotificationPreference: 'notificationPreferenceCrud',
-  PushSubscription: 'pushSubscriptionCrud',
-  TypingStatus: 'typingStatusCrud',
-  UserPresence: 'userPresenceCrud',
-  VerificationRequest: 'verificationRequestCrud',
-  Review: 'reviewCrud',
-  Tenant: 'tenantCrud',
-  TenantPayment: 'tenantPaymentCrud',
-  Waitlist: 'waitlistCrud',
-  Client: 'clientCrud',
-  ClientSearchProfile: 'clientSearchProfileCrud',
-  AgencyOffice: 'agencyOfficeCrud',
-  SavedSearch: 'savedSearchCrud',
-  Project: 'projectCrud',
-  ProjectLot: 'projectLotCrud',
-  ProjectLotType: 'projectLotTypeCrud',
-  UpgradeRequest: 'upgradeRequestCrud',
+function normalizeProfile(profile, authUser = null) {
+  if (!profile) return null;
+  const fullName =
+    [profile.first_name, profile.last_name].filter(Boolean).join(' ') ||
+    profile.agency_name ||
+    profile.email ||
+    '';
+  return {
+    ...profile,
+    // Supabase auth UID takes precedence when available
+    id: authUser?.id || profile.id,
+    email: profile.email,
+    full_name: fullName,
+    // Compatibility aliases so existing code keeps working unchanged
+    role: profile.account_type,
+    lang: profile.language_preference,
+    is_verified: profile.verification_status === 'verified',
+  };
+}
+
+function denormalizeProfile(data) {
+  if (!data || typeof data !== 'object') return data;
+  const out = { ...data };
+  // Map compatibility aliases → actual column names
+  if ('role' in out) { out.account_type = out.role; delete out.role; }
+  if ('lang' in out) { out.language_preference = out.lang; delete out.lang; }
+  // Remove computed/read-only fields that cannot be persisted
+  delete out.full_name;
+  delete out.is_verified;
+  return out;
+}
+
+// ============================================================
+// auth — replaces base44.auth.*
+// ============================================================
+
+const auth = {
+  async me() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) return null;
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', user.email)
+      .maybeSingle();
+    return normalizeProfile(profile, user);
+  },
+
+  async logout(redirectUrl) {
+    await supabase.auth.signOut();
+    window.location.href = redirectUrl || '/Login';
+  },
+
+  redirectToLogin(returnUrl) {
+    const url = returnUrl
+      ? `/Login?returnUrl=${encodeURIComponent(returnUrl)}`
+      : '/Login';
+    window.location.href = url;
+  },
+
+  async updateMe(data) {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) throw new Error('Not authenticated');
+    const mapped = denormalizeProfile(data);
+    const { data: profile, error: upErr } = await supabase
+      .from('profiles')
+      .update(mapped)
+      .eq('email', user.email)
+      .select()
+      .maybeSingle();
+    if (upErr) throw upErr;
+    return normalizeProfile(profile, user);
+  },
 };
 
-// Map Base44 field names → Supabase column names for sort/query params.
-// Base44 uses created_date / updated_date; Supabase tables use created_at / updated_at.
+// ============================================================
+// Field mapping helpers (base44 field names → Supabase columns)
+// ============================================================
+
 const FIELD_MAP = {
   created_date: 'created_at',
   updated_date: 'updated_at',
@@ -67,115 +100,211 @@ function mapQuery(query) {
   if (!query || typeof query !== 'object') return query;
   const out = {};
   for (const [k, v] of Object.entries(query)) {
-    const mappedKey = FIELD_MAP[k] || k;
-    out[mappedKey] = v;
+    out[FIELD_MAP[k] || k] = v;
   }
   return out;
 }
 
-async function invokeCrud(funcName, payload) {
-  const mappedPayload = { ...payload };
-  if (mappedPayload.sort) mappedPayload.sort = mapSort(mappedPayload.sort);
-  if (mappedPayload.query) mappedPayload.query = mapQuery(mappedPayload.query);
-  const res = await base44Raw.functions.invoke(funcName, mappedPayload);
-  // Axios-style response: data is in res.data
-  return res?.data;
+// ============================================================
+// Generic entity CRUD via a single Supabase edge function
+// ============================================================
+
+async function invokeCrud(entityName, payload) {
+  const body = { entity: entityName, ...payload };
+  if (body.sort) body.sort = mapSort(body.sort);
+  if (body.query) body.query = mapQuery(body.query);
+  const { data, error } = await supabase.functions.invoke('entityCrud', { body });
+  if (error) throw error;
+  return data;
 }
 
-function makeEntityProxy(funcName) {
+function makeEntityProxy(entityName) {
   return {
     async list(sort, limit) {
-      return invokeCrud(funcName, { operation: 'list', sort, limit });
+      return invokeCrud(entityName, { operation: 'list', sort, limit });
     },
     async filter(query, sort, limit) {
-      return invokeCrud(funcName, { operation: 'list', query, sort, limit });
+      return invokeCrud(entityName, { operation: 'list', query, sort, limit });
     },
     async get(id) {
-      return invokeCrud(funcName, { operation: 'get', id });
+      return invokeCrud(entityName, { operation: 'get', id });
     },
     async create(data) {
-      return invokeCrud(funcName, { operation: 'create', data });
+      return invokeCrud(entityName, { operation: 'create', data });
     },
     async bulkCreate(items) {
       const results = [];
       for (const item of items || []) {
-        results.push(await invokeCrud(funcName, { operation: 'create', data: item }));
+        results.push(await invokeCrud(entityName, { operation: 'create', data: item }));
       }
       return results;
     },
     async update(id, data) {
-      return invokeCrud(funcName, { operation: 'update', id, data });
+      return invokeCrud(entityName, { operation: 'update', id, data });
     },
     async delete(id) {
-      return invokeCrud(funcName, { operation: 'delete', id });
+      return invokeCrud(entityName, { operation: 'delete', id });
     },
-    schema() {
-      // Schema is consumed by JsonSchemaForm in some pages — return empty obj
-      // since backend functions enforce field whitelisting.
-      return {};
-    },
-    subscribe() {
-      // Realtime subscriptions not supported by CRUD adapter — noop unsubscribe
-      return () => {};
-    },
+    schema() { return {}; },
+    subscribe() { return () => {}; },
   };
 }
 
-// Listing has dedicated functions (listingList/Get/Create/Update/Delete)
+// ============================================================
+// Listing entity — dedicated functions (complex type-table logic)
+// ============================================================
+
 const listingProxy = {
   async list(sort, limit) {
-    const res = await base44Raw.functions.invoke('listingList', { sort: mapSort(sort), limit });
-    return res?.data;
+    const { data, error } = await supabase.functions.invoke('listingList', {
+      body: { sort: mapSort(sort), limit },
+    });
+    if (error) throw error;
+    return data;
   },
   async filter(query, sort, limit) {
-    const res = await base44Raw.functions.invoke('listingList', { query: mapQuery(query), sort: mapSort(sort), limit });
-    return res?.data;
+    const { data, error } = await supabase.functions.invoke('listingList', {
+      body: { query: mapQuery(query), sort: mapSort(sort), limit },
+    });
+    if (error) throw error;
+    return data;
   },
   async get(id) {
-    const res = await base44Raw.functions.invoke('listingGet', { id });
-    return res?.data;
+    const { data, error } = await supabase.functions.invoke('listingGet', { body: { id } });
+    if (error) throw error;
+    return data;
   },
-  async create(data) {
-    const res = await base44Raw.functions.invoke('listingCreate', { data });
-    return res?.data;
+  async create(d) {
+    const { data, error } = await supabase.functions.invoke('listingCreate', { body: { data: d } });
+    if (error) throw error;
+    return data;
   },
   async bulkCreate(items) {
     const results = [];
     for (const item of items || []) {
-      const res = await base44Raw.functions.invoke('listingCreate', { data: item });
-      results.push(res?.data);
+      const { data, error } = await supabase.functions.invoke('listingCreate', { body: { data: item } });
+      if (error) throw error;
+      results.push(data);
     }
     return results;
   },
-  async update(id, data) {
-    const res = await base44Raw.functions.invoke('listingUpdate', { id, data });
-    return res?.data;
+  async update(id, d) {
+    const { data, error } = await supabase.functions.invoke('listingUpdate', { body: { id, data: d } });
+    if (error) throw error;
+    return data;
   },
   async delete(id) {
-    const res = await base44Raw.functions.invoke('listingDelete', { id });
-    return res?.data;
+    const { data, error } = await supabase.functions.invoke('listingDelete', { body: { id } });
+    if (error) throw error;
+    return data;
   },
   schema() { return {}; },
   subscribe() { return () => {}; },
 };
 
-// Build entity overrides
-const entityOverrides = { Listing: listingProxy };
-for (const [entity, funcName] of Object.entries(ENTITY_TO_FUNCTION)) {
-  if (funcName) entityOverrides[entity] = makeEntityProxy(funcName);
+// ============================================================
+// User entity — backed by the profiles table
+// ============================================================
+
+const userProxy = {
+  async filter(query, sort, limit) {
+    let q = supabase.from('profiles').select('*');
+    if (query) {
+      for (const [k, v] of Object.entries(query)) {
+        // Map base44 field aliases to actual column names
+        const col = k === 'role' ? 'account_type' : k;
+        q = q.eq(col, v);
+      }
+    }
+    if (sort) {
+      const desc = sort.startsWith('-');
+      const rawField = desc ? sort.slice(1) : sort;
+      const col =
+        rawField === 'created_date' ? 'created_at' :
+        rawField === 'updated_date' ? 'updated_at' : rawField;
+      q = q.order(col, { ascending: !desc });
+    }
+    if (limit) q = q.limit(limit);
+    const { data } = await q;
+    return (data || []).map(p => normalizeProfile(p));
+  },
+
+  async get(id) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+    return data ? normalizeProfile(data) : null;
+  },
+
+  // id can be a UUID or an email address (base44 allowed both)
+  async update(idOrEmail, data) {
+    const mapped = denormalizeProfile(data);
+    const isEmail = typeof idOrEmail === 'string' && idOrEmail.includes('@');
+    const col = isEmail ? 'email' : 'id';
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .update(mapped)
+      .eq(col, idOrEmail)
+      .select()
+      .maybeSingle();
+    if (error) throw error;
+    return profile ? normalizeProfile(profile) : null;
+  },
+};
+
+// ============================================================
+// Entities namespace
+// ============================================================
+
+const ENTITY_NAMES = [
+  'Favorite', 'Message', 'Lead', 'AvailabilitySlot', 'Appointment',
+  'AppointmentProposal', 'Notification', 'NotificationPreference',
+  'PushSubscription', 'TypingStatus', 'UserPresence', 'VerificationRequest',
+  'Review', 'Tenant', 'TenantPayment', 'Waitlist', 'Client',
+  'ClientSearchProfile', 'AgencyOffice', 'SavedSearch',
+  'Project', 'ProjectLot', 'ProjectLotType', 'UpgradeRequest',
+];
+
+const entities = { Listing: listingProxy, User: userProxy };
+for (const name of ENTITY_NAMES) {
+  entities[name] = makeEntityProxy(name);
 }
 
-// Wrap the entities namespace: use override if present, fallback to native (User, etc.)
-const entitiesProxy = new Proxy(base44Raw.entities, {
-  get(target, prop) {
-    if (entityOverrides[prop]) return entityOverrides[prop];
-    return target[prop];
-  },
-});
+// ============================================================
+// functions — replaces base44.functions.invoke()
+// ============================================================
 
-export const base44 = new Proxy(base44Raw, {
-  get(target, prop) {
-    if (prop === 'entities') return entitiesProxy;
-    return target[prop];
+const functions = {
+  async invoke(name, payload) {
+    const { data, error } = await supabase.functions.invoke(name, { body: payload });
+    if (error) throw error;
+    return { data };
   },
-});
+};
+
+// ============================================================
+// integrations — compatibility shim for UploadFile / SendEmail
+// ============================================================
+
+const integrations = {
+  Core: {
+    async UploadFile({ file, bucket = 'listing-photos' }) {
+      const result = await uploadToSupabase(file, bucket);
+      return { file_url: result.url };
+    },
+    async SendEmail(params) {
+      // Best-effort: invoke the sendEmail edge function if available
+      try {
+        const { data } = await supabase.functions.invoke('sendEmail', { body: params });
+        return data;
+      } catch {
+        console.warn('[base44 compat] sendEmail function not available');
+        return null;
+      }
+    },
+  },
+};
+
+// ============================================================
+// Export — same shape as the old base44 client
+// ============================================================
+
+export const base44 = { auth, entities, functions, integrations };
