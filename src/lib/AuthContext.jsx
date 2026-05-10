@@ -7,7 +7,7 @@ function buildFallbackUser(authUser) {
   const fullName =
     authUser.user_metadata?.full_name ||
     authUser.user_metadata?.name ||
-    authUser.email?.split('@')[0] ||
+    authUser.email?.split('@')[0]?.trim() ||
     authUser.email ||
     'Utilisateur';
 
