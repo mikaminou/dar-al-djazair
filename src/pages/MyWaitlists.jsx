@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Clock, MapPin, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,16 @@ export default function MyWaitlists() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
     setUser(me);
-    const data = await base44.entities.Waitlist.filter({ user_email: me.email }, "-joined_at", 200).catch(() => []);
+    const data = await api.entities.Waitlist.filter({ user_email: me.email }, "-joined_at", 200).catch(() => []);
     setEntries(data);
     // Fetch listing statuses
     const ids = [...new Set(data.map(e => e.listing_id))];
     const map = {};
     await Promise.all(ids.map(async id => {
-      const ls = await base44.entities.Listing.filter({ id }, null, 1).catch(() => []);
+      const ls = await api.entities.Listing.filter({ id }, null, 1).catch(() => []);
       if (ls[0]) map[id] = ls[0];
     }));
     setListingMap(map);
@@ -34,7 +34,7 @@ export default function MyWaitlists() {
   }
 
   async function withdraw(entry) {
-    await base44.entities.Waitlist.update(entry.id, { status: "withdrawn" });
+    await api.entities.Waitlist.update(entry.id, { status: "withdrawn" });
     setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: "withdrawn" } : e));
   }
 

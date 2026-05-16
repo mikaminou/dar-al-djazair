@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { Upload, X, CheckCircle, ChevronRight, MapPin, User, Phone, Mail, AlertTriangle, AlertCircle, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -91,14 +91,14 @@ export default function PostListingPage() {
   const [form, setForm] = useState(initialForm);
 
   useEffect(() => {
-    base44.auth.me().then(me => {
-      if (!me) { base44.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
+    api.auth.me().then(me => {
+      if (!me) { api.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
       setCurrentUser(me);
       const params = new URLSearchParams(window.location.search);
       const editId = params.get("edit");
       if (editId) {
         setEditingId(editId);
-        base44.entities.Listing.filter({ id: editId }, "-created_date", 1).then(listings => {
+        api.entities.Listing.filter({ id: editId }, "-created_date", 1).then(listings => {
           const listing = listings[0];
           if (!listing) { setAuthChecked(true); return; }
           if (listing.created_by !== me.email) { window.location.href = createPageUrl("MyListings"); return; }
@@ -156,7 +156,7 @@ export default function PostListingPage() {
         }));
         setAuthChecked(true);
       }
-    }).catch(() => base44.auth.redirectToLogin(window.location.href));
+    }).catch(() => api.auth.redirectToLogin(window.location.href));
   }, []);
 
   if (!authChecked) return (
@@ -306,17 +306,17 @@ export default function PostListingPage() {
       features: [], // legacy field — amenities are columns now
     };
     if (editingId) {
-      const existing = await base44.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);
+      const existing = await api.entities.Listing.filter({ id: editingId }, null, 1).catch(() => []);
       if (existing[0]?.status === "changes_requested" || existing[0]?.status === "declined") {
         payload.status     = "pending";
         payload.admin_note = null;
       }
-      await base44.entities.Listing.update(editingId, payload);
+      await api.entities.Listing.update(editingId, payload);
     } else {
-      const created = await base44.entities.Listing.create({ ...payload, status: "pending" });
+      const created = await api.entities.Listing.create({ ...payload, status: "pending" });
       // Fire exclusivity conflict check in background
       if (created?.id) {
-        base44.functions.invoke("checkExclusivityConflict", { listing_id: created.id }).catch(() => {});
+        api.functions.invoke("checkExclusivityConflict", { listing_id: created.id }).catch(() => {});
       }
     }
     setSaving(false);

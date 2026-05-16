@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Plus, Eye, MapPin, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,10 +39,10 @@ export default function MyProjectsPage() {
 
   async function load() {
     setLoading(true);
-    const user = await base44.auth.me().catch(() => null);
+    const user = await api.auth.me().catch(() => null);
     if (!user) { setLoading(false); return; }
     setCurrentUser(user);
-    const data = await base44.entities.Project.filter({ published_by: user.email }, "-created_date", 100).catch(() => []);
+    const data = await api.entities.Project.filter({ published_by: user.email }, "-created_date", 100).catch(() => []);
     setProjects(data);
     setLoading(false);
   }

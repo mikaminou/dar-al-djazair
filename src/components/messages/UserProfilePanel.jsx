@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Mail, CalendarDays, User } from "lucide-react";
 
@@ -8,7 +8,7 @@ export default function UserProfilePanel({ open, onClose, email, lang }) {
 
   useEffect(() => {
     if (!open || !email) { setProfile(null); return; }
-    base44.entities.User.filter({ email }).then(r => setProfile(r[0] || null)).catch(() => {});
+    api.entities.User.filter({ email }).then(r => setProfile(r[0] || null)).catch(() => {});
   }, [open, email]);
 
   const initials = profile?.full_name

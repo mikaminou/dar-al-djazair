@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { Users, Plus, ChevronRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,24 +21,24 @@ export default function TenantManagementPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) {
       setLoading(false);
       return;
     }
     setCurrentUser(me);
 
-    const data = await base44.entities.Tenant.filter({ landlord_email: me.email }, "-created_date");
+    const data = await api.entities.Tenant.filter({ landlord_email: me.email }, "-created_date");
     setTenants(data);
     setLoading(false);
   }
 
   async function handleSave(tenantData) {
     if (editingTenant) {
-      await base44.entities.Tenant.update(editingTenant.id, tenantData);
+      await api.entities.Tenant.update(editingTenant.id, tenantData);
       setTenants(prev => prev.map(t => t.id === editingTenant.id ? { ...t, ...tenantData } : t));
     } else {
-      const created = await base44.entities.Tenant.create({ ...tenantData, landlord_email: currentUser.email });
+      const created = await api.entities.Tenant.create({ ...tenantData, landlord_email: currentUser.email });
       setTenants(prev => [created, ...prev]);
     }
     setShowForm(false);
@@ -47,7 +47,7 @@ export default function TenantManagementPage() {
 
   async function handleDelete(tenantId) {
     if (confirm(lang === "ar" ? "هل أنت متأكد من حذف هذا المستأجر؟" : lang === "fr" ? "Êtes-vous sûr?" : "Are you sure?")) {
-      await base44.entities.Tenant.delete(tenantId);
+      await api.entities.Tenant.delete(tenantId);
       setTenants(prev => prev.filter(t => t.id !== tenantId));
     }
   }
@@ -55,7 +55,7 @@ export default function TenantManagementPage() {
   if (!currentUser && !loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Button onClick={() => base44.auth.redirectToLogin()}>
+        <Button onClick={() => api.auth.redirectToLogin()}>
           {lang === "ar" ? "تسجيل الدخول" : lang === "fr" ? "Se connecter" : "Sign In"}
         </Button>
       </div>

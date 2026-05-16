@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { uploadToSupabase } from '@/lib/uploadToSupabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,9 +86,9 @@ export default function OnboardingModal({ user, lang, onComplete }) {
       // Update role via service role function (platform restricts role changes via updateMe)
       // If it fails (e.g. app owner), we still proceed with profile update
       try {
-        await base44.functions.invoke('updateMyRole', { role: accountType });
+        await api.functions.invoke('updateMyRole', { role: accountType });
       } catch (_) {}
-      await base44.auth.updateMe(updates);
+      await api.auth.updateMe(updates);
       onComplete({ ...user, ...updates, role: accountType });
     } finally {
       setSaving(false);

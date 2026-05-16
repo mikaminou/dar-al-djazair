@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import {
   SlidersHorizontal, LayoutGrid, List, ArrowUpDown,
   BookmarkPlus, Check, BookmarkCheck, RefreshCw, MapPin,
@@ -126,9 +126,9 @@ export default function ListingsPage() {
   useEffect(() => { loadSavedSearches(); }, []);
 
   async function loadSavedSearches() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) return;
-    const data = await base44.entities.SavedSearch.filter({ created_by: me.email }, "-created_date", 50).catch(() => []);
+    const data = await api.entities.SavedSearch.filter({ created_by: me.email }, "-created_date", 50).catch(() => []);
     setSavedSearches(data);
   }
 
@@ -139,12 +139,12 @@ export default function ListingsPage() {
     if (filters.property_type) query.property_type = filters.property_type;
     if (filters.wilaya)        query.wilaya        = filters.wilaya;
 
-    let data = await base44.entities.Listing.filter(query, sortBy, 100).catch(() => []);
+    let data = await api.entities.Listing.filter(query, sortBy, 100).catch(() => []);
     data = applyDynamicFilters(data, filters);
 
     // Agency office wilaya filter
     if (filters.agency_office_wilaya) {
-      const agencyUsers = await base44.entities.User.filter({ role: "professional" }, null, 500).catch(() => []);
+      const agencyUsers = await api.entities.User.filter({ role: "professional" }, null, 500).catch(() => []);
       const matchingEmails = new Set(
         agencyUsers
           .filter(u => Array.isArray(u.agency_offices) && u.agency_offices.some(o => o.wilaya === filters.agency_office_wilaya))
@@ -155,9 +155,9 @@ export default function ListingsPage() {
 
     setListings(data);
 
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     const favs = me
-      ? await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+      ? await api.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
       : [];
     setFavorites(favs.map(f => f.listing_id));
     setLoading(false);
@@ -172,16 +172,16 @@ export default function ListingsPage() {
   }, []);
 
   async function toggleFavorite(listing) {
-    const me = await base44.auth.me().catch(() => null);
-    if (!me) { base44.auth.redirectToLogin(window.location.href); return; }
+    const me = await api.auth.me().catch(() => null);
+    if (!me) { api.auth.redirectToLogin(window.location.href); return; }
     const isFav = favorites.includes(listing.id);
     if (isFav) {
       setFavorites(prev => prev.filter(id => id !== listing.id));
-      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me.email });
-      if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
+      const favs = await api.entities.Favorite.filter({ listing_id: listing.id, user_email: me.email });
+      if (favs.length > 0) await api.entities.Favorite.delete(favs[0].id);
     } else {
       setFavorites(prev => [...prev, listing.id]);
-      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me.email });
+      await api.entities.Favorite.create({ listing_id: listing.id, user_email: me.email });
     }
   }
 
@@ -210,10 +210,10 @@ export default function ListingsPage() {
   }
 
   async function confirmSaveSearch() {
-    const me = await base44.auth.me().catch(() => null);
-    if (!me) { setSaveDialogOpen(false); base44.auth.redirectToLogin(window.location.href); return; }
+    const me = await api.auth.me().catch(() => null);
+    if (!me) { setSaveDialogOpen(false); api.auth.redirectToLogin(window.location.href); return; }
     const name = generateSearchName(filters, financialState);
-    const newSearch = await base44.entities.SavedSearch.create({
+    const newSearch = await api.entities.SavedSearch.create({
       name,
       filters,
       alert_enabled: true,
@@ -224,7 +224,7 @@ export default function ListingsPage() {
     setSaved(true);
 
     // Generate leads
-    const candidates = await base44.entities.Listing.filter({ status: "active", ...(filters.listing_type ? { listing_type: filters.listing_type } : {}), ...(filters.property_type ? { property_type: filters.property_type } : {}), ...(filters.wilaya ? { wilaya: filters.wilaya } : {}) }, "-created_date", 100).catch(() => []);
+    const candidates = await api.entities.Listing.filter({ status: "active", ...(filters.listing_type ? { listing_type: filters.listing_type } : {}), ...(filters.property_type ? { property_type: filters.property_type } : {}), ...(filters.wilaya ? { wilaya: filters.wilaya } : {}) }, "-created_date", 100).catch(() => []);
     const matched = applyDynamicFilters(candidates, filters);
     const seenAgents = new Set();
     for (const listing of matched) {
@@ -232,7 +232,7 @@ export default function ListingsPage() {
       const key = `${listing.created_by}:${listing.id}`;
       if (seenAgents.has(key)) continue;
       seenAgents.add(key);
-      base44.entities.Lead.create({ listing_id: listing.id, listing_title: listing.title, listing_wilaya: listing.wilaya, agent_email: listing.created_by, seeker_email: me.email, search_name: name, search_filters: filters, status: "new" }).catch(() => {});
+      api.entities.Lead.create({ listing_id: listing.id, listing_title: listing.title, listing_wilaya: listing.wilaya, agent_email: listing.created_by, seeker_email: me.email, search_name: name, search_filters: filters, status: "new" }).catch(() => {});
     }
 
     setTimeout(() => { setSaveDialogOpen(false); setSaved(false); setFinancialState(""); }, 1200);
@@ -318,8 +318,8 @@ export default function ListingsPage() {
                 variant="outline"
                 size="sm"
                 onClick={async () => {
-                  const me = await base44.auth.me().catch(() => null);
-                  if (!me) { base44.auth.redirectToLogin(window.location.href); return; }
+                  const me = await api.auth.me().catch(() => null);
+                  if (!me) { api.auth.redirectToLogin(window.location.href); return; }
                   setSaveDialogOpen(true);
                 }}
                 className="gap-2 text-xs"
@@ -379,8 +379,8 @@ export default function ListingsPage() {
             filters={filters}
             lang={lang}
             onSaveSearch={async () => {
-              const me = await base44.auth.me().catch(() => null);
-              if (!me) { base44.auth.redirectToLogin(window.location.href); return; }
+              const me = await api.auth.me().catch(() => null);
+              if (!me) { api.auth.redirectToLogin(window.location.href); return; }
               setSaveDialogOpen(true);
             }}
           />

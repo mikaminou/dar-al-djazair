@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 
 export default function PushAlertManager() {
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function PushAlertManager() {
         }
         
         // Only call auth.me() once PushAlert is loaded
-        const user = await base44.auth.me();
+        const user = await api.auth.me();
         if (!user) return;
 
         // Subscribe user to PushAlert

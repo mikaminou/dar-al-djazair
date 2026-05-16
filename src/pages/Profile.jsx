@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { useLang } from "../components/LanguageContext";
@@ -51,7 +51,7 @@ export default function ProfilePage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     setCurrentUser(me);
 
     const targetEmail = profileEmail || me?.email;
@@ -59,7 +59,7 @@ export default function ProfilePage() {
 
     let userInfo = null;
     if (profileEmail) {
-      const users = await base44.entities.User.filter({ email: profileEmail }).catch(() => []);
+      const users = await api.entities.User.filter({ email: profileEmail }).catch(() => []);
       userInfo = users[0] || { email: profileEmail };
     } else {
       userInfo = me;
@@ -83,11 +83,11 @@ export default function ProfilePage() {
       avatar_url: userInfo?.avatar_url || "",
     });
 
-    const data = await base44.entities.Listing.filter({ created_by: targetEmail, status: "active" }, "-created_date", 20);
+    const data = await api.entities.Listing.filter({ created_by: targetEmail, status: "active" }, "-created_date", 20);
     setListings(data);
 
     if (me) {
-      const favs = await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => []);
+      const favs = await api.entities.Favorite.filter({ user_email: me.email }).catch(() => []);
       setFavorites(favs.map(f => f.listing_id));
     }
 
@@ -113,7 +113,7 @@ export default function ProfilePage() {
       // For professionals, also set wilaya to the first selected for backward compat
       dataToSave.wilaya = form.wilayas[0] || "";
     }
-    await base44.auth.updateMe(dataToSave);
+    await api.auth.updateMe(dataToSave);
     setProfileUser(prev => ({ ...prev, ...dataToSave }));
     setAvatarPreview('');
     setEditing(false);
@@ -122,21 +122,21 @@ export default function ProfilePage() {
 
   async function deleteAccount() {
     setDeletingAccount(true);
-    const userListings = await base44.entities.Listing.filter({ created_by: currentUser.email }, "", 1000);
+    const userListings = await api.entities.Listing.filter({ created_by: currentUser.email }, "", 1000);
     for (const listing of userListings) {
-      await base44.entities.Listing.delete(listing.id);
+      await api.entities.Listing.delete(listing.id);
     }
-    base44.auth.logout("/");
+    api.auth.logout("/");
   }
 
   async function toggleFavorite(listing) {
     const isFav = favorites.includes(listing.id);
     if (isFav) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: currentUser?.email });
-      if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
+      const favs = await api.entities.Favorite.filter({ listing_id: listing.id, user_email: currentUser?.email });
+      if (favs.length > 0) await api.entities.Favorite.delete(favs[0].id);
       setFavorites(prev => prev.filter(id => id !== listing.id));
     } else {
-      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: currentUser?.email });
+      await api.entities.Favorite.create({ listing_id: listing.id, user_email: currentUser?.email });
       setFavorites(prev => [...prev, listing.id]);
     }
   }

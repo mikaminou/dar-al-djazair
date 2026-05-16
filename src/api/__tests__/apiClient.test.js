@@ -1,11 +1,11 @@
 /**
- * Tests for the pure utility functions in base44Client.js.
+ * Tests for the pure utility functions in apiClient.js.
  *
  * All Supabase I/O is mocked via vi.mock so no real network call is made.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ─── Mock supabaseClient BEFORE importing base44Client ───────────────────────
+// ─── Mock supabaseClient BEFORE importing apiClient ───────────────────────────
 
 // We build a minimal mock that lets us override behaviour per-test.
 const mockGetUser = vi.fn();
@@ -53,7 +53,7 @@ vi.mock('@/lib/uploadToSupabase', () => ({
 }));
 
 // Now import the module under test
-const { base44 } = await import('@/api/base44Client.js');
+const { api } = await import('@/api/apiClient.js');
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -66,7 +66,7 @@ beforeEach(() => {
 describe('normalizeProfile via auth.me', () => {
   it('returns null when not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-    const result = await base44.auth.me();
+    const result = await api.auth.me();
     expect(result).toBeNull();
   });
 
@@ -78,7 +78,7 @@ describe('normalizeProfile via auth.me', () => {
     const q = buildQuery({ maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }) });
     mockFrom.mockReturnValue(q);
 
-    const result = await base44.auth.me();
+    const result = await api.auth.me();
     expect(result).toBeNull();
   });
 
@@ -95,7 +95,7 @@ describe('normalizeProfile via auth.me', () => {
     });
     mockFrom.mockReturnValue(q);
 
-    const result = await base44.auth.me();
+    const result = await api.auth.me();
     expect(result.id).toBe('auth-uid');         // auth uid wins
     expect(result.email).toBe('me@test.com');
     expect(result.full_name).toBe('Alice Bob');
@@ -117,7 +117,7 @@ describe('normalizeProfile via auth.me', () => {
     });
     mockFrom.mockReturnValue(q);
 
-    const result = await base44.auth.me();
+    const result = await api.auth.me();
     expect(result.full_name).toBe('Immo DZ');
     expect(result.is_verified).toBe(false);
   });
@@ -139,7 +139,7 @@ describe('denormalizeProfile via auth.updateMe', () => {
     });
     mockFrom.mockReturnValue(q);
 
-    await base44.auth.updateMe({ role: 'admin', lang: 'en', full_name: 'ignored', is_verified: true });
+    await api.auth.updateMe({ role: 'admin', lang: 'en', full_name: 'ignored', is_verified: true });
 
     // updateMe calls supabase.from('profiles').update(mapped).eq(...)
     expect(q.update).toHaveBeenCalled();
@@ -155,7 +155,7 @@ describe('denormalizeProfile via auth.updateMe', () => {
 
   it('throws when not authenticated', async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-    await expect(base44.auth.updateMe({ first_name: 'X' })).rejects.toThrow('Not authenticated');
+    await expect(api.auth.updateMe({ first_name: 'X' })).rejects.toThrow('Not authenticated');
   });
 });
 
@@ -164,14 +164,14 @@ describe('denormalizeProfile via auth.updateMe', () => {
 describe('field mapping for sort and query', () => {
   it('maps created_date → created_at in sort', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: [], error: null });
-    await base44.entities.Listing.list('-created_date', 10);
+    await api.entities.Listing.list('-created_date', 10);
     const [, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(body.sort).toBe('-created_at');
   });
 
   it('maps updated_date → updated_at in query', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: [], error: null });
-    await base44.entities.Listing.filter({ updated_date: '2025-01-01' }, null, 5);
+    await api.entities.Listing.filter({ updated_date: '2025-01-01' }, null, 5);
     const [, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(body.query.updated_at).toBe('2025-01-01');
     expect(body.query.updated_date).toBeUndefined();
@@ -197,7 +197,7 @@ describe('userProxy.filter', () => {
     });
     mockFrom.mockReturnValue(resolveQ);
 
-    const results = await base44.entities.User.filter({ role: 'agent' });
+    const results = await api.entities.User.filter({ role: 'agent' });
     // The eq() should have been called with 'account_type' (not 'role')
     expect(resolveQ.eq).toHaveBeenCalledWith('account_type', 'agent');
     expect(results[0].role).toBe('agent');
@@ -209,7 +209,7 @@ describe('userProxy.filter', () => {
       then(res, rej) { return Promise.resolve({ data: [], error: null }).then(res, rej); },
     });
     mockFrom.mockReturnValue(resolveQ);
-    const results = await base44.entities.User.filter(null);
+    const results = await api.entities.User.filter(null);
     expect(results).toEqual([]);
   });
 });
@@ -224,7 +224,7 @@ describe('userProxy.update', () => {
     });
     mockFrom.mockReturnValue(q);
 
-    await base44.entities.User.update('user@x.com', { first_name: 'Z' });
+    await api.entities.User.update('user@x.com', { first_name: 'Z' });
     // Chain is: .from().update().eq().select().maybeSingle()
     // After the fix, eq is called before select/maybeSingle
     expect(q.update).toHaveBeenCalled();
@@ -241,7 +241,7 @@ describe('userProxy.update', () => {
     });
     mockFrom.mockReturnValue(q);
 
-    await base44.entities.User.update('uuid-123', { first_name: 'Z' });
+    await api.entities.User.update('uuid-123', { first_name: 'Z' });
     expect(q.eq).toHaveBeenCalledWith('id', 'uuid-123');
   });
 });
@@ -251,7 +251,7 @@ describe('userProxy.update', () => {
 describe('makeEntityProxy (entityCrud)', () => {
   it('calls entityCrud with entity name and operation', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: [{ id: 'f1' }], error: null });
-    const result = await base44.entities.Favorite.list(null, 10);
+    const result = await api.entities.Favorite.list(null, 10);
     expect(mockFunctionsInvoke).toHaveBeenCalledWith('entityCrud', {
       body: { entity: 'Favorite', operation: 'list', sort: null, limit: 10 },
     });
@@ -260,7 +260,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 
   it('passes query and sort to filter', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: [], error: null });
-    await base44.entities.Notification.filter({ user_email: 'a@b.com' }, '-created_at', 5);
+    await api.entities.Notification.filter({ user_email: 'a@b.com' }, '-created_at', 5);
     const [fnName, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(fnName).toBe('entityCrud');
     expect(body.operation).toBe('list');
@@ -271,7 +271,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 
   it('creates an entity', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'new-1' }, error: null });
-    const result = await base44.entities.Review.create({ rating: 5 });
+    const result = await api.entities.Review.create({ rating: 5 });
     expect(mockFunctionsInvoke).toHaveBeenCalledWith('entityCrud', {
       body: { entity: 'Review', operation: 'create', data: { rating: 5 } },
     });
@@ -280,7 +280,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 
   it('updates an entity', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'e1', is_read: true }, error: null });
-    await base44.entities.Notification.update('e1', { is_read: true });
+    await api.entities.Notification.update('e1', { is_read: true });
     const [, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(body.operation).toBe('update');
     expect(body.id).toBe('e1');
@@ -289,7 +289,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 
   it('deletes an entity', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { success: true }, error: null });
-    await base44.entities.Favorite.delete('f-99');
+    await api.entities.Favorite.delete('f-99');
     const [, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(body.operation).toBe('delete');
     expect(body.id).toBe('f-99');
@@ -297,7 +297,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 
   it('throws when the function returns an error', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: null, error: new Error('DB error') });
-    await expect(base44.entities.Message.create({ content: 'hi' })).rejects.toThrow('DB error');
+    await expect(api.entities.Message.create({ content: 'hi' })).rejects.toThrow('DB error');
   });
 });
 
@@ -306,7 +306,7 @@ describe('makeEntityProxy (entityCrud)', () => {
 describe('listingProxy', () => {
   it('calls listingList with mapped sort and query', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: [{ id: 'L1' }], error: null });
-    const result = await base44.entities.Listing.filter({ status: 'active' }, '-updated_date', 20);
+    const result = await api.entities.Listing.filter({ status: 'active' }, '-updated_date', 20);
     const [name, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(name).toBe('listingList');
     expect(body.sort).toBe('-updated_at');
@@ -316,7 +316,7 @@ describe('listingProxy', () => {
 
   it('calls listingGet with id', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'L2' }, error: null });
-    const result = await base44.entities.Listing.get('L2');
+    const result = await api.entities.Listing.get('L2');
     const [name, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(name).toBe('listingGet');
     expect(body.id).toBe('L2');
@@ -325,7 +325,7 @@ describe('listingProxy', () => {
 
   it('calls listingCreate with data payload', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'L3', title: 'New' }, error: null });
-    await base44.entities.Listing.create({ title: 'New' });
+    await api.entities.Listing.create({ title: 'New' });
     const [name, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(name).toBe('listingCreate');
     expect(body.data.title).toBe('New');
@@ -333,7 +333,7 @@ describe('listingProxy', () => {
 
   it('calls listingUpdate with id and data', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'L4', price: 5000 }, error: null });
-    await base44.entities.Listing.update('L4', { price: 5000 });
+    await api.entities.Listing.update('L4', { price: 5000 });
     const [name, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(name).toBe('listingUpdate');
     expect(body.id).toBe('L4');
@@ -342,7 +342,7 @@ describe('listingProxy', () => {
 
   it('calls listingDelete with id', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { success: true }, error: null });
-    await base44.entities.Listing.delete('L5');
+    await api.entities.Listing.delete('L5');
     const [name, { body }] = mockFunctionsInvoke.mock.calls[0];
     expect(name).toBe('listingDelete');
     expect(body.id).toBe('L5');
@@ -350,7 +350,7 @@ describe('listingProxy', () => {
 
   it('bulkCreate invokes listingCreate for each item', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { id: 'x' }, error: null });
-    await base44.entities.Listing.bulkCreate([{ title: 'A' }, { title: 'B' }]);
+    await api.entities.Listing.bulkCreate([{ title: 'A' }, { title: 'B' }]);
     expect(mockFunctionsInvoke).toHaveBeenCalledTimes(2);
   });
 });
@@ -360,14 +360,14 @@ describe('listingProxy', () => {
 describe('functions.invoke', () => {
   it('passes name and body to supabase.functions.invoke', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { ok: true }, error: null });
-    const result = await base44.functions.invoke('myFunction', { foo: 'bar' });
+    const result = await api.functions.invoke('myFunction', { foo: 'bar' });
     expect(mockFunctionsInvoke).toHaveBeenCalledWith('myFunction', { body: { foo: 'bar' } });
     expect(result).toEqual({ data: { ok: true } });
   });
 
   it('throws on error', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: null, error: new Error('edge fn error') });
-    await expect(base44.functions.invoke('boom')).rejects.toThrow('edge fn error');
+    await expect(api.functions.invoke('boom')).rejects.toThrow('edge fn error');
   });
 });
 
@@ -376,14 +376,14 @@ describe('functions.invoke', () => {
 describe('integrations.Core.SendEmail', () => {
   it('calls the sendEmail edge function', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: { sent: true }, error: null });
-    const result = await base44.integrations.Core.SendEmail({ to: 'x@y.com', subject: 'Hi', body: '<p>Hello</p>' });
+    const result = await api.integrations.Core.SendEmail({ to: 'x@y.com', subject: 'Hi', body: '<p>Hello</p>' });
     expect(mockFunctionsInvoke).toHaveBeenCalledWith('sendEmail', { body: { to: 'x@y.com', subject: 'Hi', body: '<p>Hello</p>' } });
     expect(result).toEqual({ sent: true });
   });
 
   it('returns null (does not throw) when sendEmail function errors', async () => {
     mockFunctionsInvoke.mockResolvedValue({ data: null, error: new Error('no function') });
-    const result = await base44.integrations.Core.SendEmail({ to: 'x@y.com', subject: 'Hi' });
+    const result = await api.integrations.Core.SendEmail({ to: 'x@y.com', subject: 'Hi' });
     expect(result).toBeNull();
   });
 });
@@ -398,7 +398,7 @@ describe('auth.logout', () => {
     // testable in node environment (no window).
     // Catch any ReferenceError from window access gracefully.
     try {
-      await base44.auth.logout('/Login');
+      await api.auth.logout('/Login');
     } catch {
       // window.location assignment may throw in node env — that's OK
     }

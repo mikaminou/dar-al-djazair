@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 
 export function PushNotificationManager() {
   useEffect(() => {
@@ -12,7 +12,7 @@ export function PushNotificationManager() {
         }
 
         // Get current user
-        const user = await base44.auth.me();
+        const user = await api.auth.me();
         if (!user) return;
 
         // Register service worker (load from public)
@@ -24,7 +24,7 @@ export function PushNotificationManager() {
         let subscription = await registration.pushManager.getSubscription();
 
         // Get user preference
-        const prefs = await base44.entities.NotificationPreference.filter({
+        const prefs = await api.entities.NotificationPreference.filter({
           user_email: user.email,
         });
         const pushEnabled = prefs[0]?.push_enabled ?? true;
@@ -48,7 +48,7 @@ export function PushNotificationManager() {
             });
 
             // Store subscription server-side
-            await base44.functions.invoke('storePushSubscription', {
+            await api.functions.invoke('storePushSubscription', {
               user_email: user.email,
               subscription: subscription.toJSON(),
             });
@@ -58,7 +58,7 @@ export function PushNotificationManager() {
         } else if (!pushEnabled && subscription) {
           // Unsubscribe if disabled
           await subscription.unsubscribe();
-          await base44.functions.invoke('removePushSubscription', {
+          await api.functions.invoke('removePushSubscription', {
             user_email: user.email,
             endpoint: subscription.endpoint,
           });

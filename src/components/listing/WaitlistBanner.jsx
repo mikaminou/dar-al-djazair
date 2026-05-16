@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Clock, CheckCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +10,7 @@ export default function WaitlistBanner({ listing, user, lang }) {
 
   useEffect(() => {
     if (!user || listing.status !== "reserved") { setLoading(false); return; }
-    base44.entities.Waitlist.filter({ listing_id: listing.id, user_email: user.email }, null, 1)
+    api.entities.Waitlist.filter({ listing_id: listing.id, user_email: user.email }, null, 1)
       .then(res => { setEntry(res[0] || null); setLoading(false); })
       .catch(() => setLoading(false));
   }, [listing.id, user]);
@@ -29,15 +29,15 @@ export default function WaitlistBanner({ listing, user, lang }) {
 
   async function joinWaitlist() {
     if (!user) {
-      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      api.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     setJoining(true);
     // Count existing entries to get position
-    const existing = await base44.entities.Waitlist.filter({ listing_id: listing.id }, "position", 500).catch(() => []);
+    const existing = await api.entities.Waitlist.filter({ listing_id: listing.id }, "position", 500).catch(() => []);
     const active = existing.filter(e => e.status !== "withdrawn");
     const position = active.length + 1;
-    const created = await base44.entities.Waitlist.create({
+    const created = await api.entities.Waitlist.create({
       listing_id: listing.id,
       listing_title: listing.title,
       listing_wilaya: listing.wilaya,
@@ -70,7 +70,7 @@ export default function WaitlistBanner({ listing, user, lang }) {
         </div>
       ) : !user ? (
         <button
-          onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
+          onClick={() => api.auth.redirectToLogin(window.location.pathname + window.location.search)}
           className="w-full text-center text-xs bg-amber-600 hover:bg-amber-700 text-white rounded-lg py-2 px-3 font-medium transition-colors"
         >
           {t("login")}

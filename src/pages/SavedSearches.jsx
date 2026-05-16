@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import {
   Bell, BellOff, Trash2, Search, ChevronRight, SlidersHorizontal,
@@ -70,9 +70,9 @@ export default function SavedSearchesPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
-    const data = await base44.entities.SavedSearch.filter({ created_by: me.email }, "-created_date", 50);
+    const data = await api.entities.SavedSearch.filter({ created_by: me.email }, "-created_date", 50);
     setSearches(data);
     setLoading(false);
     // count matching listings for each search in background
@@ -81,7 +81,7 @@ export default function SavedSearchesPage() {
       if (s.filters?.listing_type)  query.listing_type  = s.filters.listing_type;
       if (s.filters?.property_type) query.property_type = s.filters.property_type;
       if (s.filters?.wilaya)        query.wilaya        = s.filters.wilaya;
-      const results = await base44.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
+      const results = await api.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
       const filtered = results.filter(l => {
         if (s.filters?.min_price && l.price < Number(s.filters.min_price)) return false;
         if (s.filters?.max_price && l.price > Number(s.filters.max_price)) return false;
@@ -105,7 +105,7 @@ export default function SavedSearchesPage() {
   }
 
   async function toggleAlert(search) {
-    const updated = await base44.entities.SavedSearch.update(search.id, { alert_enabled: !search.alert_enabled });
+    const updated = await api.entities.SavedSearch.update(search.id, { alert_enabled: !search.alert_enabled });
     setSearches(prev => prev.map(s => s.id === search.id ? { ...s, alert_enabled: !s.alert_enabled } : s));
     // request browser notification permission when enabling alerts
     if (!search.alert_enabled && "Notification" in window && Notification.permission === "default") {
@@ -114,7 +114,7 @@ export default function SavedSearchesPage() {
   }
 
   async function deleteSearch(id) {
-    await base44.entities.SavedSearch.delete(id);
+    await api.entities.SavedSearch.delete(id);
     setSearches(prev => prev.filter(s => s.id !== id));
   }
 

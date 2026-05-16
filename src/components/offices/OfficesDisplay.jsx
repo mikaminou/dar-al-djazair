@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Building2 } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import OfficeCard from "./OfficeCard";
 
 // Public read-only display of an agency's offices, fetched from the
@@ -13,7 +13,7 @@ export default function OfficesDisplay({ agentEmail, lang }) {
 
   useEffect(() => {
     if (!agentEmail) { setLoaded(true); return; }
-    base44.entities.AgencyOffice
+    api.entities.AgencyOffice
       .filter({ agent_email: agentEmail }, null, 100)
       .then(data => setOffices(data || []))
       .catch(() => setOffices([]))

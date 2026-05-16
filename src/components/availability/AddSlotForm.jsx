@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +69,7 @@ export default function AddSlotForm({ user, listings, lang, onAdded }) {
       payload.date_range_start = form.date_range_start;
       payload.date_range_end = form.date_range_end;
     }
-    const created = await base44.entities.AvailabilitySlot.create(payload);
+    const created = await api.entities.AvailabilitySlot.create(payload);
     setSaving(false);
     setForm(f => ({ ...f, date: "", date_range_start: "", date_range_end: "", notes: "", capacity: "" }));
     onAdded(created);

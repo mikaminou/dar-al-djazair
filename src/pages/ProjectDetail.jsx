@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { MapPin, Calendar, Building2, Home, Car, Star, Play, Phone, Mail, MessageSquare, ChevronLeft, ChevronRight, X, CheckCircle, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -78,15 +78,15 @@ export default function ProjectDetail() {
 
   async function load(id) {
     const [proj, lts, ls] = await Promise.all([
-      base44.entities.Project.filter({ id }, null, 1).then(r => r[0]).catch(() => null),
-      base44.entities.ProjectLotType.filter({ project_id: id }, null, 50).catch(() => []),
-      base44.entities.ProjectLot.filter({ project_id: id }, null, 200).catch(() => []),
+      api.entities.Project.filter({ id }, null, 1).then(r => r[0]).catch(() => null),
+      api.entities.ProjectLotType.filter({ project_id: id }, null, 50).catch(() => []),
+      api.entities.ProjectLot.filter({ project_id: id }, null, 200).catch(() => []),
     ]);
     setProject(proj);
     setLotTypes(lts.sort((a, b) => LOT_ORDER.indexOf(a.lot_type) - LOT_ORDER.indexOf(b.lot_type)));
     setLots(ls);
     // increment view
-    if (proj) base44.entities.Project.update(id, { views_count: (proj.views_count || 0) + 1 }).catch(() => {});
+    if (proj) api.entities.Project.update(id, { views_count: (proj.views_count || 0) + 1 }).catch(() => {});
     setLoading(false);
   }
 
@@ -95,7 +95,7 @@ export default function ProjectDetail() {
     setSendingContact(true);
     if (project?.contact_email) {
       // Email notifications are sent server-side via the notifyWaitlist/sendEmail function
-      await base44.functions.invoke('sendEmail', {
+      await api.functions.invoke('sendEmail', {
         to: project.contact_email,
         from_name: "Dar El Djazair",
         subject: `Demande d'info — ${project.project_name}`,
@@ -103,7 +103,7 @@ export default function ProjectDetail() {
       }).catch(() => {});
     }
     if (project?.published_by) {
-      await base44.entities.Lead.create({
+      await api.entities.Lead.create({
         listing_id: project.id,
         listing_title: project.project_name,
         listing_wilaya: project.wilaya,

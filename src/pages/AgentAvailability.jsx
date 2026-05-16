@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { CalendarDays, Plus, Trash2, Clock, CheckCircle, XCircle, ArrowLeft, User, Phone, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,13 +31,13 @@ export default function AgentAvailabilityPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     setUser(me);
     if (!me || !listingId) { setLoading(false); return; }
     const [listingData, slotsData, appsData] = await Promise.all([
-      base44.entities.Listing.filter({ id: listingId }).then(r => r[0]).catch(() => null),
-      base44.entities.AvailabilitySlot.filter({ listing_id: listingId, agent_email: me.email }, "date", 100).catch(() => []),
-      base44.entities.Appointment.filter({ listing_id: listingId, agent_email: me.email }, "-created_date", 100).catch(() => []),
+      api.entities.Listing.filter({ id: listingId }).then(r => r[0]).catch(() => null),
+      api.entities.AvailabilitySlot.filter({ listing_id: listingId, agent_email: me.email }, "date", 100).catch(() => []),
+      api.entities.Appointment.filter({ listing_id: listingId, agent_email: me.email }, "-created_date", 100).catch(() => []),
     ]);
     setListing(listingData);
     setSlots(slotsData);
@@ -48,7 +48,7 @@ export default function AgentAvailabilityPage() {
   async function addSlot() {
     if (!newSlot.date || !newSlot.start_time || !newSlot.end_time) return;
     setAdding(true);
-    const created = await base44.entities.AvailabilitySlot.create({
+    const created = await api.entities.AvailabilitySlot.create({
       listing_id: listingId,
       agent_email: user.email,
       date: newSlot.date,
@@ -63,12 +63,12 @@ export default function AgentAvailabilityPage() {
   }
 
   async function deleteSlot(id) {
-    await base44.entities.AvailabilitySlot.delete(id);
+    await api.entities.AvailabilitySlot.delete(id);
     setSlots(prev => prev.filter(s => s.id !== id));
   }
 
   async function updateAppointmentStatus(id, status) {
-    await base44.entities.Appointment.update(id, { status });
+    await api.entities.Appointment.update(id, { status });
     setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   }
 

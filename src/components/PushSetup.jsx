@@ -21,7 +21,7 @@ export async function ensureServiceWorkerRegistered() {
 //
 // import { notifyUserWithPush } from '@/functions/notificationWithPush';
 // 
-// await base44.asServiceRole.functions.invoke('notifyUserWithPush', {
+// await api.asServiceRole.functions.invoke('notifyUserWithPush', {
 //   user_email: 'user@example.com',
 //   notification_type: 'message',
 //   title: 'New message from John',

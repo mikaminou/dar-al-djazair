@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Search, TrendingUp, Shield, Star, ArrowRight, Building, Home as HomeIcon, Trees, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,32 +21,32 @@ export default function HomePage() {
 
   async function loadData() {
     setLoading(true);
-    const listingsData = await base44.entities.Listing.filter({ status: "active" }, "-created_date", 8).catch(() => []);
+    const listingsData = await api.entities.Listing.filter({ status: "active" }, "-created_date", 8).catch(() => []);
     setListings(listingsData);
     setLoading(false);
     // Fetch favorites separately after a small delay to avoid rate-limiting me() calls
     setTimeout(async () => {
-      const me = await base44.auth.me().catch(() => null);
+      const me = await api.auth.me().catch(() => null);
       if (me) {
-        const favsData = await base44.entities.Favorite.filter({ user_email: me.email }).catch(() => []);
+        const favsData = await api.entities.Favorite.filter({ user_email: me.email }).catch(() => []);
         setFavorites(favsData.map(f => f.listing_id));
       }
     }, 500);
   }
 
   async function toggleFavorite(listing) {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) {
-      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      api.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     const existing = favorites.includes(listing.id);
     if (existing) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
-      if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
+      const favs = await api.entities.Favorite.filter({ listing_id: listing.id, user_email: me?.email });
+      if (favs.length > 0) await api.entities.Favorite.delete(favs[0].id);
       setFavorites(prev => prev.filter(id => id !== listing.id));
     } else {
-      await base44.entities.Favorite.create({ listing_id: listing.id, user_email: me?.email });
+      await api.entities.Favorite.create({ listing_id: listing.id, user_email: me?.email });
       setFavorites(prev => [...prev, listing.id]);
     }
   }

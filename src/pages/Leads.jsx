@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -64,15 +64,15 @@ export default function LeadsPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
     setCurrentUser(me);
 
     const [data, messages, appointments, favorites] = await Promise.all([
-      base44.entities.Lead.filter({ agent_email: me.email }, "-created_date", 200),
-      base44.entities.Message.filter({ recipient_email: me.email }, "-created_date", 500),
-      base44.entities.Appointment.filter({ agent_email: me.email }, "-created_date", 200),
-      base44.entities.Favorite.list("-created_date", 500),
+      api.entities.Lead.filter({ agent_email: me.email }, "-created_date", 200),
+      api.entities.Message.filter({ recipient_email: me.email }, "-created_date", 500),
+      api.entities.Appointment.filter({ agent_email: me.email }, "-created_date", 200),
+      api.entities.Favorite.list("-created_date", 500),
     ]);
 
     setLeads(data);
@@ -100,10 +100,10 @@ export default function LeadsPage() {
   async function updateStatus(lead, status) {
     // Optimistic update
     setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status } : l));
-    await base44.entities.Lead.update(lead.id, { status });
+    await api.entities.Lead.update(lead.id, { status });
     // Prompt for review when deal is closed/won
     if (status === "won" || status === "closed") {
-      const existing = await base44.entities.Review.filter({ reviewer_email: currentUser?.email, lead_id: lead.id }, null, 1).catch(() => []);
+      const existing = await api.entities.Review.filter({ reviewer_email: currentUser?.email, lead_id: lead.id }, null, 1).catch(() => []);
       if (existing.length === 0) setReviewLead({ ...lead, status });
     }
   }

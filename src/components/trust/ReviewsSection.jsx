@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Star, MessageSquare } from "lucide-react";
 
 function Stars({ rating, size = "sm" }) {
@@ -19,7 +19,7 @@ export default function ReviewsSection({ userEmail, lang }) {
 
   useEffect(() => {
     if (!userEmail) return;
-    base44.entities.Review
+    api.entities.Review
       .filter({ reviewed_email: userEmail }, "-created_date", 50)
       .then(setReviews)
       .finally(() => setLoading(false));

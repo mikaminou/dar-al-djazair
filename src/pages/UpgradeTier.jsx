@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLang } from "../components/LanguageContext";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import PremiumPanel from "../components/PremiumPanel";
 import { Check, Crown, ArrowRight, Sparkles, Shield, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ export default function UpgradeTier() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    base44.auth.me().then(u => setUser(u)).catch(() => {});
+    api.auth.me().then(u => setUser(u)).catch(() => {});
   }, []);
 
   const isRtl = lang === "ar";

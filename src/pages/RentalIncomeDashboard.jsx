@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { DollarSign } from "lucide-react";
 import ExportButton from "../components/ExportButton";
@@ -20,16 +20,16 @@ export default function RentalIncomeDashboard() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) {
       setLoading(false);
       return;
     }
 
     const [tenants, payments, listings] = await Promise.all([
-      base44.entities.Tenant.filter({ landlord_email: me.email }, "-created_date", 500),
-      base44.entities.TenantPayment.filter({ landlord_email: me.email }, "-payment_date", 1000),
-      base44.entities.Listing.filter({ created_by: me.email }, "-created_date", 500),
+      api.entities.Tenant.filter({ landlord_email: me.email }, "-created_date", 500),
+      api.entities.TenantPayment.filter({ landlord_email: me.email }, "-payment_date", 1000),
+      api.entities.Listing.filter({ created_by: me.email }, "-created_date", 500),
     ]);
 
     setData({ tenants, payments, listings, me });

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { uploadToSupabase } from '@/lib/uploadToSupabase';
 
 // ============================================================
-// Profile normalization: maps profiles table → base44 user shape
+// Profile normalization: maps profiles table → user shape
 // ============================================================
 
 function normalizeProfile(profile, authUser = null) {
@@ -38,7 +38,7 @@ function denormalizeProfile(data) {
 }
 
 // ============================================================
-// auth — replaces base44.auth.*
+// auth
 // ============================================================
 
 const auth = {
@@ -81,7 +81,7 @@ const auth = {
 };
 
 // ============================================================
-// Field mapping helpers (base44 field names → Supabase columns)
+// Field mapping helpers (legacy field names → Supabase columns)
 // ============================================================
 
 const FIELD_MAP = {
@@ -211,7 +211,7 @@ const userProxy = {
     let q = supabase.from('profiles').select('*');
     if (query) {
       for (const [k, v] of Object.entries(query)) {
-        // Map base44 field aliases to actual column names
+        // Map legacy field aliases to actual column names
         const col = k === 'role' ? 'account_type' : k;
         q = q.eq(col, v);
       }
@@ -234,7 +234,7 @@ const userProxy = {
     return data ? normalizeProfile(data) : null;
   },
 
-  // id can be a UUID or an email address (base44 allowed both)
+  // id can be a UUID or an email address
   async update(idOrEmail, data) {
     const mapped = denormalizeProfile(data);
     const isEmail = typeof idOrEmail === 'string' && idOrEmail.includes('@');
@@ -269,7 +269,7 @@ for (const name of ENTITY_NAMES) {
 }
 
 // ============================================================
-// functions — replaces base44.functions.invoke()
+// functions
 // ============================================================
 
 const functions = {
@@ -281,7 +281,7 @@ const functions = {
 };
 
 // ============================================================
-// integrations — compatibility shim for UploadFile / SendEmail
+// integrations — UploadFile / SendEmail
 // ============================================================
 
 const integrations = {
@@ -296,7 +296,7 @@ const integrations = {
         const { data } = await supabase.functions.invoke('sendEmail', { body: params });
         return data;
       } catch {
-        console.warn('[base44 compat] sendEmail function not available');
+        console.warn('[apiClient] sendEmail function not available');
         return null;
       }
     },
@@ -304,7 +304,7 @@ const integrations = {
 };
 
 // ============================================================
-// Export — same shape as the old base44 client
+// Export
 // ============================================================
 
-export const base44 = { auth, entities, functions, integrations };
+export const api = { auth, entities, functions, integrations };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { AlertTriangle, CheckCircle, XCircle, MessageSquare, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -21,14 +21,14 @@ export default function ExclusivityConflictView({ listing, lang, onResolved }) {
     async function load() {
       if (!listing.conflict_listing_id) { setLoading(false); return; }
       const [clRes, newOwnerRes] = await Promise.all([
-        base44.entities.Listing.filter({ id: listing.conflict_listing_id }, null, 1).catch(() => []),
-        base44.entities.User.filter({ email: listing.created_by }, null, 1).catch(() => []),
+        api.entities.Listing.filter({ id: listing.conflict_listing_id }, null, 1).catch(() => []),
+        api.entities.User.filter({ email: listing.created_by }, null, 1).catch(() => []),
       ]);
       const cl = clRes[0];
       setConflictListing(cl || null);
       setNewOwner(newOwnerRes[0] || null);
       if (cl?.created_by) {
-        const ownerRes = await base44.entities.User.filter({ email: cl.created_by }, null, 1).catch(() => []);
+        const ownerRes = await api.entities.User.filter({ email: cl.created_by }, null, 1).catch(() => []);
         setConflictOwner(ownerRes[0] || null);
       }
       setLoading(false);
@@ -42,7 +42,7 @@ export default function ExclusivityConflictView({ listing, lang, onResolved }) {
     if (action === "contact_both") {
       Object.assign(payload, { message_to_new: msgNew, message_to_original: msgOrig });
     }
-    await base44.functions.invoke("resolveExclusivityConflict", payload);
+    await api.functions.invoke("resolveExclusivityConflict", payload);
     setBusy(false);
     if (action === "contact_both") { setContactSent(true); setShowContact(false); return; }
     onResolved && onResolved(listing.id, action);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { BarChart3, Calendar } from "lucide-react";
 import ExportButton from "../components/ExportButton";
@@ -19,15 +19,15 @@ export default function OwnerDashboard() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
 
     const [leads, sentMessages, receivedMessages, appointments, listings] = await Promise.all([
-      base44.entities.Lead.filter({ agent_email: me.email }, "-created_date", 500),
-      base44.entities.Message.filter({ sender_email: me.email }, "-created_date", 1000),
-      base44.entities.Message.filter({ recipient_email: me.email }, "-created_date", 1000),
-      base44.entities.Appointment.filter({ agent_email: me.email }, "-created_date", 500),
-      base44.entities.Listing.filter({ created_by: me.email }, "-views_count", 100),
+      api.entities.Lead.filter({ agent_email: me.email }, "-created_date", 500),
+      api.entities.Message.filter({ sender_email: me.email }, "-created_date", 1000),
+      api.entities.Message.filter({ recipient_email: me.email }, "-created_date", 1000),
+      api.entities.Appointment.filter({ agent_email: me.email }, "-created_date", 500),
+      api.entities.Listing.filter({ created_by: me.email }, "-views_count", 100),
     ]);
 
     setData({ leads, sentMessages, receivedMessages, appointments, listings, me });

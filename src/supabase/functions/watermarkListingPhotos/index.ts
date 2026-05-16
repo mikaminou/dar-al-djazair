@@ -17,7 +17,7 @@ const WM = {
 };
 
 const APP_LOGO_URL =
-  "https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png";
+  "https://media.api.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png";
 
 function resolveWatermarkConfig(ownerProfile: any) {
   const source = ownerProfile?.avatar_url || APP_LOGO_URL;

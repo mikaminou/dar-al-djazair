@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Bell, MessageSquare, Users, AlertCircle, Calendar, CheckCircle2, XCircle, Home } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import NotificationPanel from "./NotificationPanel";
 
 const playNotificationSound = () => {
@@ -32,11 +32,11 @@ export default function NotificationBell({ user, lang }) {
   useEffect(() => {
     if (!user?.email) return;
 
-    base44.entities.Notification.filter(
+    api.entities.Notification.filter(
       { user_email: user.email }, "-created_date", 50
     ).then(setNotifications).catch(() => {});
 
-    const unsub = base44.entities.Notification.subscribe(event => {
+    const unsub = api.entities.Notification.subscribe(event => {
       if (event.data?.user_email !== user.email) return;
       if (event.type === "create") {
         setNotifications(prev => [event.data, ...prev]);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,13 +27,13 @@ export default function ReviewForm({ reviewedEmail, reviewedName, leadId, listin
   async function submit() {
     if (!rating) return;
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
 
     // Deduplication check
-    const existing = await base44.entities.Review.filter({ reviewer_email: me.email, lead_id: leadId }, null, 1);
+    const existing = await api.entities.Review.filter({ reviewer_email: me.email, lead_id: leadId }, null, 1);
     if (existing.length === 0) {
-      await base44.entities.Review.create({
+      await api.entities.Review.create({
         reviewer_email: me.email,
         reviewer_name:  me.full_name || me.email,
         reviewed_email: reviewedEmail,

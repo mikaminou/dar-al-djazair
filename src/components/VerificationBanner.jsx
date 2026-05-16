@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { ShieldCheck } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 
@@ -17,7 +17,7 @@ export default function VerificationBanner({ user, lang }) {
 
   useEffect(() => {
     if (!user || user.is_verified || dismissed) return;
-    base44.entities.Listing.filter({ created_by: user.email }, '', 1)
+    api.entities.Listing.filter({ created_by: user.email }, '', 1)
       .then(data => setHasListings(data.length > 0))
       .catch(() => setHasListings(false));
   }, [user?.email, dismissed]);

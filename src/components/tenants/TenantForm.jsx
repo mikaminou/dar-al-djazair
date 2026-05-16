@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +50,7 @@ export default function TenantForm({ tenant, currentUser, onSave, onCancel, lang
   }, [tenant]);
 
   async function loadListings() {
-    const data = await base44.entities.Listing.filter({ created_by: currentUser.email, status: "active" }, "-created_date", 50);
+    const data = await api.entities.Listing.filter({ created_by: currentUser.email, status: "active" }, "-created_date", 50);
     setListings(data);
   }
 

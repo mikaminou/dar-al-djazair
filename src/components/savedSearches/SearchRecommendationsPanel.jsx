@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { MapPin, Home, ExternalLink, Loader2 } from "lucide-react";
 
@@ -42,7 +42,7 @@ export default function SearchRecommendationsPanel({ search, lang }) {
       if (f.listing_type)  query.listing_type  = f.listing_type;
       if (f.property_type) query.property_type = f.property_type;
       if (f.wilaya)        query.wilaya        = f.wilaya;
-      const raw = await base44.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
+      const raw = await api.entities.Listing.filter(query, "-created_date", 100).catch(() => []);
       const filtered = applyFilters(raw, f);
       setResults(filtered.slice(0, 5));
       setLoading(false);
