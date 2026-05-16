@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { api } from '@/api/apiClient';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Bell, Volume2 } from 'lucide-react';
@@ -13,11 +13,11 @@ export function NotificationSettings() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const currentUser = await base44.auth.me();
+        const currentUser = await api.auth.me();
         setUser(currentUser);
 
         if (currentUser) {
-          const prefs = await base44.entities.NotificationPreference.filter({
+          const prefs = await api.entities.NotificationPreference.filter({
             user_email: currentUser.email,
           });
           if (prefs[0]) {
@@ -38,17 +38,17 @@ export function NotificationSettings() {
     setSaving(true);
 
     try {
-      const prefs = await base44.entities.NotificationPreference.filter({
+      const prefs = await api.entities.NotificationPreference.filter({
         user_email: user.email,
       });
 
       if (prefs[0]) {
-        await base44.entities.NotificationPreference.update(prefs[0].id, {
+        await api.entities.NotificationPreference.update(prefs[0].id, {
           push_enabled: pushEnabled,
           sound_enabled: soundEnabled,
         });
       } else {
-        await base44.entities.NotificationPreference.create({
+        await api.entities.NotificationPreference.create({
           user_email: user.email,
           push_enabled: pushEnabled,
           sound_enabled: soundEnabled,
@@ -61,7 +61,7 @@ export function NotificationSettings() {
         const subscription = await registration.pushManager.getSubscription();
         if (subscription) {
           await subscription.unsubscribe();
-          await base44.functions.invoke('removePushSubscription', {
+          await api.functions.invoke('removePushSubscription', {
             user_email: user.email,
             endpoint: subscription.endpoint,
           });

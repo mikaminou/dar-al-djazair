@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { Building2, SlidersHorizontal, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,10 +32,10 @@ export default function Projects() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const data = await base44.entities.Project.filter({ status: "active" }, "-created_date", 100).catch(() => []);
+    const data = await api.entities.Project.filter({ status: "active" }, "-created_date", 100).catch(() => []);
     setProjects(data);
     if (data.length > 0) {
-      const allLotTypes = await base44.entities.ProjectLotType.list("-created_date", 500).catch(() => []);
+      const allLotTypes = await api.entities.ProjectLotType.list("-created_date", 500).catch(() => []);
       const map = {};
       allLotTypes.forEach(lt => {
         if (!map[lt.project_id]) map[lt.project_id] = [];

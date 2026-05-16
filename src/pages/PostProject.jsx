@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { uploadToSupabase } from "@/lib/uploadToSupabase";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES } from "../components/constants";
@@ -92,7 +92,7 @@ export default function PostProject() {
   useEffect(() => { init(); }, []);
 
   async function init() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) return;
     setUser(me);
     setForm(f => ({
@@ -147,7 +147,7 @@ export default function PostProject() {
 
   async function submit() {
     setSaving(true);
-    const project = await base44.entities.Project.create({
+    const project = await api.entities.Project.create({
       ...form,
       total_units: Number(form.total_units) || 0,
       total_floors: form.total_floors ? Number(form.total_floors) : undefined,
@@ -158,7 +158,7 @@ export default function PostProject() {
     });
     await Promise.all(lotTypes.map(lt => {
       const { _id, ...data } = lt;
-      return base44.entities.ProjectLotType.create({
+      return api.entities.ProjectLotType.create({
         ...data,
         project_id: project.id,
         total_count: Number(data.total_count) || 0,

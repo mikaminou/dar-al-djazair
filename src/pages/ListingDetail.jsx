@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import {
   MapPin, Maximize2, BedDouble, Bath, Heart, Share2, Phone, Mail,
   ChevronLeft, ChevronRight, Calendar, Layers, CheckCircle, ArrowLeft, MessageCircle, Send, AlertCircle, ChevronDown, Star,
@@ -46,7 +46,7 @@ export default function ListingDetailPage() {
   const [ownerData, setOwnerData] = useState(null);
   const [canGoBack, setCanGoBack] = useState(false);
 
-  useEffect(() => { base44.auth.me().then(setUser).catch(() => null); }, []);
+  useEffect(() => { api.auth.me().then(setUser).catch(() => null); }, []);
 
   useEffect(() => {
     setCanGoBack(window.history.length > 1);
@@ -65,11 +65,11 @@ export default function ListingDetailPage() {
 
   async function loadData() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     const [data, favs] = await Promise.all([
-      base44.entities.Listing.filter({ id }),
+      api.entities.Listing.filter({ id }),
       me
-        ? base44.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
+        ? api.entities.Favorite.filter({ user_email: me.email }).catch(() => [])
         : Promise.resolve([])
     ]);
     if (data.length > 0) {
@@ -77,12 +77,12 @@ export default function ListingDetailPage() {
       const viewKey = `dari_viewed_${data[0].id}_${me?.email || 'anon'}`;
       if (!localStorage.getItem(viewKey)) {
         localStorage.setItem(viewKey, '1');
-        base44.entities.Listing.update(data[0].id, { views_count: (data[0].views_count || 0) + 1 });
+        api.entities.Listing.update(data[0].id, { views_count: (data[0].views_count || 0) + 1 });
       }
-      const sim = await base44.entities.Listing.filter({ property_type: data[0].property_type, status: "active" }, "-created_date", 4);
+      const sim = await api.entities.Listing.filter({ property_type: data[0].property_type, status: "active" }, "-created_date", 4);
       setSimilar(sim.filter(l => l.id !== data[0].id).slice(0, 4));
       if (data[0].created_by) {
-        base44.entities.User.filter({ email: data[0].created_by }).then(users => {
+        api.entities.User.filter({ email: data[0].created_by }).then(users => {
           if (users.length > 0) {
             setOwnerName(users[0].agency_name || users[0].full_name || null);
             setOwnerData(users[0]);
@@ -97,17 +97,17 @@ export default function ListingDetailPage() {
   }
 
   async function toggleFav() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) {
-      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      api.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     if (isFav) {
-      const favs = await base44.entities.Favorite.filter({ listing_id: id, user_email: me?.email });
-      if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
+      const favs = await api.entities.Favorite.filter({ listing_id: id, user_email: me?.email });
+      if (favs.length > 0) await api.entities.Favorite.delete(favs[0].id);
       setIsFav(false);
     } else {
-      await base44.entities.Favorite.create({ listing_id: id, user_email: me?.email });
+      await api.entities.Favorite.create({ listing_id: id, user_email: me?.email });
       setIsFav(true);
     }
   }
@@ -120,12 +120,12 @@ export default function ListingDetailPage() {
   async function sendMessage() {
     if (!msgText.trim()) return;
     if (!user) {
-      base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+      api.auth.redirectToLogin(window.location.pathname + window.location.search);
       return;
     }
     const sender = user.email;
     const recipient = listing.contact_email || listing.created_by || "";
-    await base44.entities.Message.create({
+    await api.entities.Message.create({
       listing_id: id,
       sender_email: sender,
       recipient_email: recipient,
@@ -382,15 +382,15 @@ export default function ListingDetailPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {similar.map(l => (
                   <ListingCard key={l.id} listing={l} lang={lang} isFavorite={favorites.includes(l.id)} onToggleFavorite={async (lst) => {
-                    const me2 = await base44.auth.me().catch(() => null);
-                    if (!me2) { base44.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
+                    const me2 = await api.auth.me().catch(() => null);
+                    if (!me2) { api.auth.redirectToLogin(window.location.pathname + window.location.search); return; }
                     const isFav2 = favorites.includes(lst.id);
                     if (isFav2) {
-                      const favs = await base44.entities.Favorite.filter({ listing_id: lst.id, user_email: me2.email });
-                      if (favs.length > 0) await base44.entities.Favorite.delete(favs[0].id);
+                      const favs = await api.entities.Favorite.filter({ listing_id: lst.id, user_email: me2.email });
+                      if (favs.length > 0) await api.entities.Favorite.delete(favs[0].id);
                       setFavorites(p => p.filter(i => i !== lst.id));
                     } else {
-                      await base44.entities.Favorite.create({ listing_id: lst.id, user_email: me2.email });
+                      await api.entities.Favorite.create({ listing_id: lst.id, user_email: me2.email });
                       setFavorites(p => [...p, lst.id]);
                     }
                   }} />
@@ -512,7 +512,7 @@ export default function ListingDetailPage() {
                 </div>
               ) : (
                 <button
-                  onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
+                  onClick={() => api.auth.redirectToLogin(window.location.pathname + window.location.search)}
                   className="w-full flex items-center justify-center gap-2 border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl px-4 py-3 text-sm font-medium transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />

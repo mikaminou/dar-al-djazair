@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Shield, Upload, CheckCircle, Clock, XCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { uploadToSupabase } from "@/lib/uploadToSupabase";
@@ -20,7 +20,7 @@ export default function VerificationSection({ user, lang }) {
 
   useEffect(() => {
     if (!user?.email) return;
-    base44.entities.VerificationRequest
+    api.entities.VerificationRequest
       .filter({ user_email: user.email }, "-created_date", 1)
       .then(data => setRequest(data[0] || null))
       .finally(() => setLoadingR(false));
@@ -76,10 +76,10 @@ export default function VerificationSection({ user, lang }) {
     const document_uri = path;
     const existing = request?.status === "rejected" ? request : null;
     if (existing) {
-      await base44.entities.VerificationRequest.update(existing.id, { document_uri, document_url: url, status: "pending", admin_note: "" });
+      await api.entities.VerificationRequest.update(existing.id, { document_uri, document_url: url, status: "pending", admin_note: "" });
       setRequest({ ...existing, document_uri, document_url: url, status: "pending", admin_note: "" });
     } else {
-      const req = await base44.entities.VerificationRequest.create({
+      const req = await api.entities.VerificationRequest.create({
         user_email:  user.email,
         user_name:   user.full_name || user.email,
         type:        isProfessional ? "professional" : "individual",
@@ -90,7 +90,7 @@ export default function VerificationSection({ user, lang }) {
       });
       setRequest(req);
     }
-    await base44.auth.updateMe({ verification_status: "pending", verification_type: isProfessional ? "professional" : "individual" });
+    await api.auth.updateMe({ verification_status: "pending", verification_type: isProfessional ? "professional" : "individual" });
     setFile(null);
     setUploading(false);
   }

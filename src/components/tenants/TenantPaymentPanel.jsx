@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, FileText, Share2, Pencil, Trash2, Check, X } from "lucide-react";
@@ -38,7 +38,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
     const period = calculatePeriod();
     const refNumber = `RCP-${tenant.id.substring(0, 8).toUpperCase()}-${Date.now().toString().slice(-6)}`;
 
-    const payment = await base44.entities.TenantPayment.create({
+    const payment = await api.entities.TenantPayment.create({
       tenant_id: tenant.id,
       amount: parseFloat(form.amount),
       payment_date: form.payment_date,
@@ -49,7 +49,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
     });
 
     // Update tenant period_end_date
-    await base44.entities.Tenant.update(tenant.id, {
+    await api.entities.Tenant.update(tenant.id, {
       period_end_date: period.end,
       total_paid_upfront: parseFloat(form.amount),
       period_start_date: period.start
@@ -66,7 +66,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
   }
 
   async function generateReceipt(payment) {
-    const response = await base44.functions.invoke("generateTenantReceipt", {
+    const response = await api.functions.invoke("generateTenantReceipt", {
       payment_id: payment.id,
       tenant_name: tenant.tenant_name,
       landlord_email: currentUser.email,
@@ -82,7 +82,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
   }
 
   async function handleEditSave(payment) {
-    await base44.entities.TenantPayment.update(payment.id, {
+    await api.entities.TenantPayment.update(payment.id, {
       amount: parseFloat(editForm.amount),
       payment_date: editForm.payment_date,
     });
@@ -92,7 +92,7 @@ export default function TenantPaymentPanel({ tenant, payments, onPaymentAdded, l
 
   async function handleDelete(payment) {
     setDeleting(payment.id);
-    await base44.entities.TenantPayment.delete(payment.id);
+    await api.entities.TenantPayment.delete(payment.id);
     setDeleting(null);
     onPaymentAdded();
   }

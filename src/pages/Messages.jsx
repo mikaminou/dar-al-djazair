@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { MessageSquare, Send, ArrowLeft, User, ExternalLink, Check, CheckCheck, AlertCircle, CalendarDays, Info, Archive, ArchiveRestore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,18 +26,18 @@ async function broadcastTyping(threadId, email, isTyping) {
   if (!isTyping) {
     // delete typing record
     try {
-      const existing = await base44.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
-      if (existing.length > 0) await base44.entities.TypingStatus.delete(existing[0].id);
+      const existing = await api.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
+      if (existing.length > 0) await api.entities.TypingStatus.delete(existing[0].id);
     } catch {}
     return;
   }
   try {
-    const existing = await base44.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
+    const existing = await api.entities.TypingStatus.filter({ thread_id: threadId, typer_email: email });
     const now = new Date().toISOString();
     if (existing.length > 0) {
-      await base44.entities.TypingStatus.update(existing[0].id, { typed_at: now });
+      await api.entities.TypingStatus.update(existing[0].id, { typed_at: now });
     } else {
-      await base44.entities.TypingStatus.create({ thread_id: threadId, typer_email: email, typed_at: now });
+      await api.entities.TypingStatus.create({ thread_id: threadId, typer_email: email, typed_at: now });
     }
   } catch {}
 }
@@ -127,7 +127,7 @@ export default function MessagesPage() {
     const interval = setInterval(async () => {
       const me = userRef.current;
       if (!me) return;
-      const data = await base44.entities.Message.list("-created_date", 300).catch(() => null);
+      const data = await api.entities.Message.list("-created_date", 300).catch(() => null);
       if (!data) return;
       const mine = data.filter(m =>
         (m.recipient_email === me.email || m.sender_email === me.email) &&
@@ -141,7 +141,7 @@ export default function MessagesPage() {
       // Refresh statuses for all known listing IDs (catches archived/sold changes)
       const allKnownIds = [...new Set(mine.map(m => m.listing_id).filter(Boolean))];
       if (allKnownIds.length > 0) {
-        Promise.all(allKnownIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)))
+        Promise.all(allKnownIds.map(id => api.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)))
           .then(listings => {
             const titleMap = {};
             const statusMap = {};
@@ -159,7 +159,7 @@ export default function MessagesPage() {
   // ---- load active proposal when active thread changes ----
   useEffect(() => {
     if (!activeThread?.thread_id || !user) { setActiveProposal(null); return; }
-    base44.entities.AppointmentProposal.filter({ thread_id: activeThread.thread_id }, "-created_date", 10)
+    api.entities.AppointmentProposal.filter({ thread_id: activeThread.thread_id }, "-created_date", 10)
       .then(proposals => {
         const pending = proposals.find(p => p.status === "pending");
         setActiveProposal(pending || proposals[0] || null);
@@ -170,7 +170,7 @@ export default function MessagesPage() {
   // ---- real-time appointment proposal subscription ----
   useEffect(() => {
     if (!user) return;
-    const unsub = base44.entities.AppointmentProposal.subscribe(event => {
+    const unsub = api.entities.AppointmentProposal.subscribe(event => {
       const active = activeThreadRef.current;
       if (!active) return;
       const data = event.data;
@@ -192,11 +192,11 @@ export default function MessagesPage() {
     if (!user) return;
     async function ping() {
       const now = new Date().toISOString();
-      const existing = await base44.entities.UserPresence.filter({ user_email: user.email }).catch(() => []);
+      const existing = await api.entities.UserPresence.filter({ user_email: user.email }).catch(() => []);
       if (existing.length > 0) {
-        base44.entities.UserPresence.update(existing[0].id, { last_seen: now }).catch(() => {});
+        api.entities.UserPresence.update(existing[0].id, { last_seen: now }).catch(() => {});
       } else {
-        base44.entities.UserPresence.create({ user_email: user.email, last_seen: now }).catch(() => {});
+        api.entities.UserPresence.create({ user_email: user.email, last_seen: now }).catch(() => {});
       }
     }
     ping();
@@ -207,15 +207,15 @@ export default function MessagesPage() {
   // ---- other user's presence — poll + subscribe ----
   useEffect(() => {
     if (!activeThread?.other) { setOtherPresence(null); return; }
-    base44.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
+    api.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
       setOtherPresence(r[0] || null);
     }).catch(() => {});
     const poll = setInterval(() => {
-      base44.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
+      api.entities.UserPresence.filter({ user_email: activeThread.other }).then(r => {
         setOtherPresence(r[0] || null);
       }).catch(() => {});
     }, 15000);
-    const unsub = base44.entities.UserPresence.subscribe(event => {
+    const unsub = api.entities.UserPresence.subscribe(event => {
       if (event.data?.user_email === activeThread.other) {
         setOtherPresence(event.data);
       }
@@ -226,7 +226,7 @@ export default function MessagesPage() {
   // ---- real-time message subscription ----
   useEffect(() => {
     if (!user) return;
-    const unsub = base44.entities.Message.subscribe((event) => {
+    const unsub = api.entities.Message.subscribe((event) => {
       if (event.type === "create") {
         const m = event.data;
         if (
@@ -240,7 +240,7 @@ export default function MessagesPage() {
           if (m.listing_id) {
             setListingsMap(prev => {
               if (prev[m.listing_id]) return prev;
-              base44.entities.Listing.filter({ id: m.listing_id }).then(r => {
+              api.entities.Listing.filter({ id: m.listing_id }).then(r => {
                 if (r[0]) {
                   setListingsMap(p => ({ ...p, [r[0].id]: r[0].title }));
                   setListingsStatusMap(p => ({ ...p, [r[0].id]: r[0].status }));
@@ -275,7 +275,7 @@ export default function MessagesPage() {
   // ---- typing detection via real-time TypingStatus entity subscription ----
   useEffect(() => {
     if (!user) return;
-    const unsub = base44.entities.TypingStatus.subscribe((event) => {
+    const unsub = api.entities.TypingStatus.subscribe((event) => {
       const active = activeThreadRef.current;
       const me = userRef.current;
       if (!active || !me) return;
@@ -308,7 +308,7 @@ export default function MessagesPage() {
   async function markThreadRead(msgs) {
     const unreadMsgs = msgs.filter(m => !m.is_read && m.recipient_email === userRef.current?.email);
     if (unreadMsgs.length === 0) return;
-    await Promise.all(unreadMsgs.map(m => base44.entities.Message.update(m.id, { is_read: true })));
+    await Promise.all(unreadMsgs.map(m => api.entities.Message.update(m.id, { is_read: true })));
     setMessages(prev => prev.map(p => unreadMsgs.find(u => u.id === p.id) ? { ...p, is_read: true } : p));
   }
 
@@ -334,10 +334,10 @@ export default function MessagesPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     setUser(me);
     if (me) {
-      const data = await base44.entities.Message.list("-created_date", 300);
+      const data = await api.entities.Message.list("-created_date", 300);
       const mine = data.filter(m =>
         (m.recipient_email === me.email || m.sender_email === me.email) &&
         !(m.hidden_for || []).includes(me.email)
@@ -348,7 +348,7 @@ export default function MessagesPage() {
       const params2 = new URLSearchParams(window.location.search);
       const phantomListingId = params2.get("thread");
       const allListingIds = [...new Set([...mine.map(m => m.listing_id), phantomListingId].filter(Boolean))];
-      const listings = await Promise.all(allListingIds.map(id => base44.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
+      const listings = await Promise.all(allListingIds.map(id => api.entities.Listing.filter({ id }).then(r => r[0]).catch(() => null)));
       const map = {};
       const statusMap = {};
       const ownerMap = {};
@@ -360,7 +360,7 @@ export default function MessagesPage() {
       // Fetch real display names for all unique other-party emails
       const allEmails = [...new Set(mine.map(m => m.sender_email === me.email ? m.recipient_email : m.sender_email).filter(Boolean))];
       if (allEmails.length > 0) {
-        Promise.all(allEmails.map(email => base44.entities.User.filter({ email }).then(r => r[0]).catch(() => null)))
+        Promise.all(allEmails.map(email => api.entities.User.filter({ email }).then(r => r[0]).catch(() => null)))
           .then(users => {
             const uMap = {};
             users.forEach(u => { if (u?.full_name) uMap[u.email] = u.full_name; });
@@ -416,7 +416,7 @@ export default function MessagesPage() {
     // stop typing broadcast
     broadcastTyping(activeThread.thread_id, user.email, false);
     clearTimeout(typingBroadcastRef.current);
-    const msg = await base44.entities.Message.create({
+    const msg = await api.entities.Message.create({
       listing_id: activeThread.listing_id,
       sender_email: user.email,
       recipient_email: activeThread.other,
@@ -429,7 +429,7 @@ export default function MessagesPage() {
     setTimeout(() => setJustSentIds(prev => { const n = new Set(prev); n.delete(msg.id); return n; }), 2500);
     // If this was a phantom thread, mark lead as contacted now that first message is sent
     if (activeThread.isPhantom && activeThread.leadId) {
-      base44.entities.Lead.update(activeThread.leadId, { status: "contacted" }).catch(() => {});
+      api.entities.Lead.update(activeThread.leadId, { status: "contacted" }).catch(() => {});
     }
     // Materialise phantom → real thread
     if (activeThread.isPhantom) {
@@ -461,12 +461,12 @@ export default function MessagesPage() {
     if (!activeThread || !user) return;
     // decline any existing pending proposal first
     if (activeProposal?.status === "pending") {
-      await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
+      await api.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
     }
     const ownerEmail = listingOwnerMap[activeThread.listing_id] || activeThread.other;
     const otherEmail = activeThread.other;
     const listingTitle = listingsMap[activeThread.listing_id] || "";
-    const newProp = await base44.entities.AppointmentProposal.create({
+    const newProp = await api.entities.AppointmentProposal.create({
       thread_id: activeThread.thread_id,
       listing_id: activeThread.listing_id,
       listing_title: listingTitle,
@@ -487,7 +487,7 @@ export default function MessagesPage() {
       : lang === "ar"
       ? `📅 اقتراح موعد: ${fmtDate(date)} الساعة ${start_time}`
       : `📅 Visit proposal: ${fmtDate(date)} at ${start_time}${notes ? " — " + notes : ""}`;
-    const msg = await base44.entities.Message.create({
+    const msg = await api.entities.Message.create({
       listing_id: activeThread.listing_id,
       sender_email: user.email,
       recipient_email: otherEmail,
@@ -500,7 +500,7 @@ export default function MessagesPage() {
 
   async function handleAcceptProposal() {
     if (!activeProposal) return;
-    await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "accepted" });
+    await api.entities.AppointmentProposal.update(activeProposal.id, { status: "accepted" });
     setActiveProposal(prev => ({ ...prev, status: "accepted" }));
     const fmtDate = d => new Date(d + "T12:00:00").toLocaleDateString(lang === "fr" ? "fr-FR" : "en", { day: "numeric", month: "short" });
     const msgContent = lang === "fr"
@@ -508,7 +508,7 @@ export default function MessagesPage() {
       : lang === "ar"
       ? `✅ تم تأكيد الموعد: ${fmtDate(activeProposal.proposed_date)} الساعة ${activeProposal.proposed_start_time}`
       : `✅ Appointment confirmed: ${fmtDate(activeProposal.proposed_date)} at ${activeProposal.proposed_start_time}`;
-    const msg = await base44.entities.Message.create({
+    const msg = await api.entities.Message.create({
       listing_id: activeThread.listing_id,
       sender_email: user.email,
       recipient_email: activeThread.other,
@@ -521,11 +521,11 @@ export default function MessagesPage() {
 
   async function handleDeclineProposal() {
     if (!activeProposal) return;
-    await base44.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
+    await api.entities.AppointmentProposal.update(activeProposal.id, { status: "declined" });
     setActiveProposal(prev => ({ ...prev, status: "declined" }));
     const msgContent = lang === "fr" ? "❌ Rendez-vous refusé."
       : lang === "ar" ? "❌ تم رفض الموعد." : "❌ Appointment declined.";
-    const msg = await base44.entities.Message.create({
+    const msg = await api.entities.Message.create({
       listing_id: activeThread.listing_id,
       sender_email: user.email,
       recipient_email: activeThread.other,
@@ -604,7 +604,7 @@ export default function MessagesPage() {
   );
 
   if (!loading && !user) {
-    base44.auth.redirectToLogin(window.location.pathname + window.location.search);
+    api.auth.redirectToLogin(window.location.pathname + window.location.search);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin" />

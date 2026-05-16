@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Bell, MessageSquare, Users, Calendar, Home, CheckCheck, X, AlertCircle } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -53,7 +53,7 @@ export default function NotificationPanel({ notifications, onClose, onChange, la
 
   async function handleClick(notif) {
     if (!notif.is_read) {
-      await base44.entities.Notification.update(notif.id, { is_read: true });
+      await api.entities.Notification.update(notif.id, { is_read: true });
       onChange(prev => prev.map(n => n.id === notif.id ? { ...n, is_read: true } : n));
     }
     const href = notifHref(notif.url);
@@ -63,7 +63,7 @@ export default function NotificationPanel({ notifications, onClose, onChange, la
 
   async function markAllRead() {
     const unread = notifications.filter(n => !n.is_read);
-    await Promise.all(unread.map(n => base44.entities.Notification.update(n.id, { is_read: true })));
+    await Promise.all(unread.map(n => api.entities.Notification.update(n.id, { is_read: true })));
     onChange(prev => prev.map(n => ({ ...n, is_read: true })));
   }
 

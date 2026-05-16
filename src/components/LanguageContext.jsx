@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { TRANSLATIONS } from "./constants";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 
 const LanguageContext = createContext();
 
@@ -13,7 +13,7 @@ export function LanguageProvider({ children }) {
     document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = l;
     // Persist to user profile so backend notifications use the correct language
-    base44.auth.updateMe({ lang: l }).catch(() => {});
+    api.auth.updateMe({ lang: l }).catch(() => {});
   };
 
   const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;

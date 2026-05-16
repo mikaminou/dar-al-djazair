@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { CalendarDays, Clock, Check, X, RefreshCw, User, ArrowLeft, ChevronRight, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,12 +51,12 @@ export default function AppointmentsPage() {
 
   async function loadAll() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
     setUser(me);
     const [asProposer, asOther] = await Promise.all([
-      base44.entities.AppointmentProposal.filter({ proposer_email: me.email }, "-created_date", 200).catch(() => []),
-      base44.entities.AppointmentProposal.filter({ other_email: me.email }, "-created_date", 200).catch(() => []),
+      api.entities.AppointmentProposal.filter({ proposer_email: me.email }, "-created_date", 200).catch(() => []),
+      api.entities.AppointmentProposal.filter({ other_email: me.email }, "-created_date", 200).catch(() => []),
     ]);
     const all = [...asProposer];
     asOther.forEach(p => { if (!all.find(a => a.id === p.id)) all.push(p); });
@@ -66,7 +66,7 @@ export default function AppointmentsPage() {
     all.forEach(p => { allEmails.add(p.proposer_email); allEmails.add(p.other_email); });
     const names = {};
     for (const email of allEmails) {
-      const users = await base44.entities.User.filter({ email }).catch(() => []);
+      const users = await api.entities.User.filter({ email }).catch(() => []);
       if (users.length > 0 && users[0].full_name) names[email] = users[0].full_name;
     }
     setUserNames(names);
@@ -80,9 +80,9 @@ export default function AppointmentsPage() {
     // Fetch owner's slots (listing-specific + general)
     const [listingSlots, generalSlots] = await Promise.all([
       proposal.listing_id
-        ? base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: proposal.listing_id }, "date", 50).catch(() => [])
+        ? api.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: proposal.listing_id }, "date", 50).catch(() => [])
         : Promise.resolve([]),
-      base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: "__global__" }, "date", 50).catch(() => []),
+      api.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: "__global__" }, "date", 50).catch(() => []),
     ]);
     const combined = [...listingSlots, ...generalSlots.filter(s => !listingSlots.find(ls => ls.id === s.id))];
     const today = new Date().toISOString().split("T")[0];
@@ -90,23 +90,23 @@ export default function AppointmentsPage() {
   }
 
   async function handleAccept(proposal) {
-    await base44.entities.AppointmentProposal.update(proposal.id, { status: "accepted" });
+    await api.entities.AppointmentProposal.update(proposal.id, { status: "accepted" });
     const updated = { ...proposal, status: "accepted" };
     setProposals(prev => prev.map(p => p.id === proposal.id ? updated : p));
     setSelected(updated);
   }
 
   async function handleDecline(proposal) {
-    await base44.entities.AppointmentProposal.update(proposal.id, { status: "declined" });
+    await api.entities.AppointmentProposal.update(proposal.id, { status: "declined" });
     const updated = { ...proposal, status: "declined" };
     setProposals(prev => prev.map(p => p.id === proposal.id ? updated : p));
     setSelected(updated);
   }
 
   async function handleCounter(proposal, { date, start_time, end_time, notes }) {
-    await base44.entities.AppointmentProposal.update(proposal.id, { status: "declined" });
+    await api.entities.AppointmentProposal.update(proposal.id, { status: "declined" });
     const otherEmail = proposal.proposer_email === user.email ? proposal.other_email : proposal.proposer_email;
-    const newProposal = await base44.entities.AppointmentProposal.create({
+    const newProposal = await api.entities.AppointmentProposal.create({
       thread_id: proposal.thread_id,
       listing_id: proposal.listing_id,
       listing_title: proposal.listing_title,
@@ -146,7 +146,7 @@ export default function AppointmentsPage() {
     </div>
   );
 
-  if (!user) { base44.auth.redirectToLogin(); return null; }
+  if (!user) { api.auth.redirectToLogin(); return null; }
 
   // ---- DETAIL VIEW ----
   if (selected) {

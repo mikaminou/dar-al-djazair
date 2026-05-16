@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Users, Loader2, Trash2, CheckCircle, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,7 @@ export default function WaitlistPanel({ listing, lang }) {
 
   useEffect(() => {
     if (!listing?.id) return;
-    base44.entities.Waitlist.filter({ listing_id: listing.id }, "position", 200)
+    api.entities.Waitlist.filter({ listing_id: listing.id }, "position", 200)
       .then(res => { setEntries(res); setLoading(false); })
       .catch(() => setLoading(false));
   }, [listing?.id]);
@@ -23,21 +23,21 @@ export default function WaitlistPanel({ listing, lang }) {
 
   async function markContacted(entry) {
     setSavingId(entry.id);
-    await base44.entities.Waitlist.update(entry.id, { status: "contacted" });
+    await api.entities.Waitlist.update(entry.id, { status: "contacted" });
     setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: "contacted" } : e));
     setSavingId(null);
   }
 
   async function remove(entry) {
     if (!confirm(lang === "ar" ? "حذف هذا الشخص من قائمة الانتظار؟" : lang === "fr" ? "Retirer de la liste d'attente ?" : "Remove from waitlist?")) return;
-    await base44.entities.Waitlist.update(entry.id, { status: "withdrawn" });
+    await api.entities.Waitlist.update(entry.id, { status: "withdrawn" });
     setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, status: "withdrawn" } : e));
   }
 
   async function saveNote(entry) {
     setSavingId(entry.id + "_note");
     const note = editNotes[entry.id] ?? entry.notes ?? "";
-    await base44.entities.Waitlist.update(entry.id, { notes: note });
+    await api.entities.Waitlist.update(entry.id, { notes: note });
     setEntries(prev => prev.map(e => e.id === entry.id ? { ...e, notes: note } : e));
     setEditNotes(prev => { const n = { ...prev }; delete n[entry.id]; return n; });
     setSavingId(null);

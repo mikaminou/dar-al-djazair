@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Check, Crown, Sparkles, ArrowRight, Loader2, Image, Bot, Users, Calendar, Home, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 
 const MONTHLY = 7500;
 const YEARLY  = MONTHLY * 11;
@@ -91,7 +91,7 @@ export default function PremiumPanel({ lang, user, onClose }) {
 
   useEffect(() => {
     if (!user) return;
-    base44.entities.UpgradeRequest.filter({ user_email: user.email, status: "pending" }, null, 1)
+    api.entities.UpgradeRequest.filter({ user_email: user.email, status: "pending" }, null, 1)
       .then(res => { if (res.length > 0) setStatus("already"); })
       .catch(() => {});
   }, [user]);
@@ -101,9 +101,9 @@ export default function PremiumPanel({ lang, user, onClose }) {
   const fmt   = v => new Intl.NumberFormat("fr-FR").format(v);
 
   async function handleRequest() {
-    if (!user) { base44.auth.redirectToLogin(); return; }
+    if (!user) { api.auth.redirectToLogin(); return; }
     setStatus("loading");
-    await base44.entities.UpgradeRequest.create({
+    await api.entities.UpgradeRequest.create({
       user_email: user.email,
       user_name:  user.full_name || user.email,
       plan,

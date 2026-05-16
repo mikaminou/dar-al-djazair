@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { CalendarDays, Clock, X, PenLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,14 +66,14 @@ export default function ProposeAppointmentModal({ thread, currentUser, ownerEmai
       // Fetch only: (1) global slots, (2) slots for this specific listing
       // Slots for other listings are intentionally excluded
       const [globalSlots, listingSlots] = await Promise.all([
-        base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: GLOBAL_ID, is_active: true }, null, 100).catch(() => []),
+        api.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: GLOBAL_ID, is_active: true }, null, 100).catch(() => []),
         thread?.listing_id && thread.listing_id !== GLOBAL_ID
-          ? base44.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: thread.listing_id, is_active: true }, null, 100).catch(() => [])
+          ? api.entities.AvailabilitySlot.filter({ agent_email: ownerEmail, listing_id: thread.listing_id, is_active: true }, null, 100).catch(() => [])
           : Promise.resolve([]),
       ]);
 
       // Also fetch slots with no listing_id set (empty/null = global)
-      const noListingSlots = await base44.entities.AvailabilitySlot
+      const noListingSlots = await api.entities.AvailabilitySlot
         .filter({ agent_email: ownerEmail, is_active: true }, null, 200)
         .then(all => all.filter(s => !s.listing_id || s.listing_id === "" || s.listing_id === GLOBAL_ID))
         .catch(() => []);

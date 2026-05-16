@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { Shield, CheckCircle, XCircle, FileText, ExternalLink, Clock, Users, BadgeCheck, BadgeX, Home, Eye, ChevronDown, ChevronUp, X, ChevronLeft, ChevronRight, AlertTriangle, Star, Building2, Crown, RefreshCw, MapPin } from "lucide-react";
 import { WILAYAS } from "../components/constants";
@@ -40,16 +40,16 @@ export default function AdminVerification() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me || me.role !== "admin") { setLoading(false); return; }
     setIsAdmin(true);
     const [data, allUsers, listings, projects, upgrades, failedWm] = await Promise.all([
-      base44.entities.VerificationRequest.list("-created_date", 300),
-      base44.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
-      base44.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
-      base44.entities.Project.filter({ status: "pending" }, "-created_date", 100).catch(() => []),
-      base44.entities.UpgradeRequest.list("-created_date", 200).catch(() => []),
-      base44.entities.Listing.filter({ status: "active" }, "-updated_date", 200)
+      api.entities.VerificationRequest.list("-created_date", 300),
+      api.entities.User.filter({ role: "professional" }, "-created_date", 200).catch(() => []),
+      api.entities.Listing.filter({ status: "pending" }, "-created_date", 200).catch(() => []),
+      api.entities.Project.filter({ status: "pending" }, "-created_date", 100).catch(() => []),
+      api.entities.UpgradeRequest.list("-created_date", 200).catch(() => []),
+      api.entities.Listing.filter({ status: "active" }, "-updated_date", 200)
         .then(all => all.filter(l => l.admin_note && l.admin_note.startsWith("Watermark")))
         .catch(() => []),
     ]);
@@ -64,7 +64,7 @@ export default function AdminVerification() {
     const emails = [...new Set(listings.map(l => l.created_by).filter(Boolean))];
     const userMap = {};
     await Promise.all(emails.map(async email => {
-      const users = await base44.entities.User.filter({ email }, null, 1).catch(() => []);
+      const users = await api.entities.User.filter({ email }, null, 1).catch(() => []);
       if (users[0]) userMap[email] = users[0];
     }));
     setListingUsers(userMap);
@@ -73,23 +73,23 @@ export default function AdminVerification() {
 
   async function toggleVerified(pro) {
     const newVal = !pro.is_verified;
-    await base44.entities.User.update(pro.id, { is_verified: newVal });
-    const listings = await base44.entities.Listing.filter({ created_by: pro.email }, null, 500).catch(() => []);
+    await api.entities.User.update(pro.id, { is_verified: newVal });
+    const listings = await api.entities.Listing.filter({ created_by: pro.email }, null, 500).catch(() => []);
     await Promise.all(listings.map(l =>
-      base44.entities.Listing.update(l.id, { owner_is_verified: newVal })
+      api.entities.Listing.update(l.id, { owner_is_verified: newVal })
     ));
     setPros(prev => prev.map(p => p.id === pro.id ? { ...p, is_verified: newVal } : p));
   }
 
   async function viewDoc(req) {
-    const res = await base44.functions.invoke("getDocumentUrl", { file_uri: req.document_uri });
+    const res = await api.functions.invoke("getDocumentUrl", { file_uri: req.document_uri });
     const url = res.data?.signed_url;
     if (url) window.open(url, "_blank");
   }
 
   async function handleVerificationAction(req, action) {
     setBusy(true);
-    await base44.functions.invoke("approveVerification", { request_id: req.id, action, admin_note: note });
+    await api.functions.invoke("approveVerification", { request_id: req.id, action, admin_note: note });
     const newStatus = action === "approve" ? "approved" : "rejected";
     setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: newStatus, admin_note: note } : r));
     setExpandId(null);
@@ -99,7 +99,7 @@ export default function AdminVerification() {
 
   async function handleRetryWatermark(listing) {
     setRetryingId(listing.id);
-    const res = await base44.functions.invoke("watermarkListingPhotos", { listing_id: listing.id, retry: true });
+    const res = await api.functions.invoke("watermarkListingPhotos", { listing_id: listing.id, retry: true });
     setRetryingId(null);
     const note = res?.data?.adminNote;
     if (note) {
@@ -112,7 +112,7 @@ export default function AdminVerification() {
 
   async function handleListingAction(listing, action) {
     setBusy(true);
-    const res = await base44.functions.invoke("approveListing", { listing_id: listing.id, action, admin_note: note });
+    const res = await api.functions.invoke("approveListing", { listing_id: listing.id, action, admin_note: note });
     setPendingListings(prev => prev.filter(l => l.id !== listing.id));
     setExpandListingId(null);
     setNote("");
@@ -270,7 +270,7 @@ export default function AdminVerification() {
                   <div className="flex gap-2 flex-wrap">
                     <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={async () => {
                       setBusy(true);
-                      await base44.entities.Project.update(proj.id, { status: "active", admin_note: note });
+                      await api.entities.Project.update(proj.id, { status: "active", admin_note: note });
                       setPendingProjects(prev => prev.filter(p => p.id !== proj.id));
                       setNote(""); setBusy(false);
                     }}>
@@ -279,7 +279,7 @@ export default function AdminVerification() {
                     <Button size="sm" variant="outline" disabled={busy || !note.trim()} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={async () => {
                       if (!note.trim()) return;
                       setBusy(true);
-                      await base44.entities.Project.update(proj.id, { status: "declined", admin_note: note });
+                      await api.entities.Project.update(proj.id, { status: "declined", admin_note: note });
                       setPendingProjects(prev => prev.filter(p => p.id !== proj.id));
                       setNote(""); setBusy(false);
                     }}>
@@ -602,7 +602,7 @@ export default function AdminVerification() {
                                 const updatedOffices = pro.agency_offices.map(o =>
                                   o.id === office.id ? { ...o, is_verified: !o.is_verified } : o
                                 );
-                                await base44.entities.User.update(pro.id, { agency_offices: updatedOffices });
+                                await api.entities.User.update(pro.id, { agency_offices: updatedOffices });
                                 setPros(prev => prev.map(p => p.id === pro.id ? { ...p, agency_offices: updatedOffices } : p));
                               }}
                               className={`flex items-center gap-1 text-[10px] px-2 py-1 rounded-md border font-medium transition-colors flex-shrink-0 ${
@@ -666,8 +666,8 @@ export default function AdminVerification() {
                     <div className="flex gap-2">
                       <Button size="sm" disabled={busy} className="bg-emerald-600 hover:bg-emerald-700 gap-1.5 text-xs" onClick={async () => {
                         setBusy(true);
-                        await base44.entities.UpgradeRequest.update(req.id, { status: "approved", admin_note: note });
-                        await base44.entities.User.update(req.user_email, { role: "professional" }).catch(() => {});
+                        await api.entities.UpgradeRequest.update(req.id, { status: "approved", admin_note: note });
+                        await api.entities.User.update(req.user_email, { role: "professional" }).catch(() => {});
                         setUpgradeRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: "approved", admin_note: note } : r));
                         setNote(""); setBusy(false);
                       }}>
@@ -675,7 +675,7 @@ export default function AdminVerification() {
                       </Button>
                       <Button size="sm" variant="outline" disabled={busy} className="text-red-600 border-red-200 hover:bg-red-50 gap-1.5 text-xs" onClick={async () => {
                         setBusy(true);
-                        await base44.entities.UpgradeRequest.update(req.id, { status: "rejected", admin_note: note });
+                        await api.entities.UpgradeRequest.update(req.id, { status: "rejected", admin_note: note });
                         setUpgradeRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: "rejected", admin_note: note } : r));
                         setNote(""); setBusy(false);
                       }}>

@@ -4,7 +4,7 @@
  * then fires a browser notification for each new match since last check.
  */
 import { useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 
 function matchesFilters(listing, filters) {
   if (!filters) return false;
@@ -54,17 +54,17 @@ export default function SavedSearchAlerts() {
 
     async function check() {
       if (cancelled) return;
-      const me = await base44.auth.me().catch(() => null);
+      const me = await api.auth.me().catch(() => null);
       if (!me) return;
 
-      const alertSearches = await base44.entities.SavedSearch.filter(
+      const alertSearches = await api.entities.SavedSearch.filter(
         { created_by: me.email, alert_enabled: true }, "-created_date", 50
       ).catch(() => []);
 
       for (const search of alertSearches) {
         const since = search.last_checked ? new Date(search.last_checked) : new Date(search.created_date);
         // fetch recent active listings (increased limit for better coverage)
-        const allListings = await base44.entities.Listing.filter(
+        const allListings = await api.entities.Listing.filter(
           { status: "active" }, "-created_date", 100
         ).catch(() => []);
 
@@ -77,7 +77,7 @@ export default function SavedSearchAlerts() {
         }
 
         // Always update last_checked so we don't re-check old listings next time
-        await base44.entities.SavedSearch.update(search.id, {
+        await api.entities.SavedSearch.update(search.id, {
           last_checked: new Date().toISOString()
         }).catch(() => {});
       }

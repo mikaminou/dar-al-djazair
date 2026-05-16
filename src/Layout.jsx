@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import PremiumPanel from "./components/PremiumPanel";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Search, Heart, MessageSquare, Plus, User, Menu, X, Globe, ChevronDown, Home, MoreVertical } from "lucide-react";
 import UserAvatar from "./components/UserAvatar";
 import { LanguageProvider, useLang } from "./components/LanguageContext";
@@ -27,7 +27,7 @@ function NavContent({ currentPageName, children }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      base44.auth.me().then(u => {
+      api.auth.me().then(u => {
         if (u) {
           setUser(u);
           if (!u.first_name) setShowOnboarding(true);
@@ -41,7 +41,7 @@ function NavContent({ currentPageName, children }) {
   useEffect(() => {
     if (!user) return;
     async function ping() {
-      const { base44: b44 } = await import('@/api/base44Client');
+      const { api: b44 } = await import('@/api/apiClient');
       const now = new Date().toISOString();
       const existing = await b44.entities.UserPresence.filter({ user_email: user.email }).catch(() => []);
       if (existing.length > 0) {
@@ -80,7 +80,7 @@ function NavContent({ currentPageName, children }) {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3 md:gap-4">
           {/* Logo */}
           <Link to={createPageUrl("Home")} className="flex items-center gap-2 flex-shrink-0 min-w-fit min-h-[44px] select-none rounded">
-            <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-8 h-8" />
+            <img src="https://media.api.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-8 h-8" />
             <span className="hidden sm:inline font-bold text-lg text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
           </Link>
 
@@ -256,12 +256,12 @@ function NavContent({ currentPageName, children }) {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
+                    <DropdownMenuItem onClick={() => api.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
                       {t.signOut}
                     </DropdownMenuItem>
                   </>
                 ) : (
-                  <DropdownMenuItem onClick={() => base44.auth.redirectToLogin()} className="min-h-[44px] flex items-center select-none">
+                  <DropdownMenuItem onClick={() => api.auth.redirectToLogin()} className="min-h-[44px] flex items-center select-none">
                     {t.signIn}
                   </DropdownMenuItem>
                 )}
@@ -321,7 +321,7 @@ function NavContent({ currentPageName, children }) {
       {/* MOBILE HEADER */}
       <header className="md:hidden fixed top-0 left-0 right-0 bg-white dark:bg-[#13161c] border-b border-gray-100 dark:border-gray-800 z-30 h-14 flex items-center justify-between px-4 pt-[max(0.5rem,env(safe-area-inset-top))]">
         <div className="flex items-center">
-          <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
+          <img src="https://media.api.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
           <span className="ml-2 font-bold text-sm text-emerald-700">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
         </div>
         <div className="flex items-center gap-2">
@@ -395,12 +395,12 @@ function NavContent({ currentPageName, children }) {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => base44.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
+                <DropdownMenuItem onClick={() => api.auth.logout()} className="text-red-500 min-h-[44px] flex items-center select-none">
                   {t.signOut}
                 </DropdownMenuItem>
               </>
             ) : (
-              <DropdownMenuItem onClick={() => base44.auth.redirectToLogin()} className="min-h-[44px] flex items-center select-none">
+              <DropdownMenuItem onClick={() => api.auth.redirectToLogin()} className="min-h-[44px] flex items-center select-none">
                 {t.signIn}
               </DropdownMenuItem>
             )}
@@ -514,7 +514,7 @@ function NavContent({ currentPageName, children }) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <img src="https://media.base44.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
+                  <img src="https://media.api.com/images/public/69a1c8600d15067fd757bfc1/3464ffadd_image.png" alt="Dar Al Djazair" className="w-6 h-6" />
                   <span className="font-bold text-white">{lang === "ar" ? "دار الجزائر" : "Dar Al Djazair"}</span>
                 </div>
                 <p className="text-xs leading-relaxed">{t.hero_subtitle}</p>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Plus, GripVertical, Building2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import OfficeCard from "./OfficeCard";
 import OfficeForm from "./OfficeForm";
 
@@ -21,7 +21,7 @@ export default function OfficesManager({ agentEmail, lang }) {
 
   async function load() {
     if (!agentEmail) { setLoading(false); return; }
-    const data = await base44.entities.AgencyOffice
+    const data = await api.entities.AgencyOffice
       .filter({ agent_email: agentEmail }, null, 100)
       .catch(() => []);
     setOffices(data || []);
@@ -32,7 +32,7 @@ export default function OfficesManager({ agentEmail, lang }) {
 
   async function handleAdd(formData) {
     setBusy(true);
-    await base44.entities.AgencyOffice.create({
+    await api.entities.AgencyOffice.create({
       ...formData,
       agent_email: agentEmail,
       display_order: offices.length,
@@ -44,7 +44,7 @@ export default function OfficesManager({ agentEmail, lang }) {
 
   async function handleEdit(formData) {
     setBusy(true);
-    await base44.entities.AgencyOffice.update(editingId, formData);
+    await api.entities.AgencyOffice.update(editingId, formData);
     setEditingId(null);
     await load();
     setBusy(false);
@@ -52,14 +52,14 @@ export default function OfficesManager({ agentEmail, lang }) {
 
   async function handleDelete(id) {
     setBusy(true);
-    await base44.entities.AgencyOffice.delete(id);
+    await api.entities.AgencyOffice.delete(id);
     await load();
     setBusy(false);
   }
 
   async function handleSetPrimary(id) {
     setBusy(true);
-    await base44.entities.AgencyOffice.update(id, { is_primary: true });
+    await api.entities.AgencyOffice.update(id, { is_primary: true });
     await load();
     setBusy(false);
   }
@@ -75,7 +75,7 @@ export default function OfficesManager({ agentEmail, lang }) {
       reordered.map((o, idx) =>
         o.display_order === idx
           ? null
-          : base44.entities.AgencyOffice.update(o.id, { display_order: idx })
+          : api.entities.AgencyOffice.update(o.id, { display_order: idx })
       ).filter(Boolean)
     );
   }

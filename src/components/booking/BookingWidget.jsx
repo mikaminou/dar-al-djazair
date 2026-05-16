@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Calendar, Clock, CheckCircle, ChevronDown, ChevronUp, Users, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,9 +31,9 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
     const today = new Date().toISOString().split("T")[0];
 
     const [listingSlots, generalSlots, appsData] = await Promise.all([
-      base44.entities.AvailabilitySlot.filter({ agent_email: agentEmail, listing_id: listingId, is_active: true }, "date", 50).catch(() => []),
-      base44.entities.AvailabilitySlot.filter({ agent_email: agentEmail, listing_id: "__global__", is_active: true }, "date", 50).catch(() => []),
-      user ? base44.entities.AppointmentProposal.filter({ proposer_email: user.email, listing_id: listingId }, "-created_date", 10).catch(() => []) : Promise.resolve([]),
+      api.entities.AvailabilitySlot.filter({ agent_email: agentEmail, listing_id: listingId, is_active: true }, "date", 50).catch(() => []),
+      api.entities.AvailabilitySlot.filter({ agent_email: agentEmail, listing_id: "__global__", is_active: true }, "date", 50).catch(() => []),
+      user ? api.entities.AppointmentProposal.filter({ proposer_email: user.email, listing_id: listingId }, "-created_date", 10).catch(() => []) : Promise.resolve([]),
     ]);
 
     // Check for existing active (pending or accepted) request by this user
@@ -82,7 +82,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
     const parentIds = [...new Set(combined.map(s => s.id))];
     const bookingCounts = {};
     for (const pid of parentIds) {
-      const apps = await base44.entities.Appointment.filter({ slot_id: pid }, "-created_date", 100).catch(() => []);
+      const apps = await api.entities.Appointment.filter({ slot_id: pid }, "-created_date", 100).catch(() => []);
       bookingCounts[pid] = apps.filter(a => a.status !== "cancelled").length;
     }
 
@@ -112,7 +112,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
     const buyerEmail = user?.email || "";
     const parentId = selectedSlot._parent_id || selectedSlot.id;
 
-    await base44.entities.Appointment.create({
+    await api.entities.Appointment.create({
       slot_id: parentId,
       listing_id: listingId,
       listing_title: listing?.title || "",
@@ -127,11 +127,11 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
     });
 
     if (buyerEmail && agentEmail) {
-      const existing = await base44.entities.Lead.filter({ listing_id: listingId, seeker_email: buyerEmail }).catch(() => []);
+      const existing = await api.entities.Lead.filter({ listing_id: listingId, seeker_email: buyerEmail }).catch(() => []);
       if (existing.length > 0) {
-        await base44.entities.Lead.update(existing[0].id, { status: "viewing" });
+        await api.entities.Lead.update(existing[0].id, { status: "viewing" });
       } else {
-        await base44.entities.Lead.create({
+        await api.entities.Lead.create({
           listing_id: listingId,
           listing_title: listing?.title || "",
           listing_wilaya: listing?.wilaya || "",
@@ -151,7 +151,7 @@ export default function BookingWidget({ listingId, agentEmail, listing, user }) 
   if (!user) return (
     <div className="mt-4 pt-4 border-t border-gray-100">
       <button
-        onClick={() => base44.auth.redirectToLogin(window.location.pathname + window.location.search)}
+        onClick={() => api.auth.redirectToLogin(window.location.pathname + window.location.search)}
         className="w-full flex items-center justify-between text-sm font-semibold text-emerald-700 hover:text-emerald-800 py-1"
       >
         <span className="flex items-center gap-2">

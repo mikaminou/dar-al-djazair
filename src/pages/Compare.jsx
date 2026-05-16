@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { ArrowLeft, CheckCircle, XCircle, MapPin, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,7 @@ export default function ComparePage() {
   useEffect(() => {
     async function load() {
       if (ids.length < 2) { setLoading(false); return; }
-      const results = await Promise.all(ids.map(id => base44.entities.Listing.filter({ id }).then(r => r[0])));
+      const results = await Promise.all(ids.map(id => api.entities.Listing.filter({ id }).then(r => r[0])));
       setListings(results.filter(Boolean));
       setLoading(false);
     }

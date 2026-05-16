@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { CalendarDays, Trash2, Clock, Users, ChevronRight, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";
@@ -41,13 +41,13 @@ export default function AvailabilityPage() {
 
   async function load() {
     setLoading(true);
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
     setUser(me);
     const [slotsData, appsData, listingsData] = await Promise.all([
-      base44.entities.AvailabilitySlot.filter({ agent_email: me.email }, "-created_date", 200).catch(() => []),
-      base44.entities.AppointmentProposal.filter({ other_email: me.email, status: "accepted" }, "-created_date", 50).catch(() => []),
-      base44.entities.Listing.filter({ created_by: me.email, status: "active" }, "title", 50).catch(() => []),
+      api.entities.AvailabilitySlot.filter({ agent_email: me.email }, "-created_date", 200).catch(() => []),
+      api.entities.AppointmentProposal.filter({ other_email: me.email, status: "accepted" }, "-created_date", 50).catch(() => []),
+      api.entities.Listing.filter({ created_by: me.email, status: "active" }, "title", 50).catch(() => []),
     ]);
     setSlots(slotsData);
     const today = new Date().toISOString().split("T")[0];
@@ -57,7 +57,7 @@ export default function AvailabilityPage() {
   }
 
   async function deleteSlot(id) {
-    await base44.entities.AvailabilitySlot.delete(id);
+    await api.entities.AvailabilitySlot.delete(id);
     setSlots(prev => prev.filter(s => s.id !== id));
   }
 
@@ -97,7 +97,7 @@ export default function AvailabilityPage() {
     </div>
   );
 
-  if (!user) { base44.auth.redirectToLogin(); return null; }
+  if (!user) { api.auth.redirectToLogin(); return null; }
 
   if (user.role !== "professional" && user.role !== "admin") {
     return (

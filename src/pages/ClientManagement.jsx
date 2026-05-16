@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, PROPERTY_TYPES } from "../components/constants";
 import { Users, Plus, Pencil, Trash2, Search, ChevronDown, ChevronUp, X, Save, Loader2 } from "lucide-react";
@@ -22,9 +22,9 @@ function SearchProfileForm({ agentEmail, clientId, clientName, profile, lang, on
     setSaving(true);
     const data = { client_id: clientId, client_name: clientName, agent_email: agentEmail, name: form.name, filters: form.filters };
     if (profile?.id) {
-      await base44.entities.ClientSearchProfile.update(profile.id, data);
+      await api.entities.ClientSearchProfile.update(profile.id, data);
     } else {
-      await base44.entities.ClientSearchProfile.create(data);
+      await api.entities.ClientSearchProfile.create(data);
     }
     setSaving(false);
     onSave();
@@ -140,21 +140,21 @@ function ClientCard({ client, lang, agentEmail, onDelete, onUpdate }) {
 
   async function loadProfiles() {
     if (profilesLoaded) return;
-    const data = await base44.entities.ClientSearchProfile.filter({ client_id: client.id }, "-created_date", 50).catch(() => []);
+    const data = await api.entities.ClientSearchProfile.filter({ client_id: client.id }, "-created_date", 50).catch(() => []);
     setProfiles(data);
     setProfilesLoaded(true);
   }
 
   async function saveEdit() {
     setSaving(true);
-    await base44.entities.Client.update(client.id, editForm);
+    await api.entities.Client.update(client.id, editForm);
     onUpdate({ ...client, ...editForm });
     setEditing(false);
     setSaving(false);
   }
 
   async function deleteProfile(profileId) {
-    await base44.entities.ClientSearchProfile.delete(profileId);
+    await api.entities.ClientSearchProfile.delete(profileId);
     setProfiles(prev => prev.filter(p => p.id !== profileId));
   }
 
@@ -288,10 +288,10 @@ export default function ClientManagement() {
   useEffect(() => { load(); }, []);
 
   async function load() {
-    const me = await base44.auth.me().catch(() => null);
+    const me = await api.auth.me().catch(() => null);
     if (!me) { setLoading(false); return; }
     setUser(me);
-    const data = await base44.entities.Client.filter({ agent_email: me.email }, "-created_date", 200).catch(() => []);
+    const data = await api.entities.Client.filter({ agent_email: me.email }, "-created_date", 200).catch(() => []);
     setClients(data);
     setLoading(false);
   }
@@ -299,7 +299,7 @@ export default function ClientManagement() {
   async function addClient() {
     if (!newClient.full_name.trim() || !user) return;
     setSaving(true);
-    const created = await base44.entities.Client.create({ ...newClient, agent_email: user.email });
+    const created = await api.entities.Client.create({ ...newClient, agent_email: user.email });
     setClients(prev => [created, ...prev]);
     setNewClient({ full_name: "", phone: "", email: "", notes: "" });
     setShowForm(false);
@@ -309,9 +309,9 @@ export default function ClientManagement() {
   async function deleteClient(id) {
     if (!confirm(lang === "ar" ? "حذف هذا العميل؟" : lang === "fr" ? "Supprimer ce client ?" : "Delete this client?")) return;
     // Also delete their search profiles
-    const profiles = await base44.entities.ClientSearchProfile.filter({ client_id: id }, null, 100).catch(() => []);
-    await Promise.all(profiles.map(p => base44.entities.ClientSearchProfile.delete(p.id)));
-    await base44.entities.Client.delete(id);
+    const profiles = await api.entities.ClientSearchProfile.filter({ client_id: id }, null, 100).catch(() => []);
+    await Promise.all(profiles.map(p => api.entities.ClientSearchProfile.delete(p.id)));
+    await api.entities.Client.delete(id);
     setClients(prev => prev.filter(c => c.id !== id));
   }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Eye, Users, TrendingUp, MessageSquare, CheckCircle, BarChart3 } from "lucide-react";
@@ -30,9 +30,9 @@ export default function ListingAnalyticsPage() {
   async function load() {
     setLoading(true);
     const [listingData, leadsData, messagesData] = await Promise.all([
-      base44.entities.Listing.filter({ id: listingId }).then(r => r[0]).catch(() => null),
-      base44.entities.Lead.filter({ listing_id: listingId }, "-created_date", 200).catch(() => []),
-      base44.entities.Message.filter({ listing_id: listingId }, "-created_date", 500).catch(() => []),
+      api.entities.Listing.filter({ id: listingId }).then(r => r[0]).catch(() => null),
+      api.entities.Lead.filter({ listing_id: listingId }, "-created_date", 200).catch(() => []),
+      api.entities.Message.filter({ listing_id: listingId }, "-created_date", 500).catch(() => []),
     ]);
     setListing(listingData);
     setLeads(leadsData);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { api } from "@/api/apiClient";
 import { Edit2, Trash2, ChevronRight, Phone, Calendar, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TenantPaymentPanel from "./TenantPaymentPanel";
@@ -11,7 +11,7 @@ export default function TenantList({ tenant, onEdit, onDelete, lang, currentUser
 
   async function loadPayments() {
     setLoadingPayments(true);
-    const data = await base44.entities.TenantPayment.filter({ tenant_id: tenant.id }, "-payment_date");
+    const data = await api.entities.TenantPayment.filter({ tenant_id: tenant.id }, "-payment_date");
     setPayments(data);
     setLoadingPayments(false);
   }
