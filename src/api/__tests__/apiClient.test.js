@@ -70,7 +70,7 @@ describe('normalizeProfile via auth.me', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null when profile row does not exist', async () => {
+  it('returns fallback user when profile row does not exist', async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: 'uid-1', email: 'a@b.com' } },
       error: null,
@@ -79,7 +79,14 @@ describe('normalizeProfile via auth.me', () => {
     mockFrom.mockReturnValue(q);
 
     const result = await api.auth.me();
-    expect(result).toBeNull();
+    expect(result).toMatchObject({
+      id: 'uid-1',
+      email: 'a@b.com',
+      role: 'individual',
+      lang: 'fr',
+      is_verified: false,
+      account_type: 'individual',
+    });
   });
 
   it('merges auth user id into profile', async () => {

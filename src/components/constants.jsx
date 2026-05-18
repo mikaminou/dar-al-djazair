@@ -66,9 +66,9 @@ export const WILAYAS = [
 ];
 
 // PROPERTY_TYPES is now driven by the single-source-of-truth config.
-// Import from propertyTypes.config.js for the full schema; this export
+// Import from propertyTypes.config.jsx.js for the full schema; this export
 // maintains backward compatibility for dropdown usage.
-export { PROPERTY_TYPES } from "./propertyTypes.config";
+export { PROPERTY_TYPES } from "./propertyTypes.config.jsx";
 
 export const FEATURES_LIST = [
   {

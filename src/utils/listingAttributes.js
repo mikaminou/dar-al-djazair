@@ -9,7 +9,7 @@
  *  - Social caption rendering
  *  - Duplicate detection per property type
  */
-import { getPropertyType, getFieldsForType } from "@/components/propertyTypes.config";
+import { getPropertyType, getFieldsForType } from "@/components/propertyTypes.config.jsx";
 
 // ─── Attributes resolver ─────────────────────────────────────────────────────
 // All type-specific fields now live as top-level columns on the listing
@@ -18,7 +18,7 @@ import { getPropertyType, getFieldsForType } from "@/components/propertyTypes.co
 // it merges any legacy `attributes` object with the flat top-level fields
 // driven by the property type config.
 
-import { getFieldsForType as _getFieldsForType } from "@/components/propertyTypes.config";
+import { getFieldsForType as _getFieldsForType } from "@/components/propertyTypes.config.jsx";
 
 export function resolveAttributes(listing) {
   if (!listing) return {};

@@ -187,7 +187,7 @@ export const t = (key, lang) => VM[key]?.[lang] || VM[key]?.en || key;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-import { getAllPropertyTypes, getFieldsForType, validateAttributes } from "../propertyTypes.config";
+import { getAllPropertyTypes, getFieldsForType, validateAttributes } from "../propertyTypes.config.jsx";
 
 const VALID_LISTING_TYPES  = ["sale", "rent"];
 // Derived from the config — single source of truth

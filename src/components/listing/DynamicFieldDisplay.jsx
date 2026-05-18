@@ -1,7 +1,7 @@
 /**
  * DynamicFieldDisplay
  * Read-only display of a listing's type-specific attributes.
- * Driven by propertyTypes.config.js — no hardcoded field logic.
+ * Driven by propertyTypes.config.jsx.js — no hardcoded field logic.
  *
  * Props:
  *   propertyType  (string)  — e.g. "apartment"
@@ -11,7 +11,7 @@
  */
 
 import React from "react";
-import { getPropertyType } from "../propertyTypes.config";
+import { getPropertyType } from "../propertyTypes.config.jsx";
 import {
   Ruler, LayoutGrid, BedDouble, Bath, Layers, Sofa, Fence, ParkingSquare,
   Calendar, Compass, Sun, Snowflake, Trees, Waves, Mountain, Wifi,

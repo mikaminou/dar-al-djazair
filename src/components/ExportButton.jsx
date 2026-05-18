@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Download, FileText, Table, Loader2 } from "lucide-react";
-import { getFieldsForType, getPropertyType } from "@/components/propertyTypes.config";
+import { getFieldsForType, getPropertyType } from "@/components/propertyTypes.config.jsx";
 import { resolveAttributes, formatAttributeValue } from "@/utils/listingAttributes";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

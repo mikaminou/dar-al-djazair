@@ -6,7 +6,7 @@
  * Adding a new property type or field in the config requires
  * zero changes to this file.
  */
-import { getFieldsForType } from "@/components/propertyTypes.config";
+import { getFieldsForType } from "@/components/propertyTypes.config.jsx";
 
 /**
  * Legacy adapter: returns attribute value, checking listing.attributes first,

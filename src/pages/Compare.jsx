@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLang } from "../components/LanguageContext";
 import { formatPrice, PROPERTY_TYPES } from "../components/constants";
-import { getFieldsForType, getPropertyType } from "@/components/propertyTypes.config";
+import { getFieldsForType, getPropertyType } from "@/components/propertyTypes.config.jsx";
 import { resolveAttributes, formatAttributeValue } from "@/utils/listingAttributes";
 
 // ─── Universal fields always shown ────────────────────────────────────────────

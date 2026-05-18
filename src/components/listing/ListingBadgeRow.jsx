@@ -1,10 +1,10 @@
 /**
  * ListingBadgeRow
  * Renders prominent attribute badges near the price section.
- * Driven by showAsBadge flags in propertyTypes.config.js.
+ * Driven by showAsBadge flags in propertyTypes.config.jsx.js.
  */
 import React from "react";
-import { getPropertyType } from "../propertyTypes.config";
+import { getPropertyType } from "../propertyTypes.config.jsx";
 
 const BADGE_RULES = {
   land: [

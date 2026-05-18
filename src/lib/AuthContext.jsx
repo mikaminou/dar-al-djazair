@@ -67,31 +67,65 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
 
   useEffect(() => {
-    // Resolve initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const profile = await fetchProfile(session.user);
-        setUser(profile);
-        setIsAuthenticated(!!session.user);
+    let isMounted = true;
+
+    // Resolve initial session first; profile hydration runs in the background.
+    const resolveInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+
+        if (session?.user) {
+          setIsAuthenticated(true);
+          setIsLoadingAuth(false);
+
+          fetchProfile(session.user)
+            .then((profile) => {
+              if (isMounted) setUser(profile);
+            })
+            .catch(() => {
+              // fetchProfile already handles fallback; keep UI usable.
+            });
+          return;
+        }
+
+        setUser(null);
+        setIsAuthenticated(false);
+      } catch (err) {
+        console.warn('[AuthContext] Failed to resolve initial session.', err);
+        if (!isMounted) return;
+        setUser(null);
+        setIsAuthenticated(false);
+      } finally {
+        if (isMounted) setIsLoadingAuth(false);
       }
-      setIsLoadingAuth(false);
-    });
+    };
+
+    resolveInitialSession();
 
     // Listen for sign-in / sign-out events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
+        if (!isMounted) return;
         if (session?.user) {
+          setIsAuthenticated(true);
+          setIsLoadingAuth(false);
+
           const profile = await fetchProfile(session.user);
+          if (!isMounted) return;
           setUser(profile);
-          setIsAuthenticated(!!session.user);
         } else {
           setUser(null);
           setIsAuthenticated(false);
+          setIsLoadingAuth(false);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const logout = useCallback(async (shouldRedirect = true) => {

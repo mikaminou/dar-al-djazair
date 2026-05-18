@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
 import { api } from '@/api/apiClient';
+import { PUSH_CONFIG } from '@/config/push.config';
 
 export default function PushAlertManager() {
   useEffect(() => {
+    if (!PUSH_CONFIG.ENABLED) return;
+
     let retryCount = 0;
     const maxRetries = 5;
     

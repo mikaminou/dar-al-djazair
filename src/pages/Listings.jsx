@@ -16,7 +16,7 @@ import QuickFilterChips from "../components/listing/QuickFilterChips";
 import { useLang } from "../components/LanguageContext";
 import { applyDynamicFilters } from "@/utils/matchesSearch";
 import { decodeFiltersFromUrl, pushFilterStateToUrl } from "@/utils/urlFilterState";
-import { getAllPropertyTypes } from "@/components/propertyTypes.config";
+import { getAllPropertyTypes } from "@/components/propertyTypes.config.jsx";
 
 // ── Sort options (base + type-specific added dynamically) ────────────────────
 const BASE_SORT_OPTIONS = [

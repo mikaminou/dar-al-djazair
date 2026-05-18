@@ -7,7 +7,7 @@
  *   'owner'    — adds edit/delete controls
  *   'admin'    — adds approve/decline controls
  *
- * Dynamic facts and badges are driven entirely by propertyTypes.config.js.
+ * Dynamic facts and badges are driven entirely by propertyTypes.config.jsx.js.
  * No type-specific conditionals live here.
  */
 import React, { memo, useState, useCallback } from "react";
@@ -22,7 +22,7 @@ import { formatPrice } from "../price.config";
 import VerifiedBadge from "../trust/VerifiedBadge";
 import ListingCardFacts from "./ListingCardFacts";
 import ListingCardBadges from "./ListingCardBadges";
-import { getAllPropertyTypes } from "../propertyTypes.config";
+import { getAllPropertyTypes } from "../propertyTypes.config.jsx";
 import { formatDistanceToNow } from "date-fns";
 import { fr, ar as arLocale, enUS } from "date-fns/locale";
 

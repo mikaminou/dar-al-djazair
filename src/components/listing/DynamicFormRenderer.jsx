@@ -16,7 +16,7 @@ import { AlertCircle, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getPropertyType, getRequiredFields } from "../propertyTypes.config";
+import { getPropertyType, getRequiredFields } from "../propertyTypes.config.jsx";
 
 function lbl(field, lang) {
   return field.label?.[lang] || field.label?.fr || field.key;
@@ -72,7 +72,7 @@ function NumberField({ field, value, onChange, error, warning, lang, listingType
        </div>
      );
    }
-  
+
   // Non-amenity number fields: standard text input
   return (
     <div>
@@ -127,7 +127,7 @@ function BooleanField({ field, value, onChange, lang }) {
   const active = !!value[field.key];
   // Amenities group: render as pill toggles (full-width clickable)
   const isAmenity = field.group === "amenities";
-  
+
   if (isAmenity) {
     return (
       <button
@@ -143,7 +143,7 @@ function BooleanField({ field, value, onChange, lang }) {
       </button>
     );
   }
-  
+
   // Non-amenity booleans: render as radio dots
   return (
     <button
@@ -322,7 +322,7 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
         const bools = boolFields.filter(b => b.group.key === group.key).map(b => b.field);
         const numericAmenities = amenityNumericFields.filter(a => a.group.key === group.key).map(a => a.field);
         const boolAmenities = amenityBoolFields.filter(a => a.group.key === group.key).map(a => a.field);
-        
+
         if (regular.length === 0 && bools.length === 0 && numericAmenities.length === 0 && boolAmenities.length === 0) return null;
 
         return (
@@ -341,21 +341,21 @@ export default function DynamicFormRenderer({ propertyType, listingType, value, 
                 {regular.map(f => renderField(f))}
               </div>
             )}
-            
+
             {/* Non-amenity booleans (radio dots) */}
             {bools.length > 0 && (
               <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 ${regular.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
                 {bools.map(f => renderField(f))}
               </div>
             )}
-            
+
             {/* Numeric amenities (steppers) */}
             {numericAmenities.length > 0 && (
               <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 ${regular.length > 0 || bools.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>
                 {numericAmenities.map(f => renderField(f))}
               </div>
             )}
-            
+
             {/* Boolean amenity pills (flex wrap) */}
             {boolAmenities.length > 0 && (
               <div className={`flex flex-wrap gap-2 ${regular.length > 0 || bools.length > 0 || numericAmenities.length > 0 ? "mt-1 pt-3 border-t border-gray-100" : ""}`}>

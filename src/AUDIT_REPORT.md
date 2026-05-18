@@ -210,7 +210,7 @@ Base44 uses a managed backend-as-a-service. The database schema is represented v
 
 The loader functions exist but in the **frontend** component directory, not a server module:
 ```js
-// propertyTypes.config.js lines 317–344
+// propertyTypes.config.jsx.js lines 317–344
 export function getPropertyType(key) { ... }
 export function getAllPropertyTypes() { ... }
 export function getFieldsForType(key) { ... }

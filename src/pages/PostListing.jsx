@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useLang } from "../components/LanguageContext";
 import { WILAYAS, formatPrice } from "../components/constants";
-import { PROPERTY_TYPES, migrateAttributes, getAllPropertyTypes } from "../components/propertyTypes.config";
+import { PROPERTY_TYPES, migrateAttributes, getAllPropertyTypes } from "../components/propertyTypes.config.jsx";
 import { LISTING_CONFIG } from "../components/listing";
 import DynamicFormRenderer from "../components/listing/DynamicFormRenderer";
 

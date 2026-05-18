@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Sparkles, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getFilterSchema, countActiveTypeFilters } from "../perTypeFilterSchema";
-import { PROPERTY_TYPES } from "@/components/propertyTypes.config";
+import { PROPERTY_TYPES } from "@/components/propertyTypes.config.jsx";
 import RangeField from "./RangeField";
 import MinCountField from "./MinCountField";
 import BooleanToggle from "./BooleanToggle";

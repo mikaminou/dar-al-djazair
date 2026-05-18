@@ -4,7 +4,7 @@
  * Memoized: re-renders only when attrs or lang change.
  */
 import React, { useMemo } from "react";
-import { getCardFields } from "../propertyTypes.config";
+import { getCardFields } from "../propertyTypes.config.jsx";
 import {
   BedDouble, Maximize2, Layers, Trees, Building2,
   Ruler, Tag, LayoutGrid, Droplets, Zap, Home,

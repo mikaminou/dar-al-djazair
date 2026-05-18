@@ -1,11 +1,11 @@
 /**
  * QuickFilterChips — horizontally scrollable chip row above results.
- * Reads from quickFilterChips.config.js — zero hardcoded type logic.
+ * Reads from quickFilterChips.config.jsx.js — zero hardcoded type logic.
  * A chip is highlighted when its filters match the current filter state.
  * Tapping an active chip clears those filters.
  */
 import React from "react";
-import { QUICK_FILTER_CHIPS } from "../quickFilterChips.config";
+import { QUICK_FILTER_CHIPS } from "../quickFilterChips.config.jsx";
 
 function chipsMatch(chipFilters, currentFilters) {
   for (const [key, val] of Object.entries(chipFilters)) {

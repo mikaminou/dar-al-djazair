@@ -1,8 +1,11 @@
 import React, { useEffect } from 'react';
 import { api } from '@/api/apiClient';
+import { PUSH_CONFIG } from '@/config/push.config';
 
 export function PushNotificationManager() {
   useEffect(() => {
+    if (!PUSH_CONFIG.ENABLED) return;
+
     const initPush = async () => {
       try {
         // Check if service workers are supported
@@ -34,7 +37,7 @@ export function PushNotificationManager() {
           try {
             const vapidResponse = await fetch('/api/functions/getVapidPublic');
             const vapidText = await vapidResponse.text();
-            
+
             // Convert base64 to Uint8Array for applicationServerKey
             const binaryString = atob(vapidText);
             const bytes = new Uint8Array(binaryString.length);

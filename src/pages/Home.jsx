@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { api } from "@/api/apiClient";
-import { Search, TrendingUp, Shield, Star, ArrowRight, Building, Home as HomeIcon, Trees, Briefcase } from "lucide-react";
+import { Search, TrendingUp, Shield, ArrowRight, Building, Home as HomeIcon, Trees, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ListingCard from "../components/listing/ListingCard";
 import { useLang } from "../components/LanguageContext";
-import { WILAYAS, PROPERTY_TYPES, formatPrice } from "../components/constants";
+import { WILAYAS, PROPERTY_TYPES } from "../components/constants";
 
 export default function HomePage() {
   const { t, lang } = useLang();
@@ -58,8 +58,6 @@ export default function HomePage() {
     if (filters.wilaya) params.set("wilaya", filters.wilaya);
     window.location.href = createPageUrl(`Listings?${params.toString()}`);
   }
-
-  const featuredListings = listings.filter(l => l.is_featured);
   const recentListings = listings.slice(0, 8);
 
   const propertyCategories = [

@@ -20,6 +20,7 @@ import { TabNavigationProvider } from '@/components/TabNavigationContext';
 import PushNotificationManager from '@/components/PushNotificationManager';
 import PushAlertManager from '@/components/PushAlertManager';
 import AuthGuard from '@/components/AuthGuard';
+import { PUSH_CONFIG } from '@/config/push.config';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -71,8 +72,8 @@ const AuthenticatedApp = () => {
 
   return (
     <>
-      <PushNotificationManager />
-      <PushAlertManager />
+      {PUSH_CONFIG.ENABLED && <PushNotificationManager />}
+      {PUSH_CONFIG.ENABLED && <PushAlertManager />}
       <Routes>
         {/* Login page — always public */}
         <Route path="/Login" element={<Login />} />
@@ -126,6 +127,17 @@ const AuthenticatedApp = () => {
 
 function App() {
   React.useEffect(() => {
+    if (!PUSH_CONFIG.ENABLED) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          registrations.forEach((registration) => {
+            registration.unregister().catch(() => {});
+          });
+        }).catch(() => {});
+      }
+      return;
+    }
+
     // Load PushAlert script
     const script = document.createElement('script');
     script.type = 'text/javascript';
@@ -142,7 +154,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <QueryClientProvider client={queryClientInstance}>
-          <Router>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <TabNavigationProvider>
               <AuthenticatedApp />
             </TabNavigationProvider>

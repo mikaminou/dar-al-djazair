@@ -1,4 +1,4 @@
-// Mirror of components/propertyTypes.config.js — keep in sync.
+// Mirror of components/propertyTypes.config.jsx.js — keep in sync.
 import { corsHeaders } from "../_shared/cors.ts";
 
 const CONFIG = {

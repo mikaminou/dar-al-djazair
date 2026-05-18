@@ -4,7 +4,7 @@
  * Memoized: pure — same listing + lang → same output.
  */
 import React, { useMemo } from "react";
-import { getCardBadgeFields } from "../propertyTypes.config";
+import { getCardBadgeFields } from "../propertyTypes.config.jsx";
 import { legacyAttributesAdapter } from "./DynamicFieldDisplay";
 
 const STYLE_CLASSES = {

@@ -25,6 +25,33 @@ function normalizeProfile(profile, authUser = null) {
   };
 }
 
+function buildFallbackUser(authUser) {
+  if (!authUser) return null;
+  const emailPrefix =
+    authUser.email && authUser.email.includes('@')
+      ? authUser.email.split('@')[0].trim()
+      : '';
+  const fullName =
+    authUser.user_metadata?.full_name ||
+    authUser.user_metadata?.name ||
+    emailPrefix ||
+    authUser.email ||
+    'Utilisateur';
+
+  return {
+    id: authUser.id,
+    email: authUser.email,
+    full_name: fullName,
+    role: 'individual',
+    lang: 'fr',
+    is_verified: false,
+    account_type: 'individual',
+    first_name: authUser.user_metadata?.first_name,
+    last_name: authUser.user_metadata?.last_name,
+    verification_status: null,
+  };
+}
+
 function denormalizeProfile(data) {
   if (!data || typeof data !== 'object') return data;
   const out = { ...data };
@@ -45,12 +72,21 @@ const auth = {
   async me() {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error || !user) return null;
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', user.email)
-      .maybeSingle();
-    return normalizeProfile(profile, user);
+    try {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('email', user.email)
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        return buildFallbackUser(user);
+      }
+
+      return normalizeProfile(profile, user);
+    } catch {
+      return buildFallbackUser(user);
+    }
   },
 
   async logout(redirectUrl) {

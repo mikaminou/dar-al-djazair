@@ -1,4 +1,4 @@
-// Mirror of components/quickFilterChips.config.js — keep in sync.
+// Mirror of components/quickFilterChips.config.jsx.js — keep in sync.
 import { corsHeaders } from "../_shared/cors.ts";
 
 const CHIPS = [

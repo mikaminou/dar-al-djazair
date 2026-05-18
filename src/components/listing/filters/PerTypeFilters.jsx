@@ -1,7 +1,7 @@
 import React from "react";
 import { Sparkles, Lock } from "lucide-react";
 import { getFilterSchema, countActiveTypeFilters } from "../perTypeFilterSchema";
-import { PROPERTY_TYPES } from "@/components/propertyTypes.config";
+import { PROPERTY_TYPES } from "@/components/propertyTypes.config.jsx";
 import FilterSection from "./FilterSection";
 
 /**
