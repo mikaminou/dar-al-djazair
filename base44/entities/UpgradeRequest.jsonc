@@ -1,0 +1,38 @@
+{
+  "name": "UpgradeRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "monthly",
+        "yearly"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected"
+      ],
+      "default": "pending"
+    },
+    "admin_note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "plan"
+  ]
+}

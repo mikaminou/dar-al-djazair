@@ -1,0 +1,45 @@
+{
+  "name": "TenantPayment",
+  "type": "object",
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "ID of the tenant this payment belongs to"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Total amount received for this period"
+    },
+    "payment_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the payment was received"
+    },
+    "period_start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Start date of the period covered by this payment"
+    },
+    "period_end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "End date of the period covered by this payment"
+    },
+    "reference_number": {
+      "type": "string",
+      "description": "Unique receipt reference number"
+    },
+    "landlord_email": {
+      "type": "string",
+      "description": "Email of the landlord"
+    }
+  },
+  "required": [
+    "tenant_id",
+    "amount",
+    "payment_date",
+    "period_start_date",
+    "period_end_date",
+    "landlord_email"
+  ]
+}
